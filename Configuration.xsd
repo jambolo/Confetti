@@ -1,0 +1,240 @@
+<?xml version="1.0" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:element name="ParticleSystem" type="particlesystem">
+		<xsd:keyref name="EmitterVolumeIdRef" refer="VolumeId">
+			<xsd:selector xpath="Emitter"/>
+			<xsd:field xpath="Volume"/>
+		</xsd:keyref>
+		<xsd:keyref name="EmitterEnvironmentIdRef" refer="EnvironmentId">
+			<xsd:selector xpath="Emitter"/>
+			<xsd:field xpath="Environment"/>
+		</xsd:keyref>
+		<xsd:keyref name="EmitterAppearanceIdRef" refer="AppearanceId">
+			<xsd:selector xpath="Emitter"/>
+			<xsd:field xpath="Appearance"/>
+		</xsd:keyref>
+		<xsd:keyref name="EnvironmentBouncePlaneListIdRef" refer="BouncePlaneListId">
+			<xsd:selector xpath="Environment"/>
+			<xsd:field xpath="Bounce"/>
+		</xsd:keyref>
+		<xsd:keyref name="EnvironmentClipPlaneListIdRef" refer="ClipPlaneListId">
+			<xsd:selector xpath="Environment"/>
+			<xsd:field xpath="Clip"/>
+		</xsd:keyref>
+		<xsd:key name="EnvironmentId">
+			<xsd:selector xpath="Environment"/>
+			<xsd:field xpath="@name"/>
+		</xsd:key>
+		<xsd:key name="AppearanceId">
+			<xsd:selector xpath="Appearance"/>
+			<xsd:field xpath="@name"/>
+		</xsd:key>
+		<xsd:key name="VolumeId">
+			<xsd:selector xpath="Volume"/>
+			<xsd:field xpath="@name"/>
+		</xsd:key>
+		<xsd:key name="BouncePlaneListId">
+			<xsd:selector xpath="BouncePlaneList"/>
+			<xsd:field xpath="@name"/>
+		</xsd:key>
+		<xsd:key name="ClipPlaneListId">
+			<xsd:selector xpath="ClipPlaneList"/>
+			<xsd:field xpath="@name"/>
+		</xsd:key>
+	</xsd:element>
+	<!-- Particle System -->
+	<xsd:complexType name="particlesystem">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="Emitter" type="emitter"/>
+			<xsd:element name="Environment" type="environment"/>
+			<xsd:element name="Appearance" type="appearance"/>
+			<xsd:element name="Volume" type="volume"/>
+			<xsd:element name="BouncePlaneList" type="bounceplanelist"/>
+			<xsd:element name="ClipPlaneList" type="clipplanelist"/>
+		</xsd:choice>
+	</xsd:complexType>
+	<!-- Emitter -->
+	<xsd:complexType name="emitter">
+		<xsd:all>
+			<xsd:element name="Volume" type="xsd:string"/>
+			<xsd:element name="Environment" type="xsd:string"/>
+			<xsd:element name="Appearance" type="xsd:string"/>
+			<xsd:element name="Position" type="vector3" minOccurs="0"/>
+			<xsd:element name="Orientation" type="quaternion" minOccurs="0"/>
+			<xsd:element name="Velocity" type="vector3" minOccurs="0"/>
+			<xsd:element name="Count" type="xsd:integer"/>
+			<xsd:element name="Lifetime" type="xsd:float"/>
+			<xsd:element name="Spread" type="xsd:float"/>
+			<xsd:element name="MinSpeed" type="xsd:float"/>
+			<xsd:element name="MaxSpeed" type="xsd:float"/>
+			<xsd:element name="Color" type="rgba" minOccurs="0"/>
+			<xsd:element name="Radius" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="ParticleList" type="particlelist" minOccurs="0"/>
+			<xsd:element name="Sorted" type="xsd:boolean" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="type" type="emittertype" use="required"/>
+	</xsd:complexType>
+	<!-- Environment -->
+	<xsd:complexType name="environment">
+		<xsd:all>
+			<xsd:element name="Gravity" type="vector3" minOccurs="0"/>
+			<xsd:element name="WindVelocity" type="vector3" minOccurs="0"/>
+			<xsd:element name="Gustiness" type="vector3" minOccurs="0"/>
+			<xsd:element name="AirFriction" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Bounce" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="Clip" type="xsd:string" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<!-- Appearance -->
+	<xsd:complexType name="appearance">
+		<xsd:all>
+			<xsd:element name="ColorChange" type="glcolorchange" minOccurs="0"/>
+			<xsd:element name="RadiusChange" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="RadialVelocity" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Texture" type="xsd:anyURI" minOccurs="0"/>
+			<xsd:element name="Size" type="xsd:float" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<!-- Volume -->
+	<xsd:complexType name="volume">
+		<xsd:all>
+			<xsd:element name="Length" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Width" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Height" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Depth" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Radius" type="xsd:float" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="type" type="volumetype" use="required"/>
+	</xsd:complexType>
+	<!-- Bounce Plane List -->
+	<xsd:complexType name="bounceplanelist">
+		<xsd:sequence>
+			<xsd:element name="BouncePlane" type="bounceplane" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<!-- Clip Plane List -->
+	<xsd:complexType name="clipplanelist">
+		<xsd:sequence>
+			<xsd:element name="ClipPlane" type="plane" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<!-- Particle List -->
+	<xsd:complexType name="particlelist">
+		<xsd:sequence>
+			<xsd:element name="Particle" type="particle" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- Bounce Plane -->
+	<xsd:complexType name="bounceplane">
+		<xsd:all>
+			<xsd:element name="Plane" type="plane"/>
+			<xsd:element name="Dampening" type="xsd:float"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- Particle -->
+	<xsd:complexType name="particle">
+		<xsd:all>
+			<xsd:element name="Lifetime" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Age" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Position" type="vector3"/>
+			<xsd:element name="Velocity" type="vector3"/>
+			<xsd:element name="Color" type="rgba" minOccurs="0"/>
+			<xsd:element name="Radius" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Rotation" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="Orientation" type="quaternion" minOccurs="0"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- Vector -->
+	<xsd:complexType name="vector3">
+		<xsd:all>
+			<xsd:element name="X" type="xsd:float"/>
+			<xsd:element name="Y" type="xsd:float"/>
+			<xsd:element name="Z" type="xsd:float"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- Plane -->
+	<xsd:complexType name="plane">
+		<xsd:all>
+			<xsd:element name="X" type="xsd:float"/>
+			<xsd:element name="Y" type="xsd:float"/>
+			<xsd:element name="Z" type="xsd:float"/>
+			<xsd:element name="D" type="xsd:float"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- Quaternion -->
+	<xsd:complexType name="quaternion">
+		<xsd:all>
+			<xsd:element name="X" type="xsd:float"/>
+			<xsd:element name="Y" type="xsd:float"/>
+			<xsd:element name="Z" type="xsd:float"/>
+			<xsd:element name="W" type="xsd:float"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- OpenGL-Style Color -->
+	<xsd:complexType name="glcolor">
+		<xsd:all>
+			<xsd:element name="R" type="glcolorelement"/>
+			<xsd:element name="G" type="glcolorelement"/>
+			<xsd:element name="B" type="glcolorelement"/>
+			<xsd:element name="A" type="glcolorelement" minOccurs="0" default="1.0"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- OpenGL-Style Color Change -->
+	<xsd:complexType name="glcolorchange">
+		<xsd:all>
+			<xsd:element name="R" type="glcolorchangeelement" minOccurs="0" default="0.0"/>
+			<xsd:element name="G" type="glcolorchangeelement" minOccurs="0" default="0.0"/>
+			<xsd:element name="B" type="glcolorchangeelement" minOccurs="0" default="0.0"/>
+			<xsd:element name="A" type="glcolorchangeelement" minOccurs="0" default="0.0"/>
+		</xsd:all>
+	</xsd:complexType>
+	<!-- Emitter Enumeration -->
+	<xsd:simpleType name="emittertype">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="point"/>
+			<xsd:enumeration value="streak"/>
+			<xsd:enumeration value="textured"/>
+			<xsd:enumeration value="sphere"/>
+			<xsd:enumeration value="emitter"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- Volume Enumeration -->
+	<xsd:simpleType name="volumetype">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="point"/>
+			<xsd:enumeration value="line"/>
+			<xsd:enumeration value="rectangle"/>
+			<xsd:enumeration value="circle"/>
+			<xsd:enumeration value="sphere"/>
+			<xsd:enumeration value="box"/>
+			<xsd:enumeration value="cylinder"/>
+			<xsd:enumeration value="cone"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- RGBA -->
+	<xsd:simpleType name="rgba">
+		<xsd:restriction base="xsd:hexBinary">
+			<xsd:length value="4"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- OpenGL-Style Color Element -->
+	<xsd:simpleType name="glcolorelement">
+		<xsd:restriction base="xsd:float">
+			<xsd:minInclusive value="0.0"/>
+			<xsd:maxInclusive value="1.0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<!-- OpenGL-Style Color Change Element -->
+	<xsd:simpleType name="glcolorchangeelement">
+		<xsd:restriction base="xsd:float">
+			<xsd:minInclusive value="-1.0"/>
+			<xsd:maxInclusive value="1.0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>
