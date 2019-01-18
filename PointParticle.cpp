@@ -20,20 +20,20 @@
 
 #include "Misc/Max.h"
 
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
+
 namespace Confetti
 {
 // Vertex shader data declaration info
 
-D3DVERTEXELEMENT9 const PointParticle::m_aVSDataDeclarationInfo[] =
+D3DVERTEXELEMENT11 const PointParticle::aVSDataDeclarationInfo_[] =
 {
     { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
     { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
     D3DDECL_END()
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
@@ -42,51 +42,31 @@ D3DVERTEXELEMENT9 const PointParticle::m_aVSDataDeclarationInfo[] =
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth.
 
-PointParticle::PointParticle(BasicEmitter const * pEmitter,
-                             float                lifetime,
-                             float                age,
-                             D3DXVECTOR3 const &  position,
-                             D3DXVECTOR3 const &  velocity,
-                             D3DXCOLOR const &    color)
+PointParticle::PointParticle(BasicEmitter const *      pEmitter,
+                             float                     lifetime,
+                             float                     age,
+                             DirectX::XMFLOAT3 const & position,
+                             DirectX::XMFLOAT3 const & velocity,
+                             DirectX::XMFLOAT3 const & color)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-PointParticle::~PointParticle()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-void PointParticle::Initialize(float               lifetime,
-                               float               age,
-                               D3DXVECTOR3 const & position,
-                               D3DXVECTOR3 const & velocity,
-                               D3DXCOLOR const &   color)
+void PointParticle::Initialize(float                     lifetime,
+                               float                     age,
+                               DirectX::XMFLOAT3 const & position,
+                               DirectX::XMFLOAT3 const & velocity,
+                               DirectX::XMFLOAT3 const & color)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 bool PointParticle::Update(float dt)
 {
     return Particle::Update(dt);
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-void PointParticle::Draw(IDirect3DDevice9 * pD3dDevice) const
+void PointParticle::Draw(IDirect3DDevice11 * pD3dDevice) const
 {
     // Nothing to do. The particles are drawn by the emitter. This function should not be called.
     assert(false);

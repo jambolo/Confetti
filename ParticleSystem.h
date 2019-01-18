@@ -15,7 +15,7 @@
 
 #include <vector>
 
-struct IDirect3DDevice9;
+struct IDirect3DDevice11;
 
 namespace Confetti
 {
@@ -23,10 +23,6 @@ class BasicEmitter;
 class Appearance;
 class EmitterVolume;
 class Environment;
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! The particle system
 //
@@ -37,8 +33,8 @@ class ParticleSystem
 {
 public:
 
-    //! Default constructor
-    ParticleSystem(IDirect3DDevice9 * pD3dDevice);
+    //! Constructor
+    ParticleSystem(IDirect3DDevice11 * pD3dDevice);
 
     //! Destructor
     ~ParticleSystem();
@@ -63,14 +59,14 @@ public:
 
 private:
 
-    typedef std::vector<BasicEmitter *>   EmitterList;
-    typedef std::vector<Environment *>    EnvironmentList;
-    typedef std::vector<Appearance *>     AppearanceList;
+    using EmitterList     = std::vector<BasicEmitter *>;
+    using EnvironmentList = std::vector<Environment *>;
+    using AppearanceList  = std::vector<Appearance *>;
 
-    IDirect3DDevice9 * m_pD3dDevice;
+    IDirect3DDevice11 * pD3dDevice_;
 
-    EmitterList m_Emitters;                                     // Active emitters
-    EnvironmentList m_Environments;                             // Active environments
-    AppearanceList m_Appearances;                               // Active appearances
+    EmitterList emitters_;                                     // Active emitters
+    EnvironmentList environments_;                             // Active environments
+    AppearanceList appearances_;                               // Active appearances
 };
 } // namespace Confetti

@@ -11,36 +11,35 @@
 
 ********************************************************************************************************************/
 
-#include "PrecompiledHeaders.h"
-
 #include "Configuration.h"
+
+#include <atlbase.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
 
 namespace
 {
-D3DXVECTOR3 GetD3DXVECTOR3SubElement(IXMLDOMElement *    pElement,
-                                     char const *        sName,
-                                     D3DXVECTOR3 const & defaultVec = Dxx::Vector3Origin());
+DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pElement,
+                                                char const *              sName,
+                                                DirectX::XMFLOAT4 const & defaultVec = DirectX::XMVectorZero());
 
-D3DXPLANE GetD3DXPLANESubElement(IXMLDOMElement * pElement,
-                                 char const * sName,
-                                 D3DXPLANE const & defaultPlane = D3DXPLANE(0.0f, 1.0f, 0.0f, 0.0f));
+DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement * pElement,
+                                                char const * sName,
+                                                DirectX::XMFLOAT4 const & defaultPlane = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f,
+                                                                                                              0.0f));
 
-D3DXCOLOR GetRgbaSubElement(IXMLDOMElement * pElement,
-                            char const * sName,
-                            D3DXCOLOR const & defaultRgba = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f));
+DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement *          pElement,
+                                    char const *              sName,
+                                    DirectX::XMFLOAT4 const & defaultRgba = DirectX::XMVectorZero());
 
-D3DXQUATERNION GetQuatSubElement(IXMLDOMElement *       pElement,
-                                 char const *           sName,
-                                 D3DXQUATERNION const & defaultQuat = Dxx::QuaternionIdentity());
+DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
+                                    char const *              sName,
+                                    DirectX::XMFLOAT4 const & defaultQuat = Dxx::QuaternionIdentity());
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 GetD3DXVECTOR3SubElement(IXMLDOMElement *    pElement,
-                                     char const *        sName,
-                                     D3DXVECTOR3 const & defaultVec /* = Dxx::Vector3Origin()*/)
+DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pElement,
+                                                char const *              sName,
+                                                DirectX::XMFLOAT4 const & defaultVec /* = DirectX::XMVectorZero()*/)
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -56,7 +55,7 @@ D3DXVECTOR3 GetD3DXVECTOR3SubElement(IXMLDOMElement *    pElement,
         //		</xsd:all>
         //	</xsd:complexType>
 
-        D3DXVECTOR3 v;
+        DirectX::XMFLOAT4 v;
 
         v.x = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultVec.x);
         v.y = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultVec.y);
@@ -70,14 +69,10 @@ D3DXVECTOR3 GetD3DXVECTOR3SubElement(IXMLDOMElement *    pElement,
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXPLANE GetD3DXPLANESubElement(IXMLDOMElement *  pElement,
-                                 char const *      sName,
-                                 D3DXPLANE const & defaultPlane /* = D3DXPLANE( 0.0f, 1.0f, 0.0f, 0.0f )*/)
+DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pElement,
+                                                char const *              sName,
+                                                DirectX::XMFLOAT4 const & defaultPlane /* = DirectX::XMFLOAT4( 0.0f, 1.0f, 0.0f,
+                                                                                          0.0f )*/                                       )
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -94,7 +89,7 @@ D3DXPLANE GetD3DXPLANESubElement(IXMLDOMElement *  pElement,
         //		</xsd:all>
         //	</xsd:complexType>
 
-        D3DXPLANE plane;
+        DirectX::XMFLOAT4 plane;
 
         plane.a = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultPlane.a);
         plane.b = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultPlane.b);
@@ -109,14 +104,9 @@ D3DXPLANE GetD3DXPLANESubElement(IXMLDOMElement *  pElement,
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXCOLOR GetRgbaSubElement(IXMLDOMElement *  pElement,
-                            char const *      sName,
-                            D3DXCOLOR const & defaultRgba /* = D3DXCOLOR( 0.0f, 0.0f, 0.0f, 0.0f )*/)
+DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement *          pElement,
+                                    char const *              sName,
+                                    DirectX::XMFLOAT4 const & defaultRgba /* = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f )*/)
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -133,7 +123,7 @@ D3DXCOLOR GetRgbaSubElement(IXMLDOMElement *  pElement,
         //		</xsd:all>
         //	</xsd:complexType>
 
-        D3DXCOLOR rgba;
+        DirectX::XMFLOAT4 rgba;
 
         rgba.r = Msxmlx::GetFloatSubElement(pSubElement, "R", defaultRgba.r);
         rgba.g = Msxmlx::GetFloatSubElement(pSubElement, "G", defaultRgba.g);
@@ -148,14 +138,9 @@ D3DXCOLOR GetRgbaSubElement(IXMLDOMElement *  pElement,
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXQUATERNION GetQuatSubElement(IXMLDOMElement *       pElement,
-                                 char const *           sName,
-                                 D3DXQUATERNION const & defaultQuat /* = Dxx::QuaternionIdentity()*/)
+DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
+                                    char const *              sName,
+                                    DirectX::XMFLOAT4 const & defaultQuat /* = Dxx::QuaternionIdentity()*/)
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -172,7 +157,7 @@ D3DXQUATERNION GetQuatSubElement(IXMLDOMElement *       pElement,
         //		</xsd:all>
         //	</xsd:complexType>
 
-        D3DXQUATERNION q;
+        DirectX::XMFLOAT4 q;
 
         q.x = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultQuat.x);
         q.y = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultQuat.y);
@@ -189,7 +174,7 @@ D3DXQUATERNION GetQuatSubElement(IXMLDOMElement *       pElement,
 
 #if defined(_DEBUG)
 
-std::ostream & operator <<(std::ostream & s, D3DXQUATERNION const & q)
+std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT4 const & q)
 {
     s << q.x << ','
       << q.y << ','
@@ -199,7 +184,7 @@ std::ostream & operator <<(std::ostream & s, D3DXQUATERNION const & q)
     return s;
 }
 
-std::ostream & operator <<(std::ostream & s, D3DXVECTOR3 const & v)
+std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT4 const & v)
 {
     s << v.x << ','
       << v.y << ','
@@ -213,29 +198,6 @@ std::ostream & operator <<(std::ostream & s, D3DXVECTOR3 const & v)
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-Configuration::Configuration()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-Configuration::~Configuration()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
 XmlConfiguration::XmlConfiguration(char const * sFilename /* = 0*/)
 {
     if (sFilename != 0)
@@ -244,11 +206,6 @@ XmlConfiguration::XmlConfiguration(char const * sFilename /* = 0*/)
             throw ConstructorFailedException("Failed to load XML file");
     }
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
 
 XmlConfiguration::XmlConfiguration(IXMLDOMDocument2 * pDocument)
 {
@@ -259,19 +216,9 @@ XmlConfiguration::XmlConfiguration(IXMLDOMDocument2 * pDocument)
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
 XmlConfiguration::~XmlConfiguration()
 {
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
 
 bool XmlConfiguration::Load(char const * sFilename)
 {
@@ -314,11 +261,6 @@ bool XmlConfiguration::Load(char const * sFilename)
     return Load(pDocument);
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
 bool XmlConfiguration::Load(IXMLDOMDocument2 * pDocument)
 {
     HRESULT hr;
@@ -345,22 +287,17 @@ bool XmlConfiguration::Load(IXMLDOMDocument2 * pDocument)
         return false;
     }
 
-    Msxmlx::ForEachSubElement(pRoot, ProcessBouncePlaneList,   (uint32)this);   // Process all the BouncePlaneLists
-    Msxmlx::ForEachSubElement(pRoot, ProcessClipPlaneList,     (uint32)this);   // Process all the ClipPlaneLists
-    Msxmlx::ForEachSubElement(pRoot, ProcessEnvironment,       (uint32)this);   // Process all the Environments
-    Msxmlx::ForEachSubElement(pRoot, ProcessAppearance,        (uint32)this);   // Process all the Appearances
-    Msxmlx::ForEachSubElement(pRoot, ProcessVolume,            (uint32)this);   // Process all the Volumes
-    Msxmlx::ForEachSubElement(pRoot, ProcessEmitter,           (uint32)this);   // Process all the Emitters
+    Msxmlx::ForEachSubElement(pRoot, ProcessBouncePlaneList,   (uint32_t)this);   // Process all the BouncePlaneLists
+    Msxmlx::ForEachSubElement(pRoot, ProcessClipPlaneList,     (uint32_t)this);   // Process all the ClipPlaneLists
+    Msxmlx::ForEachSubElement(pRoot, ProcessEnvironment,       (uint32_t)this);   // Process all the Environments
+    Msxmlx::ForEachSubElement(pRoot, ProcessAppearance,        (uint32_t)this);   // Process all the Appearances
+    Msxmlx::ForEachSubElement(pRoot, ProcessVolume,            (uint32_t)this);   // Process all the Volumes
+    Msxmlx::ForEachSubElement(pRoot, ProcessEmitter,           (uint32_t)this);   // Process all the Emitters
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -379,33 +316,28 @@ bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32 
 
         BouncePlaneList bouncePlanes;
 
-        bouncePlanes.m_Name =   Msxmlx::GetStringAttribute(pElement, "name");
+        bouncePlanes.name_ =   Msxmlx::GetStringAttribute(pElement, "name");
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "BouncePlaneList: " << bouncePlanes.m_Name << std::endl;
+            msg << "BouncePlaneList: " << bouncePlanes.name_ << std::endl;
             OutputDebugString(msg.str().c_str());
         }
 #endif      // defined( _DEBUG )
 
         // Process all the BouncePlanes in the list
 
-        Msxmlx::ForEachSubElement(pElement, ProcessBouncePlane, (uint32) & bouncePlanes);
+        Msxmlx::ForEachSubElement(pElement, ProcessBouncePlane, (uint32_t)&bouncePlanes);
 
         // Save this BouncePlaneList
 
-        pConfiguration->m_BouncePlaneLists.insert(BouncePlaneListMap::value_type(bouncePlanes.m_Name, bouncePlanes));
+        pConfiguration->bouncePlaneLists_.insert(BouncePlaneListMap::value_type(bouncePlanes.name_, bouncePlanes));
     }
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uint32_t context)
 {
     BouncePlaneList * const pBouncePlanes = reinterpret_cast<BouncePlaneList *>(context);
 
@@ -418,18 +350,18 @@ bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uint32 cont
 
     BouncePlane bouncePlane;
 
-    bouncePlane.m_Plane     = GetD3DXPLANESubElement(pElement, "Plane");
-    bouncePlane.m_Dampening = Msxmlx::GetFloatSubElement(pElement, "Dampening");
+    bouncePlane.plane_     = GetDirect3DXMVECTORSubElement(pElement, "Plane");
+    bouncePlane.dampening_ = Msxmlx::GetFloatSubElement(pElement, "Dampening");
 
 #if defined(_DEBUG)
     {
         std::ostringstream msg;
         msg << "    BouncePlane: ["
-            << bouncePlane.m_Plane.a << " "
-            << bouncePlane.m_Plane.b << " "
-            << bouncePlane.m_Plane.c << " "
-            << bouncePlane.m_Plane.d << "], "
-            << bouncePlane.m_Dampening
+            << bouncePlane.plane_.a << " "
+            << bouncePlane.plane_.b << " "
+            << bouncePlane.plane_.c << " "
+            << bouncePlane.plane_.d << "], "
+            << bouncePlane.dampening_
             << std::endl;
         OutputDebugString(msg.str().c_str());
     }
@@ -437,17 +369,12 @@ bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uint32 cont
 
     // Add this BouncePlane to the list
 
-    pBouncePlanes->m_BouncePlanes.push_back(bouncePlane);
+    pBouncePlanes->bouncePlanes_.push_back(bouncePlane);
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -466,34 +393,29 @@ bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32 co
 
         ClipPlaneList clipPlanes;
 
-        clipPlanes.m_Name = Msxmlx::GetStringAttribute(pElement, "name");
+        clipPlanes.name_ = Msxmlx::GetStringAttribute(pElement, "name");
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "ClipPlaneList: " << clipPlanes.m_Name << std::endl;
+            msg << "ClipPlaneList: " << clipPlanes.name_ << std::endl;
             OutputDebugString(msg.str().c_str());
         }
 #endif      // defined( _DEBUG )
 
         // Process all the ClipPlanes in the list
 
-        Msxmlx::ForEachSubElement(pElement, ProcessClipPlane, (uint32) & clipPlanes);
+        Msxmlx::ForEachSubElement(pElement, ProcessClipPlane, (uint32_t)&clipPlanes);
 
         // Save this ClipPlaneList
 
-        pConfiguration->m_ClipPlaneLists.insert(ClipPlaneListMap::value_type(clipPlanes.m_Name, clipPlanes));
+        pConfiguration->clipPlaneLists_.insert(ClipPlaneListMap::value_type(clipPlanes.name_, clipPlanes));
     }
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uint32_t context)
 {
     ClipPlaneList * const pClipPlanes =   reinterpret_cast<ClipPlaneList *>(context);
 
@@ -506,7 +428,7 @@ bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uint32 contex
     //		</xsd:all>
     //	</xsd:complexType>
 
-    D3DXPLANE clipPlane;
+    DirectX::XMFLOAT4 clipPlane;
 
     clipPlane.a = Msxmlx::GetFloatSubElement(pElement, "X");
     clipPlane.b = Msxmlx::GetFloatSubElement(pElement, "Y");
@@ -527,17 +449,12 @@ bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uint32 contex
 
     // Add this ClipPlane to the list
 
-    pClipPlanes->m_ClipPlanes.push_back(clipPlane);
+    pClipPlanes->clipPlanes_.push_back(clipPlane);
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -561,24 +478,24 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32 cont
 
         Environment environment;
 
-        environment.m_Name         = Msxmlx::GetStringAttribute(pElement, "name");
-        environment.m_Gravity      = GetD3DXVECTOR3SubElement(pElement, "Gravity");
-        environment.m_WindVelocity = GetD3DXVECTOR3SubElement(pElement, "WindVelocity");
-        environment.m_Gustiness    = GetD3DXVECTOR3SubElement(pElement, "Gustiness");
-        environment.m_AirFriction  = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
-        environment.m_Bounce       = Msxmlx::GetStringSubElement(pElement, "Bounce");
-        environment.m_Clip         = Msxmlx::GetStringSubElement(pElement, "Clip");
+        environment.name_         = Msxmlx::GetStringAttribute(pElement, "name");
+        environment.gravity_      = GetDirect3DXMVECTORSubElement(pElement, "Gravity");
+        environment.windVelocity_ = GetDirect3DXMVECTORSubElement(pElement, "WindVelocity");
+        environment.gustiness_    = GetDirect3DXMVECTORSubElement(pElement, "Gustiness");
+        environment.airFriction_  = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
+        environment.bounce_       = Msxmlx::GetStringSubElement(pElement, "Bounce");
+        environment.clip_         = Msxmlx::GetStringSubElement(pElement, "Clip");
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "Environment: " << environment.m_Name << "( "
-                << "[" << environment.m_Gravity << "], "
-                << "[" << environment.m_WindVelocity << "], "
-                << environment.m_AirFriction << ", "
-                << "[" << environment.m_Gustiness << "], "
-                << "\"" << environment.m_Bounce << "\", "
-                << "\"" << environment.m_Clip << "\" )"
+            msg << "Environment: " << environment.name_ << "( "
+                << "[" << environment.gravity_ << "], "
+                << "[" << environment.windVelocity_ << "], "
+                << environment.airFriction_ << ", "
+                << "[" << environment.gustiness_ << "], "
+                << "\"" << environment.bounce_ << "\", "
+                << "\"" << environment.clip_ << "\" )"
                 << std::endl;
             OutputDebugString(msg.str().c_str());
         }
@@ -586,18 +503,13 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32 cont
 
         // Save this Environment
 
-        pConfiguration->m_Environments.insert(EnvironmentMap::value_type(environment.m_Name, environment));
+        pConfiguration->environments_.insert(EnvironmentMap::value_type(environment.name_, environment));
     }
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uint32_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -620,39 +532,34 @@ bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uint32 conte
 
         Appearance appearance;
 
-        appearance.m_Name           = Msxmlx::GetStringAttribute(pElement, "name");
-        appearance.m_ColorChange    = GetRgbaSubElement(pElement, "ColorChange");
-        appearance.m_RadiusChange   = Msxmlx::GetFloatSubElement(pElement, "RadiusChange");
-        appearance.m_RadialVelocity = Msxmlx::GetFloatSubElement(pElement, "RadialVelocity");
-        appearance.m_Texture        = Msxmlx::GetStringSubElement(pElement, "Texture");
-        appearance.m_Size           = Msxmlx::GetFloatSubElement(pElement, "Size", 1.0f);
+        appearance.name_           = Msxmlx::GetStringAttribute(pElement, "name");
+        appearance.colorChange_    = GetRgbaSubElement(pElement, "ColorChange");
+        appearance.radiusChange_   = Msxmlx::GetFloatSubElement(pElement, "RadiusChange");
+        appearance.radialVelocity_ = Msxmlx::GetFloatSubElement(pElement, "RadialVelocity");
+        appearance.texture_        = Msxmlx::GetStringSubElement(pElement, "Texture");
+        appearance.size_           = Msxmlx::GetFloatSubElement(pElement, "Size", 1.0f);
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "Appearance: " << appearance.m_Name << "( "
-                << "[" << appearance.m_ColorChange << "], "
-                << appearance.m_RadiusChange << ", "
-                << appearance.m_RadialVelocity << ", "
-                << "\"" << appearance.m_Texture << "\", "
-                << appearance.m_Size << " )"
+            msg << "Appearance: " << appearance.name_ << "( "
+                << "[" << appearance.colorChange_ << "], "
+                << appearance.radiusChange_ << ", "
+                << appearance.radialVelocity_ << ", "
+                << "\"" << appearance.texture_ << "\", "
+                << appearance.size_ << " )"
                 << std::endl;
             OutputDebugString(msg.str().c_str());
         }
 #endif      // defined( _DEBUG )
 
-        pConfiguration->m_Appearances.insert(AppearanceMap::value_type(appearance.m_Name, appearance));
+        pConfiguration->appearances_.insert(AppearanceMap::value_type(appearance.name_, appearance));
     }
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -676,23 +583,23 @@ bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32 context)
 
         EmitterVolume volume;
 
-        volume.m_Name   = Msxmlx::GetStringAttribute(pElement, "name");
-        volume.m_Type   = Msxmlx::GetStringAttribute(pElement, "type");
-        volume.m_Length = Msxmlx::GetFloatSubElement(pElement, "Length", 1.);
-        volume.m_Width  = Msxmlx::GetFloatSubElement(pElement, "Width", 1.);
-        volume.m_Height = Msxmlx::GetFloatSubElement(pElement, "Height", 1.);
-        volume.m_Depth  = Msxmlx::GetFloatSubElement(pElement, "Depth", 1.);
-        volume.m_Radius = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.);
+        volume.name_   = Msxmlx::GetStringAttribute(pElement, "name");
+        volume.type_   = Msxmlx::GetStringAttribute(pElement, "type");
+        volume.length_ = Msxmlx::GetFloatSubElement(pElement, "Length", 1.);
+        volume.width_  = Msxmlx::GetFloatSubElement(pElement, "Width", 1.);
+        volume.height_ = Msxmlx::GetFloatSubElement(pElement, "Height", 1.);
+        volume.depth_  = Msxmlx::GetFloatSubElement(pElement, "Depth", 1.);
+        volume.radius_ = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.);
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "Volume: " << volume.m_Name << "( " << volume.m_Type << "( "
-                << volume.m_Length << ", "
-                << volume.m_Width << ", "
-                << volume.m_Height << ", "
-                << volume.m_Depth << ", "
-                << volume.m_Radius << " ) )"
+            msg << "Volume: " << volume.name_ << "( " << volume.type_ << "( "
+                << volume.length_ << ", "
+                << volume.width_ << ", "
+                << volume.height_ << ", "
+                << volume.depth_ << ", "
+                << volume.radius_ << " ) )"
                 << std::endl;
             OutputDebugString(msg.str().c_str());
         }
@@ -700,18 +607,13 @@ bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32 context)
 
         // Save this Volume
 
-        pConfiguration->m_EmitterVolumes.insert(EmitterVolumeMap::value_type(volume.m_Name, volume));
+        pConfiguration->emitterVolumes_.insert(EmitterVolumeMap::value_type(volume.name_, volume));
     }
 
     return true;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
-bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
+bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -745,42 +647,42 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
         //	</xsd:complexType>
 
         Emitter emitter;
-        emitter.m_Name        = Msxmlx::GetStringAttribute(pElement, "name");
-        emitter.m_Type        = Msxmlx::GetStringAttribute(pElement, "type");
-        emitter.m_Volume      = Msxmlx::GetStringSubElement(pElement, "Volume");
-        emitter.m_Environment = Msxmlx::GetStringSubElement(pElement, "Environment");
-        emitter.m_Appearance  = Msxmlx::GetStringSubElement(pElement, "Appearance");
-        emitter.m_Position    = GetD3DXVECTOR3SubElement(pElement, "Position");
-        emitter.m_Orientation = GetQuatSubElement(pElement, "Orientation");
-        emitter.m_Velocity    = GetD3DXVECTOR3SubElement(pElement, "Velocity");
-        emitter.m_Count       = Msxmlx::GetIntSubElement(pElement, "Count");
-        emitter.m_Lifetime    = Msxmlx::GetFloatSubElement(pElement, "Lifetime", 1.0f);
-        emitter.m_Spread      = Msxmlx::GetFloatSubElement(pElement, "Spread");
-        emitter.m_MinSpeed    = Msxmlx::GetFloatSubElement(pElement, "MinSpeed");
-        emitter.m_MaxSpeed    = Msxmlx::GetFloatSubElement(pElement, "MaxSpeed");
-        emitter.m_Color       = Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff);
-        emitter.m_Radius      = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.0f);
-        emitter.m_Sorted      = Msxmlx::GetBoolSubElement(pElement, "Sorted");
+        emitter.name_        = Msxmlx::GetStringAttribute(pElement, "name");
+        emitter.type_        = Msxmlx::GetStringAttribute(pElement, "type");
+        emitter.volume_      = Msxmlx::GetStringSubElement(pElement, "Volume");
+        emitter.environment_ = Msxmlx::GetStringSubElement(pElement, "Environment");
+        emitter.appearance_  = Msxmlx::GetStringSubElement(pElement, "Appearance");
+        emitter.position_    = GetDirect3DXMVECTORSubElement(pElement, "Position");
+        emitter.orientation_ = GetQuatSubElement(pElement, "Orientation");
+        emitter.velocity_    = GetDirect3DXMVECTORSubElement(pElement, "Velocity");
+        emitter.count_       = Msxmlx::GetIntSubElement(pElement, "Count");
+        emitter.lifetime_    = Msxmlx::GetFloatSubElement(pElement, "Lifetime", 1.0f);
+        emitter.spread_      = Msxmlx::GetFloatSubElement(pElement, "Spread");
+        emitter.minSpeed_    = Msxmlx::GetFloatSubElement(pElement, "MinSpeed");
+        emitter.maxSpeed_    = Msxmlx::GetFloatSubElement(pElement, "MaxSpeed");
+        emitter.color_       = Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff);
+        emitter.radius_      = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.0f);
+        emitter.sorted_      = Msxmlx::GetBoolSubElement(pElement, "Sorted");
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "Emitter: " << emitter.m_Name << "( "
-                << emitter.m_Type << "( "
-                << "\"" << emitter.m_Volume << "\", "
-                << "\"" << emitter.m_Environment << "\", "
-                << "\"" << emitter.m_Appearance << "\", "
-                << "[" << emitter.m_Velocity << "], "
-                << "[" << emitter.m_Position << "], "
-                << "[" << emitter.m_Orientation << "], "
-                << emitter.m_Count << ", "
-                << emitter.m_Lifetime << ", "
-                << emitter.m_Spread << ", "
-                << emitter.m_MinSpeed << ", "
-                << emitter.m_MaxSpeed << ", "
-                << "0x" << std::hex << std::setw(8) << std::setfill('0') << emitter.m_Color << std::setfill(' ') << std::dec << ", "
-                << emitter.m_Radius << ", "
-                << emitter.m_Sorted << " ) )"
+            msg << "Emitter: " << emitter.name_ << "( "
+                << emitter.type_ << "( "
+                << "\"" << emitter.volume_ << "\", "
+                << "\"" << emitter.environment_ << "\", "
+                << "\"" << emitter.appearance_ << "\", "
+                << "[" << emitter.velocity_ << "], "
+                << "[" << emitter.position_ << "], "
+                << "[" << emitter.orientation_ << "], "
+                << emitter.count_ << ", "
+                << emitter.lifetime_ << ", "
+                << emitter.spread_ << ", "
+                << emitter.minSpeed_ << ", "
+                << emitter.maxSpeed_ << ", "
+                << "0x" << std::hex << std::setw(8) << std::setfill('0') << emitter.color_ << std::setfill(' ') << std::dec << ", "
+                << emitter.radius_ << ", "
+                << emitter.sorted_ << " ) )"
                 << std::endl;
             OutputDebugString(msg.str().c_str());
         }
@@ -799,28 +701,27 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
             hr = pParticleListNodeList->get_length(&actualCount);
 
 #if defined(_DEBUG)
-            if (emitter.m_Count != 0 && emitter.m_Count != actualCount)
+            if (emitter.count_ != 0 && emitter.count_ != actualCount)
             {
                 std::ostringstream msg;
                 msg << "ParticleSystem::ProcessEmitter: "
-                    << "Warning - " << emitter.m_Name << ": "
-                    << "Count is " << emitter.m_Count << ", "
+                    << "Warning - " << emitter.name_ << ": "
+                    << "Count is " << emitter.count_ << ", "
                     << "but the actual count is " << actualCount << "."
                     << std::endl;
                 OutputDebugString(msg.str().c_str());
             }
 #endif          // defined( _DEBUG )
 
-            emitter.m_Count = actualCount;
+            emitter.count_ = actualCount;
         }
 
-        if (emitter.m_Count == 0)
-            emitter.m_Count = 1;
-
+        if (emitter.count_ == 0)
+            emitter.count_ = 1;
 
         // Save this Emitter
 
-        pConfiguration->m_Emitters.insert(EmitterMap::value_type(emitter.m_Name, emitter));
+        pConfiguration->emitters_.insert(EmitterMap::value_type(emitter.name_, emitter));
     }
 
     return true;
@@ -835,11 +736,11 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //											  IXMLDOMNodeList * pNodeList,
 //											  int numParticles,
 //											  Configuration const * pConfiguration,
-//											  float globalLifetime, uint32 globalColor,
+//											  float globalLifetime, uint32_t globalColor,
 //											  float spread, float minSpeed, float maxSpeed )
 // {
-//	RandomFloat				rng( timeGetTime()  ^ (uint32)pEmitter );
-//	RandomDirection			rdir( ( timeGetTime() ^ (uint32)pEmitter ) + 1 );
+//	RandomFloat				rng( timeGetTime()  ^ (uint32_t)pEmitter );
+//	RandomDirection			rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
 //	PointParticle * const	paParticles		= pEmitter->GetParticles();
 //
@@ -847,22 +748,22 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //	{
 //		float		lifetime	= globalLifetime;
 //		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32		color		= ( globalColor != 0 ) ? globalColor :
+//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
 //															( i & 1 ? 0 : 0x000000ff ) |
 //															( i & 2 ? 0 : 0x0000ff00 ) |
 //															( i & 4 ? 0 : 0x00ff0000 ) |
 //																		  0xff000000;
 //		float		radius		= 1.0f;
 //		float		orientation	= 0.0f;
-//		D3DXVECTOR3	position	= pEmitter->GetEmitterVolume()->Next();
-//		D3DXVECTOR3	velocity;
+//		DirectX::XMFLOAT4	position	= pEmitter->GetEmitterVolume()->Next();
+//		DirectX::XMFLOAT4	velocity;
 //
 //		{
 //			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.m_Y;
-//			velocity.y	= v.m_X;
-//			velocity.z	= v.m_Z;
+//			velocity.x	= v.Y_;
+//			velocity.y	= v.X_;
+//			velocity.z	= v.Z_;
 //		}
 //
 //		// If we are processing a list of particle elements, then load non-default values from the next element
@@ -878,7 +779,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //
 //		// Initialize the particle
 //
-//		D3DXCOLOR	rgba	= D3DXCOLOR( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //										 float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -897,33 +798,33 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //											   IXMLDOMNodeList * pNodeList,
 //											   int numParticles,
 //											   Configuration const * pConfiguration,
-//											   float globalLifetime, uint32 globalColor,
+//											   float globalLifetime, uint32_t globalColor,
 //                                               float spread, float minSpeed, float maxSpeed )
 // {
 //	StreakParticle * const	paParticles				= pEmitter->GetParticles();
-//	RandomFloat				rng( ( timeGetTime() ^ (uint32)pEmitter ) );
-//	RandomDirection			rdir( ( timeGetTime() ^ (uint32)pEmitter ) + 1 );
+//	RandomFloat				rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
+//	RandomDirection			rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
 //	for ( int i = 0; i < numParticles; i++ )
 //	{
 //		float		lifetime	= globalLifetime;
 //		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32		color		= ( globalColor != 0 ) ? globalColor :
+//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
 //															( i & 1 ? 0 : 0x000000ff ) |
 //															( i & 2 ? 0 : 0x0000ff00 ) |
 //															( i & 4 ? 0 : 0x00ff0000 ) |
 //																		  0xff000000;
 //		float		radius		= 1.0f;
 //		float		orientation	= 0.0f;
-//		D3DXVECTOR3		position	= pEmitter->GetEmitterVolume()->Next();
-//		D3DXVECTOR3		velocity;
+//		DirectX::XMFLOAT4		position	= pEmitter->GetEmitterVolume()->Next();
+//		DirectX::XMFLOAT4		velocity;
 //
 //		{
 //			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.m_Y;
-//			velocity.y	= v.m_X;
-//			velocity.z	= v.m_Z;
+//			velocity.x	= v.Y_;
+//			velocity.y	= v.X_;
+//			velocity.z	= v.Z_;
 //		}
 //
 //		// If we are processing a list of particle elements, then load non-default values from the next element
@@ -939,7 +840,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //
 //		// Initialize the particle
 //
-//		D3DXCOLOR	rgba	= D3DXCOLOR( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //										 float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -958,35 +859,35 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //												 IXMLDOMNodeList * pNodeList,
 //												 int numParticles,
 //												 Configuration const * pConfiguration,
-//												 float globalLifetime, uint32 globalColor,
+//												 float globalLifetime, uint32_t globalColor,
 //												 float spread, float minSpeed, float maxSpeed )
 // {
 //	TexturedParticle * const	paParticles				= pEmitter->GetParticles();
-//	RandomFloat					rng( ( timeGetTime() ^ (uint32)pEmitter ) );
-//	RandomDirection				rdir( ( timeGetTime() ^ (uint32)pEmitter ) + 1 );
+//	RandomFloat					rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
+//	RandomDirection				rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
 //	for ( int i = 0; i < numParticles; i++ )
 //	{
 //		float		lifetime	= globalLifetime;
 //		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32		color		= ( globalColor != 0 ) ? globalColor :
+//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
 //															( i & 1 ? 0 : 0x000000ff ) |
 //															( i & 2 ? 0 : 0x0000ff00 ) |
 //															( i & 4 ? 0 : 0x00ff0000 ) |
 //																		  0xff000000;
 //		float		radius		= 1.0f;
 //		float		orientation	= 0.0f;
-//		D3DXVECTOR3	position	= pEmitter->GetEmitterVolume()->Next();
+//		DirectX::XMFLOAT4	position	= pEmitter->GetEmitterVolume()->Next();
 //		std::swap( position.y, position.z );
 //
-//		D3DXVECTOR3	velocity;
+//		DirectX::XMFLOAT4	velocity;
 //
 //		{
 //			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.m_Y;
-//			velocity.y	= v.m_X;
-//			velocity.z	= v.m_Z;
+//			velocity.x	= v.Y_;
+//			velocity.y	= v.X_;
+//			velocity.z	= v.Z_;
 //		}
 //
 //		// If we are processing a list of particle elements, then load non-default values from the next element
@@ -1002,7 +903,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //
 //		// Initialize the particle
 //
-//		D3DXCOLOR	rgba	= D3DXCOLOR( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //										 float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -1021,33 +922,33 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //											   IXMLDOMNodeList * pNodeList,
 //											   int numParticles,
 //											   Configuration const * pConfiguration,
-//											   float globalLifetime, uint32 globalColor,
+//											   float globalLifetime, uint32_t globalColor,
 //											   float spread, float minSpeed, float maxSpeed )
 // {
 //	SphereParticle * const	paParticles				= pEmitter->GetParticles();
-//	RandomFloat				rng( ( timeGetTime() ^ (uint32)pEmitter ) );
-//	RandomDirection			rdir( ( timeGetTime() ^ (uint32)pEmitter ) + 1 );
+//	RandomFloat				rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
+//	RandomDirection			rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
 //	for ( int i = 0; i < numParticles; i++ )
 //	{
 //		float		lifetime	= globalLifetime;
 //		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32		color		= ( globalColor != 0 ) ? globalColor :
+//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
 //															( i & 1 ? 0 : 0x000000ff ) |
 //															( i & 2 ? 0 : 0x0000ff00 ) |
 //															( i & 4 ? 0 : 0x00ff0000 ) |
 //																		  0xff000000;
 //		float		radius		= 1.0f;
 //		float		orientation	= 0.0f;
-//		D3DXVECTOR3		position	= pEmitter->GetEmitterVolume()->Next();
-//		D3DXVECTOR3		velocity;
+//		DirectX::XMFLOAT4		position	= pEmitter->GetEmitterVolume()->Next();
+//		DirectX::XMFLOAT4		velocity;
 //
 //		{
 //			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.m_Y;
-//			velocity.y	= v.m_X;
-//			velocity.z	= v.m_Z;
+//			velocity.x	= v.Y_;
+//			velocity.y	= v.X_;
+//			velocity.z	= v.Z_;
 //		}
 //
 //		// If we are processing a list of particle elements, then load non-default values from the next element
@@ -1063,7 +964,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //
 //		// Initialize the particle
 //
-//		D3DXCOLOR	rgba	= D3DXCOLOR( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //										 float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -1084,9 +985,9 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 // void XmlConfiguration::ProcessParticle( IXMLDOMNode *		pNode,
 //										  float *			pLifetime,
 //										  float *			pAge,
-//										  D3DXVECTOR3 *		pVelocity,
-//										  D3DXVECTOR3 *		pPosition,
-//										  uint32 *			pColor,
+//										  DirectX::XMFLOAT4 *		pVelocity,
+//										  DirectX::XMFLOAT4 *		pPosition,
+//										  uint32_t *			pColor,
 //										  float *			pRadius,
 //										  float *			pRotation,
 //										  D3DXQUATERINION *	pOrientation )
@@ -1115,14 +1016,14 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32 context)
 //			//		</xsd:all>
 //			//	</xsd:complexType>
 //
-//			*pPosition		= GetD3DXVECTOR3SubElement(    pElement, "Position",    *pPosition );
-//			*pVelocity		= GetD3DXVECTOR3SubElement(    pElement, "Velocity",    *pVelocity );
+//			*pPosition		= GetDirect3DXMVECTORSubElement(    pElement, "Position",    *pPosition );
+//			*pVelocity		= GetDirect3DXMVECTORSubElement(    pElement, "Velocity",    *pVelocity );
 //			*pLifetime		= Msxmlx::GetFloatSubElement(  pElement, "Lifetime",    *pLifetime );
 //			*pAge			= Msxmlx::GetFloatSubElement(  pElement, "Age",	        *pAge );
 //			*pColor			= Msxmlx::GetHexSubElement(    pElement, "Color",	    *pColor );
 //			*pRadius		= Msxmlx::GetFloatSubElement(  pElement, "Radius",	    *pRadius );
 //			*pRotation		= Msxmlx::GetFloatSubElement(  pElement, "Rotation",	*pRotation );
-//			*pOrientation	= GetD3DXQUATERNIONSubElement( pElement, "Orientation",	*pOrientation );
+//			*pOrientation	= GetDirectX::XMVECTORSubElement( pElement, "Orientation",	*pOrientation );
 //
 // #if defined( _DEBUG )
 //			{

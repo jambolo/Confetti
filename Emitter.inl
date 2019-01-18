@@ -18,37 +18,28 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 
-#include <d3dx9.h>
-#include <windows.h>
+#include <d3d11.h>
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //!
 //! @param	enabled		If true, the emitter is enabled, otherwise the emitter is disabled.
 
 inline bool BasicEmitter::Enable(bool enabled)
 {
-    bool const oldState = m_Enabled;
+    bool oldState = enabled_;
 
-    m_Enabled = enabled;
+    enabled_ = enabled;
 
     return oldState;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	position	The new position of the emitter.
 //! @param	velocity	The new velocity of the emitter.
 
-inline void BasicEmitter::Update(D3DXVECTOR3 const & position, D3DXVECTOR3 const & velocity)
+inline void BasicEmitter::Update(DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity)
 {
-    m_Position = position;
-    m_Velocity = velocity;
+    position_ = position;
+    velocity_ = velocity;
 }
 } // namespace Confetti

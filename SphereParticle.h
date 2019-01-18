@@ -17,16 +17,14 @@
 #define NOMINMAX
 
 #include "Particle.h"
-#include <d3dx9math.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
 
-struct IDirect3DDevice9;
+struct IDirect3DDevice11;
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! A sphere-shaped lit Particle with a radius.
 //
 //! @ingroup	Particles
@@ -40,39 +38,39 @@ public:
     SphereParticle() {}
 
     //! Constructor
-    SphereParticle(BasicEmitter const * pEmitter,
-                   float                lifetime,
-                   float                age,
-                   D3DXVECTOR3 const &  position,
-                   D3DXVECTOR3 const &  velocity,
-                   D3DXCOLOR const &    color,
-                   float                radius);
+    SphereParticle(BasicEmitter const *      pEmitter,
+                   float                     lifetime,
+                   float                     age,
+                   DirectX::XMFLOAT3 const & position,
+                   DirectX::XMFLOAT3 const & velocity,
+                   DirectX::XMFLOAT3 const & color,
+                   float                     radius);
 
     // Destructor
-    virtual ~SphereParticle();
+    virtual ~SphereParticle() override = default;
 
     //! @name Overrides Particle
     //@{
-    void Initialize(float               lifetime,
-                    float               age,
-                    D3DXVECTOR3 const & position,
-                    D3DXVECTOR3 const & velocity,
-                    D3DXCOLOR const &   color,
-                    float               radius);
+    void Initialize(float                     lifetime,
+                    float                     age,
+                    DirectX::XMFLOAT3 const & position,
+                    DirectX::XMFLOAT3 const & velocity,
+                    DirectX::XMFLOAT3 const & color,
+                    float                     radius);
 
-    virtual bool Update(float dt);
-    virtual void Draw(IDirect3DDevice9 * pD3dDevice) const;
+    virtual bool Update(float dt) override;
+    virtual void Draw(IDirect3DDevice11 * pD3dDevice) const override;
     //!@}
 
     //! Returns the particle's radius.
-    float GetRadius() const;
+    float GetRadius() const { return radius_; }
 
     // Vertex buffer info
 
     struct VBEntry
     {
-        D3DVECTOR position;
-        D3DCOLOR color;
+        DirectX::XMFLOAT4 position;
+        DirectX::XMFLOAT4 color;
     };
 
     enum
@@ -83,13 +81,13 @@ public:
     };
 
     //! Vertex shader data declaration
-    static D3DVERTEXELEMENT9 const m_aVSDataDeclarationInfo[];
+    static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
 
 private:
 
     // Appearance data
 
-    float m_InitialRadius;                      // Radius (distance from center to edge) at birth.
-    float m_Radius;                             // Current radius.
+    float initialRadius_;                      // Radius (distance from center to edge) at birth.
+    float radius_;                             // Current radius.
 };
 } // namespace Confetti

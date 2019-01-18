@@ -19,85 +19,69 @@
 #include "Math/FastMath.h"
 #include "Misc/Random.h"
 
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
+
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
+RandomFloat Environment::rng_(-1);
 
-RandomFloat Environment::m_Rng(-1);
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-Environment::Environment(D3DXVECTOR3 const &     gravity /*			= Dxx::Vector3Origin()*/,
-                         D3DXVECTOR3 const &     windVelocity /*	= Dxx::Vector3Origin()*/,
-                         float                   airFriction /*					= 0.0f*/,
-                         D3DXVECTOR3 const &     gustiness /*		= Dxx::Vector3Origin()*/,
-                         BouncePlaneList const * pBPL /*		= 0*/,
-                         ClipPlaneList const *   pCPL /*			= 0*/)
-    : m_Gravity(gravity),
-    m_WindVelocity(windVelocity),
-    m_AirFriction(airFriction),
-    m_Gustiness(gustiness),
-    m_BouncePlanes(pBPL),
-    m_ClipPlanes(pCPL),
-    m_Gust(Dxx::Vector3Origin()),
-    m_CurrentWindVelocity(windVelocity)
+Environment::Environment(DirectX::XMFLOAT3 const & gravity /* = DirectX::XMVectorZero()*/,
+                         DirectX::XMFLOAT3 const & windVelocity /* = DirectX::XMVectorZero()*/,
+                         float                     airFriction /* = 0.0f*/,
+                         DirectX::XMFLOAT3 const & gustiness /* = DirectX::XMVectorZero()*/,
+                         BouncePlaneList const *   pBPL /* = 0*/,
+                         ClipPlaneList const *     pCPL /* = 0*/)
+    : gravity_(gravity)
+    , windVelocity_(windVelocity)
+    , airFriction_(airFriction)
+    , gustiness_(gustiness)
+    , bouncePlanes_(pBPL)
+    , clipPlanes_(pCPL)
+    , gust_(DirectX::XMVectorZero())
+    , currentWindVelocity_(windVelocity)
 {
-    m_Rng.SetState((uint32)this);   // Reinintialize the RNG to a random starting point
+    rng_.SetState((uint32_t)this);   // Reinitialize the RNG to a random starting point
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-Environment::~Environment()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt		Amount of time passed since the last update.
 
 void Environment::Update(float dt)
 {
-    m_CurrentWindVelocity = m_WindVelocity;
+    currentWindVelocity_ = windVelocity_;
 
     // If a gustiness value is specified, then randomly adjust the wind velocity
 
-    if (D3DXVec3LengthSq(&m_Gustiness) != 0.0f)
+    if (XMVector3LengthSq(&gustiness_) != 0.0f)
     {
-        m_Gust.x += m_Rng.Get(float(Math::TWO_PI)) * dt;
-        m_Gust.y += m_Rng.Get(float(Math::TWO_PI)) * dt;
+        gust_.x += rng_.Get(float(Math::TWO_PI)) * dt;
+        gust_.y += rng_.Get(float(Math::TWO_PI)) * dt;
 
         float cx, sx, cy, sy;
 
-        Math::fsincos(m_Gust.x, &sx, &cx);
-        Math::fsincos(m_Gust.y, &sy, &cy);
+        Math::fsincos(gust_.x, &sx, &cx);
+        Math::fsincos(gust_.y, &sy, &cy);
 
-        m_CurrentWindVelocity += D3DXVECTOR3(cx * sy * m_Gustiness.x,
-                                             cy      * m_Gustiness.y,
-                                             sx * sy * m_Gustiness.z);
+        currentWindVelocity_ += DirectX::XMFLOAT3(cx * sy * gustiness_.x,
+                                                  cy      * gustiness_.y,
+                                                  sx * sy * gustiness_.z);
     }
 
     // If an air friction value is specified, then compute the terminal velocity and some intermediate values.
 
-    if (m_AirFriction != 0.0f)
+    if (airFriction_ != 0.0f)
     {
-        m_TerminalVelocity = m_CurrentWindVelocity + m_Gravity / m_AirFriction;
-        m_TerminalDistance = m_TerminalVelocity * dt;
-        m_Ect1 = 1.0f - expf(-m_AirFriction * dt);
+        terminalVelocity_ = currentWindVelocity_ + gravity_ / airFriction_;
+        terminalDistance_ = terminalVelocity_ * dt;
+        ect1_ = 1.0f - expf(-airFriction_ * dt);
     }
     else
     {
-        m_TerminalVelocity = Dxx::Vector3Origin();
-        m_TerminalDistance = Dxx::Vector3Origin();
-        m_Ect1 = 0.0f;
+        terminalVelocity_ = DirectX::XMVectorZero();
+        terminalDistance_ = DirectX::XMVectorZero();
+        ect1_ = 0.0f;
     }
 }
 } // namespace Confetti

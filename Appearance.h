@@ -14,14 +14,13 @@
 #pragma once
 
 #include <cassert>
+#include <DirectXMath.h>
 #include <Dxx/Camera.h>
+
+class D3DMATERIAL9;
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! %Appearance characteristics shared by multiple particles.
 //
 //! @ingroup	Controls
@@ -34,13 +33,13 @@ class Appearance
 public:
 
     //! Constructor
-    Appearance(Dxx::Camera const * pCamera,
-               D3DXCOLOR const & colorRate = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f),
-               float radiusRate      = 0.0f,
-               float angularVelocity = 0.0f,
-               D3DMATERIAL9 const *    pMaterial = 0,
-               IDirect3DTexture9 *     pTexture  = 0,
-               float size = 1.0f);
+    Appearance(Dxx::Camera const *       pCamera,
+               DirectX::XMFLOAT4 const & colorRate = DirectX::XMVectorZero(),
+               float                     radiusRate      = 0.0f,
+               float                     angularVelocity = 0.0f,
+               D3DMATERIAL9 const *      pMaterial = nullptr,
+               IDirect3DTexture11 *      pTexture  = nullptr,
+               float                     size = 1.0f);
 
     // Destructor
     virtual ~Appearance();
@@ -55,34 +54,34 @@ public:
     void Update(float dt);
 
     //! Returns the material.
-    D3DMATERIAL9 const * GetMaterial()              const { return m_pMaterial; }
+    D3DMATERIAL9 const * GetMaterial()              const { return pMaterial_; }
 
     //! Returns the texture.
-    IDirect3DTexture9 * GetTexture()                const { return m_pTexture; }
+    IDirect3DTexture11 * GetTexture()                const { return pTexture_; }
 
     //! Returns the rate of change in the color.
-    D3DXCOLOR const & GetColorRate()                const { return m_ColorRate; }
+    DirectX::XMFLOAT4 const & GetColorRate()                const { return colorRate_; }
 
     //! Returns the rate of change of the radius.
-    float GetRadiusRate()                           const { return m_RadiusRate; }
+    float GetRadiusRate()                           const { return radiusRate_; }
 
     //! Returns the angular velocity.
-    float GetRadialVelocity()                       const { return m_AngularVelocity; }
+    float GetRadialVelocity()                       const { return angularVelocity_; }
 
     //! Returns a pointer to the camera used to render.
-    Dxx::Camera const * GetCamera()                 const { return m_pCamera; }
+    Dxx::Camera const * GetCamera()                 const { return pCamera_; }
 
     //! Returns the current line width or point size.
-    float GetSize() const { return m_Size; }
+    float GetSize() const { return size_; }
 
 private:
 
-    D3DMATERIAL9 const * m_pMaterial;               // The material.
-    IDirect3DTexture9 * m_pTexture;                 // The texture.
-    D3DXCOLOR m_ColorRate;                          // Color rate of change
-    float m_RadiusRate;                             // Radius rate of change
-    float m_AngularVelocity;                        // Angular velocity
-    Dxx::Camera const * m_pCamera;                  // Rendering camera
-    float m_Size;                                   // Particle size (width or radius)
+    D3DMATERIAL9 const * pMaterial_;               // The material.
+    IDirect3DTexture11 * pTexture_;                 // The texture.
+    DirectX::XMFLOAT4 colorRate_;                          // Color rate of change
+    float radiusRate_;                             // Radius rate of change
+    float angularVelocity_;                        // Angular velocity
+    Dxx::Camera const * pCamera_;                  // Rendering camera
+    float size_;                                   // Particle size (width or radius)
 };
 } // namespace Confetti

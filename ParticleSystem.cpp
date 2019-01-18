@@ -21,30 +21,20 @@
 #include "EmitterVolume.h"
 #include "Environment.h"
 
+#include <d3d11.h>
+
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-ParticleSystem::ParticleSystem(IDirect3DDevice9 * pD3dDevice)
-    : m_pD3dDevice(pD3dDevice)
+ParticleSystem::ParticleSystem(IDirect3DDevice11 * pD3dDevice)
+    : pD3dDevice_(pD3dDevice)
 {
-    m_pD3dDevice->AddRef();
+    pD3dDevice_->AddRef();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 ParticleSystem::~ParticleSystem()
 {
-    Wx::SafeRelease(m_pD3dDevice);
+    Wx::SafeRelease(pD3dDevice_);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	pEmitter	The Emitter to register.
 //!
@@ -52,29 +42,21 @@ ParticleSystem::~ParticleSystem()
 
 void ParticleSystem::Register(BasicEmitter * pEmitter)
 {
-    m_Emitters.push_back(pEmitter);
+    emitters_.push_back(pEmitter);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	pEmitter	The Emitter to unregister.
 
 bool ParticleSystem::Unregister(BasicEmitter * pEmitter)
 {
-    EmitterList::iterator const i = std::find(m_Emitters.begin(), m_Emitters.end(), pEmitter);
+    EmitterList::iterator const i = std::find(emitters_.begin(), emitters_.end(), pEmitter);
 
-    if (i != m_Emitters.end())
-        m_Emitters.erase(i);
+    if (i != emitters_.end())
+        emitters_.erase(i);
 
-    return i != m_Emitters.end();
+    return i != emitters_.end();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	pAppearance		The Appearance to register.
 //!
@@ -82,29 +64,21 @@ bool ParticleSystem::Unregister(BasicEmitter * pEmitter)
 
 void ParticleSystem::Register(Appearance * pAppearance)
 {
-    m_Appearances.push_back(pAppearance);
+    appearances_.push_back(pAppearance);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	pAppearance		The Appearance to unregister.
 
 bool ParticleSystem::Unregister(Appearance * pAppearance)
 {
-    AppearanceList::iterator const i = std::find(m_Appearances.begin(), m_Appearances.end(), pAppearance);
+    AppearanceList::iterator const i = std::find(appearances_.begin(), appearances_.end(), pAppearance);
 
-    if (i != m_Appearances.end())
-        m_Appearances.erase(i);
+    if (i != appearances_.end())
+        appearances_.erase(i);
 
-    return i != m_Appearances.end();
+    return i != appearances_.end();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	pEnvironment	The Environment to register.
 //!
@@ -112,29 +86,21 @@ bool ParticleSystem::Unregister(Appearance * pAppearance)
 
 void ParticleSystem::Register(Environment * pEnvironment)
 {
-    m_Environments.push_back(pEnvironment);
+    environments_.push_back(pEnvironment);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	pEnvironment	The Environment to unregister.
 
 bool ParticleSystem::Unregister(Environment * pEnvironment)
 {
-    EnvironmentList::iterator const i = std::find(m_Environments.begin(), m_Environments.end(), pEnvironment);
+    EnvironmentList::iterator const i = std::find(environments_.begin(), environments_.end(), pEnvironment);
 
-    if (i != m_Environments.end())
-        m_Environments.erase(i);
+    if (i != environments_.end())
+        environments_.erase(i);
 
-    return i != m_Environments.end();
+    return i != environments_.end();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt		Amount of time that has passed since the last update.
@@ -143,45 +109,33 @@ void ParticleSystem::Update(float dt)
 {
     // Update all the appearances
 
-    for (AppearanceList::iterator ppApp = m_Appearances.begin(); ppApp != m_Appearances.end(); ++ppApp)
+    for (Appearance * pAppearance : appearances_)
     {
-        Appearance * const pAppearance = *ppApp;    // Convenience
-
         pAppearance->Update(dt);
     }
 
     // Update all the environments
 
-    for (EnvironmentList::iterator ppEnv = m_Environments.begin(); ppEnv != m_Environments.end(); ++ppEnv)
+    for (Environment * pEnvironment : environments_)
     {
-        Environment * const pEnvironment = *ppEnv;      // Convenience
-
         pEnvironment->Update(dt);
     }
 
     // Update all the emitters
 
-    for (EmitterList::iterator ppEmitter = m_Emitters.begin(); ppEmitter != m_Emitters.end(); ++ppEmitter)
+    for (BasicEmitter * pEmitter : emitters_)
     {
-        BasicEmitter * const pEmitter = *ppEmitter;         // Convenience
-
         if (pEmitter && pEmitter->IsEnabled())
             pEmitter->Update(dt);
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void ParticleSystem::Draw() const
 {
     // For each emitter, draw all its particles
 
-    for (EmitterList::const_iterator ppE = m_Emitters.begin(); ppE != m_Emitters.end(); ++ppE)
+    for (BasicEmitter * pEmitter : emitters_)
     {
-        BasicEmitter * const pEmitter = *ppE;       // Convenience
-
         if (pEmitter && pEmitter->IsEnabled())
             pEmitter->Draw();
     }

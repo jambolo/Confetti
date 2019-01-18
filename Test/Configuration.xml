@@ -1,0 +1,145 @@
+<?xml version="1.0" ?>
+<ParticleSystem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../Configuration.xsd">
+	<Volume name="vol0" type="point" />
+	<Volume name="vol1" type="line">
+		<Length>10.0</Length>
+	</Volume>
+	<Volume name="vol2" type="rectangle">
+		<Width> 50.0</Width>
+		<Height>50.0</Height>
+	</Volume>
+	<Volume name="vol3" type="circle">
+		<Radius>10.0</Radius>
+	</Volume>
+	<Volume name="vol4" type="sphere">
+		<Radius>10.0</Radius>
+	</Volume>
+	<Volume name="vol5" type="box">
+		<Width> 10.0</Width>
+		<Height>10.0</Height>
+		<Depth> 10.0</Depth>
+	</Volume>
+	<Volume name="vol6" type="cylinder">
+		<Radius>10.0</Radius>
+		<Height>10.0</Height>
+	</Volume>
+	<Volume name="vol7" type="cone">
+		<Radius>10.0</Radius>
+		<Height>10.0</Height>
+	</Volume>
+	<BouncePlaneList name="bounceplanes">
+		<BouncePlane>
+			<Plane>
+				<X>0.0</X>
+				<Y>0.0</Y>
+				<Z>1.0</Z>
+				<D>0.0</D>
+			</Plane>
+			<Dampening>.5</Dampening>
+		</BouncePlane>
+	</BouncePlaneList>
+	<ClipPlaneList name="clipplanes">
+		<ClipPlane>
+			<X>0.0</X>
+			<Y>0.0</Y>
+			<Z>1.0</Z>
+			<D>0.0</D>
+		</ClipPlane>
+	</ClipPlaneList>
+	<Appearance name="appearance">
+		<RadiusChange>0.</RadiusChange>
+		<RadialVelocity>0.</RadialVelocity>
+		<ColorChange>
+			<R> 0.00</R>
+			<G> 0.00</G>
+			<B> 0.00</B>
+			<A>-0.05</A>
+		</ColorChange>
+	</Appearance>
+	<Appearance name="texturedappearance">
+		<RadiusChange>0.</RadiusChange>
+		<RadialVelocity>0.</RadialVelocity>
+		<ColorChange>
+			<R>-0.20</R>
+			<G>-0.40</G>
+			<B>-0.60</B>
+			<A>-0.20</A>
+		</ColorChange>
+		<Texture>res/ember.tga</Texture>
+	</Appearance>
+	<Appearance name="streakappearance">
+		<Size>2.</Size>
+		<ColorChange>
+			<R> 0.00</R>
+			<G> 0.00</G>
+			<B> 0.00</B>
+			<A>-0.05</A>
+		</ColorChange>
+	</Appearance>
+	<Environment name="environment">
+		<AirFriction>0.1</AirFriction>
+		<!-- <Bounce>bounceplanes</Bounce> -->
+		<!-- <Clip>clipplanes</Clip> -->
+		<Gravity>
+			<X> 0.0</X>
+			<Y> 0.0</Y>
+			<Z>-9.8</Z>
+		</Gravity>
+		<WindVelocity>
+			<X>40.0</X>
+			<Y>0.0</Y>
+			<Z>0.0</Z>
+		</WindVelocity>
+		<Gustiness>
+			<X>0.0</X>
+			<Y>0.0</Y>
+			<Z>0.0</Z>
+		</Gustiness>
+	</Environment>
+<!--
+	<Emitter name="e0" type="point">
+		<Volume>vol0</Volume>
+		<Environment>environment</Environment>
+		<Appearance>appearance</Appearance>
+		<Count>20000</Count>
+		<Lifetime>10.0</Lifetime>
+		<Spread>0.4</Spread>
+		<MinSpeed>30.0</MinSpeed>
+		<MaxSpeed>100.0</MaxSpeed>
+		<Sorted>1</Sorted>
+	</Emitter>
+	<Emitter name="e1" type="streak">
+		<Volume>vol0</Volume>
+		<Environment>environment</Environment>
+		<Appearance>streakappearance</Appearance>
+		<Count>10000</Count>
+		<Lifetime>20.0</Lifetime>
+		<Spread>0.4</Spread>
+		<MinSpeed>30.0</MinSpeed>
+		<MaxSpeed>100.0</MaxSpeed>
+	</Emitter>
+-->
+	<Emitter name="e2" type="textured">
+		<Volume>vol0</Volume>
+		<Environment>environment</Environment>
+		<Appearance>texturedappearance</Appearance>
+		<Count>20000</Count>
+		<Lifetime>5.0</Lifetime>
+		<Spread>0.4</Spread>
+		<MinSpeed>30.0</MinSpeed>
+		<MaxSpeed>50.0</MaxSpeed>
+		<Sorted>1</Sorted>
+	</Emitter>
+<!--
+	<Emitter name="e3" type="sphere">
+		<Volume>vol2</Volume>
+		<Environment>environment</Environment>
+		<Appearance>appearance</Appearance>
+		<Count>10000</Count>
+		<Lifetime>20.0</Lifetime>
+		<Spread>0.4</Spread>
+		<MinSpeed>30.0</MinSpeed>
+		<MaxSpeed>100.0</MaxSpeed>
+	</Emitter>
+-->
+</ParticleSystem>

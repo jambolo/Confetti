@@ -11,16 +11,16 @@
 
 ********************************************************************************************************************/
 
-#include "PrecompiledHeaders.h"
-
 #include "Appearance.h"
+
+#include <Wx/Wx.h>
+
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	colorRate		Color rate of change
 //! @param	radiusRate		Radius rate of change
 //! @param	angularVelocity	Angular velocity
@@ -28,81 +28,65 @@ namespace Confetti
 //! @param	pTexture		The particles' texture.
 //! @param	size			Size of the particles (line width or radius)
 
-Appearance::Appearance(Dxx::Camera const *  pCamera,
-                       D3DXCOLOR const &    colorRate /*			= D3DXCOLOR( 0.0f, 0.0f, 0.0f, 0.0f )*/,
-                       float                radiusRate /*		= 0.0f*/,
-                       float                angularVelocity /*	= 0.0f*/,
-                       D3DMATERIAL9 const * pMaterial /*			= 0*/,
-                       IDirect3DTexture9 *  pTexture /*			= 0*/,
-                       float                size /*				= 1.0f*/)
-    : m_pCamera(pCamera),
-    m_ColorRate(colorRate),
-    m_RadiusRate(radiusRate),
-    m_AngularVelocity(angularVelocity),
-    m_pMaterial(pMaterial),
-    m_pTexture(pTexture),
-    m_Size(size)
+Appearance::Appearance(Dxx::Camera const *       pCamera,
+                       DirectX::XMFLOAT4 const & colorRate /* = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f )*/,
+                       float                     radiusRate /* = 0.0f*/,
+                       float                     angularVelocity /* = 0.0f*/,
+                       D3DMATERIAL9 const *      pMaterial /* = nullptr*/,
+                       IDirect3DTexture11 *      pTexture /* = nullptr*/,
+                       float                     size /* = 1.0f*/)
+    : pCamera_(pCamera)
+    , colorRate_(colorRate)
+    , radiusRate_(radiusRate)
+    , angularVelocity_(angularVelocity)
+    , pMaterial_(pMaterial)
+    , pTexture_(pTexture)
+    , size_(size)
 {
-    assert(pCamera != 0);
+    assert(pCamera);
     assert(size > 0.0f);
 
-    if (m_pTexture != 0)
-        m_pTexture->AddRef();
+    if (pTexture_)
+        pTexture_->AddRef();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Appearance::~Appearance()
 {
-    Wx::SafeRelease(m_pTexture);
+    Wx::SafeRelease(pTexture_);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Appearance::Appearance(Appearance const & src)
-    : m_pMaterial(src.m_pMaterial),
-    m_pTexture(src.m_pTexture),
-    m_ColorRate(src.m_ColorRate),
-    m_RadiusRate(src.m_RadiusRate),
-    m_AngularVelocity(src.m_AngularVelocity),
-    m_pCamera(src.m_pCamera),
-    m_Size(src.m_Size)
+    : pMaterial_(src.pMaterial_)
+    , pTexture_(src.pTexture_)
+    , colorRate_(src.colorRate_)
+    , radiusRate_(src.radiusRate_)
+    , angularVelocity_(src.angularVelocity_)
+    , pCamera_(src.pCamera_)
+    , size_(src.size_)
 {
-    if (m_pTexture != 0)
-        m_pTexture->AddRef();
+    if (pTexture_)
+        pTexture_->AddRef();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Appearance & Appearance::operator =(Appearance const & rhs)
 {
     if (this != &rhs)
     {
-        Wx::SafeRelease(m_pTexture);
+        Wx::SafeRelease(pTexture_);
 
-        m_pMaterial = rhs.m_pMaterial;
-        m_pTexture  = rhs.m_pTexture;
-        if (m_pTexture != 0)
-            m_pTexture->AddRef();
-        m_ColorRate       = rhs.m_ColorRate;
-        m_RadiusRate      = rhs.m_RadiusRate;
-        m_AngularVelocity = rhs.m_AngularVelocity;
-        m_pCamera         = rhs.m_pCamera;
-        m_Size = rhs.m_Size;
+        pMaterial_ = rhs.pMaterial_;
+        pTexture_  = rhs.pTexture_;
+        if (pTexture_)
+            pTexture_->AddRef();
+        colorRate_       = rhs.colorRate_;
+        radiusRate_      = rhs.radiusRate_;
+        angularVelocity_ = rhs.angularVelocity_;
+        pCamera_         = rhs.pCamera_;
+        size_ = rhs.size_;
     }
 
     return *this;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt		Amount of time elapsed since the last update

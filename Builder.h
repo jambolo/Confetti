@@ -18,9 +18,9 @@
 #include <Dxx/Random.h>
 #include <memory>
 
-struct IDirect3DDevice9;
-struct IDirect3DTexture9;
-struct _D3DMATERIAL9;
+struct IDirect3DDevice11;
+struct IDirect3DTexture11;
+struct _D3DMATERIAL11;
 namespace Dxx
 {
     class Camera;
@@ -38,11 +38,6 @@ class TexturedParticle;
 class SphereParticle;
 class EmitterParticle;
 
-/********************************************************************************************************************/
-/*																													*/
-/*																													*/
-/********************************************************************************************************************/
-
 //! A class that builds and maintains Confetti objects
 
 class Builder
@@ -50,23 +45,23 @@ class Builder
 public:
 
     //! Constructor
-    Builder(uint32 seed);
+    Builder(uint32_t seed);
 
     //! Destructor
     virtual ~Builder();
 
     //! Returns a new particle system build using the supplied configuration
     std::auto_ptr<ParticleSystem> BuildParticleSystem(Configuration const & configuration,
-                                                      IDirect3DDevice9 *    pD3dDevice,
+                                                      IDirect3DDevice11 *   pD3dDevice,
                                                       Dxx::Camera const *   pCamera);
 
     //! Builds an emitter and returns a reference
     BasicEmitter * BuildEmitter(Configuration::Emitter const & configuration,
-                                IDirect3DDevice9 *             pD3dDevice);
+                                IDirect3DDevice11 *            pD3dDevice);
 
     //! Builds an appearance and returns a reference
     Appearance * BuildAppearance(Configuration::Appearance const & configuration,
-                                 IDirect3DDevice9 *                pD3dDevice,
+                                 IDirect3DDevice11 *               pD3dDevice,
                                  Dxx::Camera const *               pCamera);
 
     //! Builds an emitter volume and returns a reference
@@ -145,21 +140,21 @@ public:
     Environment::ClipPlaneList * FindClipPlaneList(std::string const & name);
 
     //! Returns the named material or 0 if not found
-    _D3DMATERIAL9 * FindMaterial(std::string const & name);
+    _D3DMATERIAL11 * FindMaterial(std::string const & name);
 
     //! Returns the named texture or 0 if not found
-    IDirect3DTexture9 * FindTexture(std::string const & name);
+    IDirect3DTexture11 * FindTexture(std::string const & name);
 
 private:
 
-    typedef std::map<std::string, BasicEmitter *>                 EmitterMap;
-    typedef std::map<std::string, EmitterVolume *>                EmitterVolumeMap;
-    typedef std::map<std::string, Environment *>                  EnvironmentMap;
-    typedef std::map<std::string, Appearance *>                   AppearanceMap;
-    typedef std::map<std::string, Environment::BouncePlaneList *> BouncePlaneListMap;
-    typedef std::map<std::string, Environment::ClipPlaneList *>   ClipPlaneListMap;
-    typedef std::map<std::string, IDirect3DTexture9 *>            TextureMap;
-    typedef std::map<std::string, _D3DMATERIAL9 *>                MaterialMap;
+    using EmitterMap         = std::map<std::string, BasicEmitter *>;
+    using EmitterVolumeMap   = std::map<std::string, EmitterVolume *>;
+    using EnvironmentMap     = std::map<std::string, Environment *>;
+    using AppearanceMap      = std::map<std::string, Appearance *>;
+    using BouncePlaneListMap = std::map<std::string, Environment::BouncePlaneList *>;
+    using ClipPlaneListMap   = std::map<std::string, Environment::ClipPlaneList *>;
+    using TextureMap         = std::map<std::string, IDirect3DTexture11 *>;
+    using MaterialMap        = std::map<std::string, _D3DMATERIAL11 *>;
 
     //! Adds the named emitter to the emitter map and returns a reference to its entry
     EmitterMap::iterator AddEmitter(std::string const & name, BasicEmitter * pEmitter);
@@ -180,25 +175,25 @@ private:
     ClipPlaneListMap::iterator AddClipPlaneList(std::string const & name, Environment::ClipPlaneList * pList);
 
     //! Adds the named material to the material map and returns a reference to its entry
-    MaterialMap::iterator AddMaterial(std::string const & name, _D3DMATERIAL9 * pMaterial);
+    MaterialMap::iterator AddMaterial(std::string const & name, _D3DMATERIAL11 * pMaterial);
 
     //! Adds the named texture to the texture map and returns a reference to its entry
-    TextureMap::iterator AddTexture(std::string const & name, IDirect3DTexture9 * pTexture);
+    TextureMap::iterator AddTexture(std::string const & name, IDirect3DTexture11 * pTexture);
 
-    EmitterMap m_Emitters;                      //!< Active emitters
-    EmitterVolumeMap m_EmitterVolumes;          //!< Active emitter volumes
-    EnvironmentMap m_Environments;              //!< Active environments
-    AppearanceMap m_Appearances;                //!< Active appearances
-    BouncePlaneListMap m_BouncePlaneLists;      //!< Active bounce plane lists
-    ClipPlaneListMap m_ClipPlaneLists;          //!< Active clip plane lists
-    TextureMap m_Textures;                      //!< Active textures
-    MaterialMap m_Materials;                    //!< Active materials
+    EmitterMap emitters_;                      //!< Active emitters
+    EmitterVolumeMap emitterVolumes_;          //!< Active emitter volumes
+    EnvironmentMap environments_;              //!< Active environments
+    AppearanceMap appearances_;                //!< Active appearances
+    BouncePlaneListMap bouncePlaneLists_;      //!< Active bounce plane lists
+    ClipPlaneListMap clipPlaneLists_;          //!< Active clip plane lists
+    TextureMap textures_;                      //!< Active textures
+    MaterialMap materials_;                    //!< Active materials
 
     // Random number generators
 
-    Random m_Rng;
-    RandomFloat m_FRng;
-    Dxx::RandomDirection m_DRng;
-    Dxx::RandomOrientation m_ORng;
+    Random rng_;
+    RandomFloat fRng_;
+    Dxx::RandomDirection dRng_;
+    Dxx::RandomOrientation oRng_;
 };
 } // namespace Confetti

@@ -15,15 +15,11 @@
 
 #include "Dxx/d3d.h"
 #include "Misc/Random.h"
-#include <d3dx9math.h>
+#include <DirectXMath.h>
 #include <vector>
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! An external (to any particle or emitter) set of factors that control a particle's position and velocity.
 //
 //! @ingroup	Controls
@@ -39,91 +35,93 @@ public:
 public:
 
         BouncePlane()
-            : m_Plane(1.0f, 0.0f, 0.0f, 1.0f), m_Dampening(1.0f)
+            : plane_(1.0f, 0.0f, 0.0f, 1.0f)
+            , dampening_(1.0f)
         {
         }
 
         //! Constructor
-        BouncePlane(D3DXPLANE const & plane, float dampening)
-            : m_Plane(plane), m_Dampening(dampening)
+        BouncePlane(DirectX::XMFLOAT3 const & plane, float dampening)
+            : plane_(plane)
+            , dampening_(dampening)
         {
         }
-        D3DXPLANE m_Plane;          //!< The plane
-        float m_Dampening;          //!< The ratio of the post-bounce velocity to the pre-bounce velocity.
+        DirectX::XMFLOAT3 plane_;          //!< The plane
+        float dampening_;          //!< The ratio of the post-bounce velocity to the pre-bounce velocity.
     };
 
     //! A plane that clips particles.
-    typedef D3DXPLANE ClipPlane;
+    using ClipPlane = DirectX::XMFLOAT3;
 
     //! A list of BouncePlanes.
-    typedef std::vector<BouncePlane>  BouncePlaneList;
+    using BouncePlaneList = std::vector<BouncePlane>;
 
     //! A list of ClipPlanes.
-    typedef std::vector<ClipPlane>    ClipPlaneList;
+    using ClipPlaneList = std::vector<ClipPlane>;
 
     //! Constructor
-    Environment(D3DXVECTOR3 const &     gravity      = Dxx::Vector3Origin(),
-                D3DXVECTOR3 const &     windVelocity = Dxx::Vector3Origin(),
-                float                   airFriction = 0.0f,
-                D3DXVECTOR3 const &     gustiness = Dxx::Vector3Origin(),
-                BouncePlaneList const * pBPL      = 0,
-                ClipPlaneList const *   pCPL      = 0);
+    Environment(DirectX::XMFLOAT3 const & gravity      = DirectX::XMVectorZero(),
+                DirectX::XMFLOAT3 const & windVelocity = DirectX::XMVectorZero(),
+                float                     airFriction = 0.0f,
+                DirectX::XMFLOAT3 const & gustiness = DirectX::XMVectorZero(),
+                BouncePlaneList const *   pBPL      = nullptr,
+                ClipPlaneList const *     pCPL      = nullptr);
 
     // Destructor
-    virtual ~Environment();
+    virtual ~Environment() = default;
 
     //! Sets/returns gravity.
-    void                SetGravity(D3DXVECTOR3 const & gravity) { m_Gravity = gravity; }
-    D3DXVECTOR3 const & GetGravity() const                      { return m_Gravity; }
+    void                      SetGravity(DirectX::XMFLOAT3 const & gravity) { gravity_ = gravity; }
+    DirectX::XMFLOAT3 const & GetGravity() const                            { return gravity_; }
 
     //! Sets/returns wind velocity
-    void                SetWindVelocity(D3DXVECTOR3 const & wind) { m_WindVelocity = wind; }
-    D3DXVECTOR3 const & GetWindVelocity() const                   { return m_CurrentWindVelocity; }
+    void                      SetWindVelocity(DirectX::XMFLOAT3 const & wind) { windVelocity_ = wind; }
+    DirectX::XMFLOAT3 const & GetWindVelocity() const                         { return currentWindVelocity_; }
 
     //! Sets/returns air friction
-    void  SetAirFriction(float airFriction) { m_AirFriction = airFriction; }
-    float GetAirFriction() const            { return m_AirFriction; }
+    void  SetAirFriction(float airFriction) { airFriction_ = airFriction; }
+    float GetAirFriction() const            { return airFriction_; }
 
     //! Sets/returns gustiness
-    void                SetGustiness(D3DXVECTOR3 const & gustiness) { m_Gustiness = gustiness; }
-    D3DXVECTOR3 const & GetGustiness() const                        { return m_Gustiness; }
+    void                      SetGustiness(DirectX::XMFLOAT3 const & gustiness) { gustiness_ = gustiness; }
+    DirectX::XMFLOAT3 const & GetGustiness() const                              { return gustiness_; }
 
     //! Returns the terminal velocity
-    D3DXVECTOR3 const & GetTerminalVelocity() const { return m_TerminalVelocity; }
+    DirectX::XMFLOAT3 const & GetTerminalVelocity() const { return terminalVelocity_; }
 
     //! Returns the distance traveled by a particle at terminal velocity during the last update.
-    D3DXVECTOR3 const & GetTerminalDistance() const { return m_TerminalDistance; }
+    DirectX::XMFLOAT3 const & GetTerminalDistance() const { return terminalDistance_; }
 
-    //! Returns the value 1.0f - exp( -m_AirFriction * dt ) calculated during the last update.
-    float GetEct1() const { return m_Ect1; }
+    //! Returns the value 1.0f - exp( -airFriction_ * dt ) calculated during the last update.
+    float GetEct1() const { return ect1_; }
 
     //! Sets/returns the list of bounce plane
-    void                    SetBouncePlanes(BouncePlaneList const * pBPL) { m_BouncePlanes = pBPL; }
-    BouncePlaneList const * GetBouncePlanes() const                       { return m_BouncePlanes; }
+    void                    SetBouncePlanes(BouncePlaneList const * pBPL) { bouncePlanes_ = pBPL; }
+    BouncePlaneList const * GetBouncePlanes() const                       { return bouncePlanes_; }
 
     //! Sets/returns the list of clip planes
-    void                  SetClipPlanes(ClipPlaneList const * pCPL) { m_ClipPlanes = pCPL; }
-    ClipPlaneList const * GetClipPlanes() const                     { return m_ClipPlanes; }
+    void                  SetClipPlanes(ClipPlaneList const * pCPL) { clipPlanes_ = pCPL; }
+    ClipPlaneList const * GetClipPlanes() const                     { return clipPlanes_; }
 
     //! Updates the environment.
     void Update(float dt);
 
 private:
 
-    D3DXVECTOR3 m_Gravity;                          // Gravity.
-    D3DXVECTOR3 m_WindVelocity;                     // Constant wind velocity component of the current
-                                                    // wind velocity.
-    D3DXVECTOR3 m_Gustiness;                        // Gustiness factor.
-    D3DXVECTOR3 m_Gust;                             // Gust component of the current wind velocity.
-    D3DXVECTOR3 m_CurrentWindVelocity;              // Current wind velocity.
-    D3DXVECTOR3 m_TerminalVelocity;                 // Terminal velocity.
-    D3DXVECTOR3 m_TerminalDistance;                 // Movement of a particle traveling at terminal velocity.
-    float m_AirFriction;                            // Air friction factor.
-    float m_Ect1;                                   // The value 1.0f - exp( -m_AirFriction * dt )
-                                                    // calculated during the last update.
-    BouncePlaneList const * m_BouncePlanes;         // A list of planes that the particles bounce against.
-    ClipPlaneList const * m_ClipPlanes;             // A list of planes that clip the particles.
+    DirectX::XMFLOAT3 gravity_;             // Gravity.
+    DirectX::XMFLOAT3 windVelocity_;        // Constant wind velocity component of the current
+                                            // wind velocity.
+    DirectX::XMFLOAT3 gustiness_;           // Gustiness factor.
+    DirectX::XMFLOAT3 gust_;                // Gust component of the current wind velocity.
+    DirectX::XMFLOAT3 currentWindVelocity_; // Current wind velocity.
+    DirectX::XMFLOAT3 terminalVelocity_;    // Terminal velocity.
+    DirectX::XMFLOAT3 terminalDistance_;    // Movement of a particle traveling at terminal velocity.
+    float airFriction_;                     // Air friction factor.
+    float ect1_;                            // The value 1.0f - exp( -airFriction_ * dt )
+                                            // calculated during the last update.
+    BouncePlaneList const * bouncePlanes_;  // A list of planes that the particles bounce against.
+    ClipPlaneList const * clipPlanes_;      // A list of planes that clip the particles.
 
-    static RandomFloat m_Rng;                       // The RNG for environments
+    static RandomFloat rng_;                // The RNG for environments
 };
 } // namespace Confetti

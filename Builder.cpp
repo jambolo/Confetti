@@ -11,8 +11,6 @@
 
 ********************************************************************************************************************/
 
-#include "PrecompiledHeaders.h"
-
 #include "Builder.h"
 
 #include "Appearance.h"
@@ -28,102 +26,94 @@
 #include "TexturedParticle.h"
 // #include "EmitterParticle.h"
 
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
+
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Builder::Builder(uint32_t seed)
-    : m_Rng(seed)
-    , m_FRng(~seed)
-    , m_DRng(seed ^ (uint32_t)this)
-    , m_ORng(seed ^ ~(uint32_t)this)
+    : rng_(seed)
+    , fRng_(~seed)
+    , dRng_(seed ^ (uint32_t)this)
+    , oRng_(seed ^ ~(uint32_t)this)
 {
     // Nothing to do
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Builder::~Builder()
 {
-    for (auto & e : m_Emitters)
+    for (auto & e : emitters_)
     {
         delete e.second;
     }
 
-    for (auto & v : m_EmitterVolumes)
+    for (auto & v : emitterVolumes_)
     {
         delete v.second;
     }
 
-    for (auto & e : m_Environments)
+    for (auto & e : environments_)
     {
         delete e.second;
     }
 
-    for (auto & a : m_Appearances)
+    for (auto & a : appearances_)
     {
         delete a.second;
     }
 
-    for (auto & p : m_BouncePlaneLists)
+    for (auto & p : bouncePlaneLists_)
     {
         delete p.second;
     }
 
-    for (auto & p : m_ClipPlaneLists)
+    for (auto & p : clipPlaneLists_)
     {
         delete p.second;
     }
 
-    for (auto & m : m_Materials)
+    for (auto & m : materials_)
     {
         delete m.second;
     }
 
-    for (auto & t : m_Textures)
+    for (auto & t : textures_)
     {
         Wx::SafeRelease(t.second);
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 std::auto_ptr<ParticleSystem> Builder::BuildParticleSystem(Configuration const & configuration,
-                                                           IDirect3DDevice9 *    pD3dDevice,
+                                                           IDirect3DDevice11 *   pD3dDevice,
                                                            Dxx::Camera const *   pCamera)
 {
     std::auto_ptr<ParticleSystem> pPS = std::auto_ptr<ParticleSystem>(new ParticleSystem(pD3dDevice));
 
     // Build the bounce lists
 
-    for (auto const & p : configuration.m_BouncePlaneLists)
+    for (auto const & p : configuration.bouncePlaneLists_)
     {
         BuildBouncePlaneList(p.second);
     }
 
     // Build the clip plane lists
 
-    for (auto const & p : configuration.m_ClipPlaneLists)
+    for (auto const & p : configuration.clipPlaneLists_)
     {
         BuildClipPlaneList(p.second);
     }
 
     // Build the emitter volumes
 
-    for (auto const & v : configuration.m_EmitterVolumes)
+    for (auto const & v : configuration.emitterVolumes_)
     {
         BuildEmitterVolume(v.second);
     }
 
     // Build the environments
 
-    for (auto const & e : configuration.m_Environments)
+    for (auto const & e : configuration.environments_)
     {
         Environment * environment = BuildEnvironment(e.second);
         if (environment)
@@ -132,7 +122,7 @@ std::auto_ptr<ParticleSystem> Builder::BuildParticleSystem(Configuration const &
 
     // Build the appearances
 
-    for (auto const & a : configuration.m_Appearances)
+    for (auto const & a : configuration.appearances_)
     {
         Appearance * appearance = BuildAppearance(a.second, pD3dDevice, pCamera);
         if (appearance)
@@ -141,7 +131,7 @@ std::auto_ptr<ParticleSystem> Builder::BuildParticleSystem(Configuration const &
 
     // Build the emitters
 
-    for (auto const & e : configuration.m_Emitters)
+    for (auto const & e : configuration.emitters_)
     {
         BasicEmitter * emitter = BuildEmitter(e.second, pD3dDevice);
         if (emitter)
@@ -150,10 +140,6 @@ std::auto_ptr<ParticleSystem> Builder::BuildParticleSystem(Configuration const &
 
     return pPS;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 std::auto_ptr<PointParticle> Builder::BuildPointParticles(
     int                                            n,
@@ -175,16 +161,16 @@ std::auto_ptr<PointParticle> Builder::BuildPointParticles(
             // Note: RandomDirection returns a direction near the X axis, but the emitter points down the Z axis.
             // The direction returned by RandomDirection must be rotated -90 degrees around the Y axis.
 
-            D3DXVECTOR3 const direction = m_DRng.Get(emitterConfiguration.m_Spread);
-            float const       speed     = m_FRng.Get(emitterConfiguration.m_MinSpeed,
-                                                     emitterConfiguration.m_MaxSpeed);
-            D3DXVECTOR3 const velocity = D3DXVECTOR3(-direction.z, direction.y, direction.x) * speed;
+            DirectX::XMFLOAT4 const direction = dRng_.Get(emitterConfiguration.spread_);
+            float const speed = fRng_.Get(emitterConfiguration.minSpeed_,
+                                          emitterConfiguration.maxSpeed_);
+            DirectX::XMFLOAT4 const velocity = DirectX::XMFLOAT4(-direction.z, direction.y, direction.x) * speed;
 
-            paParticles[i].Initialize(emitterConfiguration.m_Lifetime,
-                                      m_FRng.Get(emitterConfiguration.m_Lifetime),
-                                      volume.Next(),
+            paParticles[i].Initialize(emitterConfiguration.lifetime_,
+                                      fRng_.Get(emitterConfiguration.lifetime_),
+                                      volume.next(),
                                       velocity,
-                                      emitterConfiguration.m_Color);
+                                      emitterConfiguration.color_);
         }
     }
     else
@@ -195,20 +181,16 @@ std::auto_ptr<PointParticle> Builder::BuildPointParticles(
         {
             Configuration::Particle const & configuration = configurations[i];      // Convenience
 
-            paParticles[i].Initialize(configuration.m_Lifetime,
-                                      configuration.m_Age,
-                                      configuration.m_Position,
-                                      configuration.m_Velocity,
-                                      configuration.m_Color);
+            paParticles[i].Initialize(configuration.lifetime_,
+                                      configuration.age_,
+                                      configuration.position_,
+                                      configuration.velocity_,
+                                      configuration.color_);
         }
     }
 
     return std::auto_ptr<PointParticle>(paParticles);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 std::auto_ptr<StreakParticle> Builder::BuildStreakParticles(
     int                                            n,
@@ -225,20 +207,20 @@ std::auto_ptr<StreakParticle> Builder::BuildStreakParticles(
     // If there are no individual particle configurations, then generate the particles' characteristics from the
     // emitter configuration. Otherwise, use the individual configurations.
 
-    if (configurations.size() == 0)
+    if (configurations.empty())
     {
         for (int i = 0; i < n; i++)
         {
-            D3DXVECTOR3 const direction = m_DRng.Get(emitterConfiguration.m_Spread);
-            float const       speed     = m_FRng.Get(emitterConfiguration.m_MinSpeed,
-                                                     emitterConfiguration.m_MaxSpeed);
-            D3DXVECTOR3 const velocity = D3DXVECTOR3(-direction.z, direction.y, direction.x) * speed;
+            DirectX::XMFLOAT4 direction = dRng_.Get(emitterConfiguration.spread_);
+            float speed = fRng_.Get(emitterConfiguration.minSpeed_,
+                                    emitterConfiguration.maxSpeed_);
+            DirectX::XMFLOAT4 velocity = DirectX::XMFLOAT4(-direction.z, direction.y, direction.x) * speed;
 
-            paParticles[i].Initialize(emitterConfiguration.m_Lifetime,
-                                      m_FRng.Get(emitterConfiguration.m_Lifetime),
-                                      volume.Next(),
+            paParticles[i].Initialize(emitterConfiguration.lifetime_,
+                                      fRng_.Get(emitterConfiguration.lifetime_),
+                                      volume.next(),
                                       velocity,
-                                      emitterConfiguration.m_Color);
+                                      emitterConfiguration.color_);
         }
     }
     else
@@ -249,20 +231,16 @@ std::auto_ptr<StreakParticle> Builder::BuildStreakParticles(
         {
             Configuration::Particle const & configuration = configurations[i];      // Convenience
 
-            paParticles[i].Initialize(configuration.m_Lifetime,
-                                      configuration.m_Age,
-                                      configuration.m_Position,
-                                      configuration.m_Velocity,
-                                      configuration.m_Color);
+            paParticles[i].Initialize(configuration.lifetime_,
+                                      configuration.age_,
+                                      configuration.position_,
+                                      configuration.velocity_,
+                                      configuration.color_);
         }
     }
 
     return std::auto_ptr<StreakParticle>(paParticles);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 std::auto_ptr<TexturedParticle> Builder::BuildTexturedParticles(
     int                                            n,
@@ -272,29 +250,27 @@ std::auto_ptr<TexturedParticle> Builder::BuildTexturedParticles(
     Environment const &                            environment,
     Appearance const &                             appearance)
 {
-    TexturedParticle * const paParticles = new TexturedParticle[n];
-    if (paParticles == 0)
-        throw std::bad_alloc();
+    TexturedParticle * paParticles = new TexturedParticle[n];
 
     // If there are no individual particle configurations, then generate the particles' characteristics from the
     // emitter configuration. Otherwise, use the individual configurations.
 
-    if (configurations.size() == 0)
+    if (configurations.empty())
     {
         for (int i = 0; i < n; i++)
         {
-            D3DXVECTOR3 const direction = m_DRng.Get(emitterConfiguration.m_Spread);
-            float const       speed     = m_FRng.Get(emitterConfiguration.m_MinSpeed,
-                                                     emitterConfiguration.m_MaxSpeed);
-            D3DXVECTOR3 const velocity = D3DXVECTOR3(-direction.z, direction.y, direction.x) * speed;
+            DirectX::XMFLOAT4 direction = dRng_.Get(emitterConfiguration.spread_);
+            float speed = fRng_.Get(emitterConfiguration.minSpeed_,
+                                    emitterConfiguration.maxSpeed_);
+            DirectX::XMFLOAT4 velocity = DirectX::XMFLOAT4(-direction.z, direction.y, direction.x) * speed;
 
-            paParticles[i].Initialize(emitterConfiguration.m_Lifetime,
-                                      m_FRng.Get(emitterConfiguration.m_Lifetime),
-                                      volume.Next(),
+            paParticles[i].Initialize(emitterConfiguration.lifetime_,
+                                      fRng_.Get(emitterConfiguration.lifetime_),
+                                      volume.next(),
                                       velocity,
-                                      emitterConfiguration.m_Color,
-                                      emitterConfiguration.m_Radius,
-                                      m_FRng.Get((float)Math::TWO_PI));
+                                      emitterConfiguration.color_,
+                                      emitterConfiguration.radius_,
+                                      fRng_.Get((float)Math::TWO_PI));
         }
     }
     else
@@ -305,22 +281,18 @@ std::auto_ptr<TexturedParticle> Builder::BuildTexturedParticles(
         {
             Configuration::Particle const & configuration = configurations[i];      // Convenience
 
-            paParticles[i].Initialize(configuration.m_Lifetime,
-                                      configuration.m_Age,
-                                      configuration.m_Position,
-                                      configuration.m_Velocity,
-                                      configuration.m_Color,
-                                      configuration.m_Radius,
-                                      configuration.m_Rotation);
+            paParticles[i].Initialize(configuration.lifetime_,
+                                      configuration.age_,
+                                      configuration.position_,
+                                      configuration.velocity_,
+                                      configuration.color_,
+                                      configuration.radius_,
+                                      configuration.rotation_);
         }
     }
 
     return std::auto_ptr<TexturedParticle>(paParticles);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
     int                                            n,
@@ -330,28 +302,26 @@ std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
     Environment const &                            environment,
     Appearance const &                             appearance)
 {
-    SphereParticle * const paParticles = new SphereParticle[n];
-    if (paParticles == 0)
-        throw std::bad_alloc();
+    SphereParticle * paParticles = new SphereParticle[n];
 
     // If there are no individual particle configurations, then generate the particles' characteristics from the
     // emitter configuration. Otherwise, use the individual configurations.
 
-    if (configurations.size() == 0)
+    if (configurations.empty())
     {
         for (int i = 0; i < n; i++)
         {
-            D3DXVECTOR3 const direction = m_DRng.Get(emitterConfiguration.m_Spread);
-            float const       speed     = m_FRng.Get(emitterConfiguration.m_MinSpeed,
-                                                     emitterConfiguration.m_MaxSpeed);
-            D3DXVECTOR3 const velocity = D3DXVECTOR3(-direction.z, direction.y, direction.x) * speed;
+            DirectX::XMFLOAT4 direction = dRng_.Get(emitterConfiguration.spread_);
+            float speed = fRng_.Get(emitterConfiguration.minSpeed_,
+                                    emitterConfiguration.maxSpeed_);
+            DirectX::XMFLOAT4 velocity = DirectX::XMFLOAT4(-direction.z, direction.y, direction.x) * speed;
 
-            paParticles[i].Initialize(emitterConfiguration.m_Lifetime,
-                                      m_FRng.Get(emitterConfiguration.m_Lifetime),
-                                      volume.Next(),
+            paParticles[i].Initialize(emitterConfiguration.lifetime_,
+                                      fRng_.Get(emitterConfiguration.lifetime_),
+                                      volume.next(),
                                       velocity,
-                                      emitterConfiguration.m_Color,
-                                      emitterConfiguration.m_Radius);
+                                      emitterConfiguration.color_,
+                                      emitterConfiguration.radius_);
         }
     }
     else
@@ -362,12 +332,12 @@ std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
         {
             Configuration::Particle const & configuration = configurations[i];      // Convenience
 
-            paParticles[i].Initialize(configuration.m_Lifetime,
-                                      configuration.m_Age,
-                                      configuration.m_Position,
-                                      configuration.m_Velocity,
-                                      configuration.m_Color,
-                                      configuration.m_Radius);
+            paParticles[i].Initialize(configuration.lifetime_,
+                                      configuration.age_,
+                                      configuration.position_,
+                                      configuration.velocity_,
+                                      configuration.color_,
+                                      configuration.radius_);
         }
     }
 
@@ -396,18 +366,18 @@ std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
 //	{
 //		for ( int i = 0; i < n; i++ )
 //		{
-//			D3DXVECTOR3	const	direction	= m_DRng.Get( emitterConfiguration.m_Spread );
-//			float const			speed		= m_FRng.Get( emitterConfiguration.m_MinSpeed,
-//														  emitterConfiguration.m_MaxSpeed );
-//			D3DXVECTOR3	const	velocity	= D3DXVECTOR3( -direction.z, direction.y, direction.x ) * speed;
+//			DirectX::XMFLOAT4	const	direction	= dRng_.Get( emitterConfiguration.spread_ );
+//			float const			speed		= fRng_.Get( emitterConfiguration.minSpeed_,
+//														  emitterConfiguration.maxSpeed_ );
+//			DirectX::XMFLOAT4	const	velocity	= DirectX::XMFLOAT4( -direction.z, direction.y, direction.x ) * speed;
 //
-//			paParticles[ i ].Initialize( emitterConfiguration.m_Lifetime,
-//										 m_FRng.Get( emitterConfiguration.m_Lifetime ),
-//										 volume.Next(),
+//			paParticles[ i ].Initialize( emitterConfiguration.lifetime_,
+//										 fRng_.Get( emitterConfiguration.lifetime_ ),
+//										 volume.next(),
 //										 velocity,
-//										 emitterConfiguration.m_Color,
-//										 emitterConfiguration.m_Radius,
-//										 m_ORng.Get() );
+//										 emitterConfiguration.color_,
+//										 emitterConfiguration.radius_,
+//										 oRng_.Get() );
 //		}
 //	}
 //	else
@@ -418,13 +388,13 @@ std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
 //		{
 //			Configuration::Particle const & configuration	= configurations[ i ];	// Convenience
 //
-//			paParticles[ i ].Initialize( configuration.m_Lifetime,
-//										 configuration.m_Age,
-//										 configuration.m_Position,
-//										 configuration.m_Velocity,
-//										 configuration.m_Color,
-//										 configuration.m_Radius,
-//										 configuration.m_Orientation );
+//			paParticles[ i ].Initialize( configuration.lifetime_,
+//										 configuration.age_,
+//										 configuration.position_,
+//										 configuration.velocity_,
+//										 configuration.color_,
+//										 configuration.radius_,
+//										 configuration.orientation_ );
 //		}
 //	}
 //
@@ -432,15 +402,11 @@ std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
 //	return std::auto_ptr< EmitterParticle >( paParticles );
 // }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuration, IDirect3DDevice9 * pD3dDevice)
+BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuration, IDirect3DDevice11 * pD3dDevice)
 {
     // Prevent duplicate entries
 
-    if (FindEmitter(configuration.m_Name) != 0)
+    if (FindEmitter(configuration.name_) != 0)
         return 0;
 
     // class Configuration::Emitter
@@ -449,35 +415,35 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
     //
     //	typedef std::vector< Particle > ParticleVector;
     //
-    //	std::string		m_Name;
-    //	std::string		m_Type;
-    //	std::string		m_Volume;
-    //	std::string		m_Environment;
-    //	std::string		m_Appearance;
-    //	D3DXVECTOR3		m_Position;
-    //	D3DXQUATERNION	m_Orientation;
-    //	D3DXVECTOR3		m_Velocity;
-    //	float			m_MinSpeed;
-    //	float			m_MaxSpeed;
-    //	int				m_Count;
-    //	float			m_Lifetime;
-    //	float			m_Spread;
-    //	DWORD			m_Color;
-    //	float			m_Radius;
-    //	bool			m_Sorted;
-    //	ParticleVector	m_ParticleVector;
+    //	std::string		name_;
+    //	std::string		type_;
+    //	std::string		volume_;
+    //	std::string		environment_;
+    //	std::string		appearance_;
+    //	DirectX::XMFLOAT4		position_;
+    //	DirectX::XMFLOAT4	orientation_;
+    //	DirectX::XMFLOAT4		velocity_;
+    //	float			minSpeed_;
+    //	float			maxSpeed_;
+    //	int				count_;
+    //	float			lifetime_;
+    //	float			spread_;
+    //	DWORD			color_;
+    //	float			radius_;
+    //	bool			sorted_;
+    //	ParticleVector	particleVector_;
     // };
 
-    EmitterVolume * pVolume      = FindEmitterVolume(configuration.m_Volume);
-    Environment *   pEnvironment = FindEnvironment(configuration.m_Environment);
-    Appearance *    pAppearance  = FindAppearance(configuration.m_Appearance);
+    EmitterVolume * pVolume      = FindEmitterVolume(configuration.volume_);
+    Environment *   pEnvironment = FindEnvironment(configuration.environment_);
+    Appearance *    pAppearance  = FindAppearance(configuration.appearance_);
 
     BasicEmitter * pEmitter;
 
-    if (configuration.m_Type == "point")
+    if (configuration.type_ == "point")
     {
-        std::auto_ptr<PointParticle> qaParticles = BuildPointParticles(configuration.m_Count,
-                                                                       configuration.m_ParticleVector,
+        std::auto_ptr<PointParticle> qaParticles = BuildPointParticles(configuration.count_,
+                                                                       configuration.particleVector_,
                                                                        configuration,
                                                                        *pVolume,
                                                                        *pEnvironment,
@@ -488,15 +454,15 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
                                     pVolume,
                                     pEnvironment,
                                     pAppearance,
-                                    configuration.m_Count,
-                                    configuration.m_Sorted);
+                                    configuration.count_,
+                                    configuration.sorted_);
         if (pEmitter == 0)
             throw std::bad_alloc();
     }
-    else if (configuration.m_Type == "streak")
+    else if (configuration.type_ == "streak")
     {
-        std::auto_ptr<StreakParticle> qaParticles = BuildStreakParticles(configuration.m_Count,
-                                                                         configuration.m_ParticleVector,
+        std::auto_ptr<StreakParticle> qaParticles = BuildStreakParticles(configuration.count_,
+                                                                         configuration.particleVector_,
                                                                          configuration,
                                                                          *pVolume,
                                                                          *pEnvironment,
@@ -507,15 +473,15 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
                                      pVolume,
                                      pEnvironment,
                                      pAppearance,
-                                     configuration.m_Count,
-                                     configuration.m_Sorted);
+                                     configuration.count_,
+                                     configuration.sorted_);
         if (pEmitter == 0)
             throw std::bad_alloc();
     }
-    else if (configuration.m_Type == "textured")
+    else if (configuration.type_ == "textured")
     {
-        std::auto_ptr<TexturedParticle> qaParticles = BuildTexturedParticles(configuration.m_Count,
-                                                                             configuration.m_ParticleVector,
+        std::auto_ptr<TexturedParticle> qaParticles = BuildTexturedParticles(configuration.count_,
+                                                                             configuration.particleVector_,
                                                                              configuration,
                                                                              *pVolume,
                                                                              *pEnvironment,
@@ -526,15 +492,15 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
                                        pVolume,
                                        pEnvironment,
                                        pAppearance,
-                                       configuration.m_Count,
-                                       configuration.m_Sorted);
+                                       configuration.count_,
+                                       configuration.sorted_);
         if (pEmitter == 0)
             throw std::bad_alloc();
     }
-    else if (configuration.m_Type == "sphere")
+    else if (configuration.type_ == "sphere")
     {
-        std::auto_ptr<SphereParticle> qaParticles = BuildSphereParticles(configuration.m_Count,
-                                                                         configuration.m_ParticleVector,
+        std::auto_ptr<SphereParticle> qaParticles = BuildSphereParticles(configuration.count_,
+                                                                         configuration.particleVector_,
                                                                          configuration,
                                                                          *pVolume,
                                                                          *pEnvironment,
@@ -545,15 +511,15 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
                                      pVolume,
                                      pEnvironment,
                                      pAppearance,
-                                     configuration.m_Count,
-                                     configuration.m_Sorted);
+                                     configuration.count_,
+                                     configuration.sorted_);
         if (pEmitter == 0)
             throw std::bad_alloc();
     }
-//	else if ( configuration.m_Type == "emitter" )
+//	else if ( configuration.type_ == "emitter" )
 //	{
-//		std::auto_ptr< EmitterParticle >	qaParticles = BuildEmitterParticles( configuration.m_Count,
-//																		         configuration.m_ParticleVector,
+//		std::auto_ptr< EmitterParticle >	qaParticles = BuildEmitterParticles( configuration.count_,
+//																		         configuration.particleVector_,
 //																				 configuration,
 //																		         *pVolume,
 //																		         *pEnvironment,
@@ -564,8 +530,8 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
 //									 pVolume,
 //									 pEnvironment,
 //									 pAppearance,
-//									 configuration.m_Count,
-//									 configuration.m_Sorted );
+//									 configuration.count_,
+//									 configuration.sorted_ );
 //		if ( pEmitter == 0 ) throw std::bad_alloc();
 //	}
     else
@@ -577,52 +543,48 @@ BasicEmitter * Builder::BuildEmitter(Configuration::Emitter const & configuratio
     // Manage the emitter
 
     if (pEmitter != 0)
-        AddEmitter(configuration.m_Name, pEmitter);
+        AddEmitter(configuration.name_, pEmitter);
 
     return pEmitter;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Appearance * Builder::BuildAppearance(Configuration::Appearance const & configuration,
-                                      IDirect3DDevice9 *                pD3dDevice,
+                                      IDirect3DDevice11 *               pD3dDevice,
                                       Dxx::Camera const *               pCamera)
 {
     // Prevent duplicate entries
 
-    if (FindAppearance(configuration.m_Name) != 0)
+    if (FindAppearance(configuration.name_) != 0)
         return 0;
 
     //	class Configuration::Appearance
     //	{
     //	public:
-    //		std::string	m_Name;
-    //		D3DXCOLOR	m_ColorChange;
-    //		float		m_RadiusChange;
-    //		float		m_RadialVelocity;
-    //		std::string	m_Texture;
-    //		float		m_Size;
+    //		std::string	name_;
+    //		DirectX::XMFLOAT4	colorChange_;
+    //		float		radiusChange_;
+    //		float		radialVelocity_;
+    //		std::string	texture_;
+    //		float		size_;
     //	};
 
-    IDirect3DTexture9 * pTexture;
-    D3DMATERIAL9 *      pMaterial;
+    IDirect3DTexture11 * pTexture;
+    D3DMATERIAL9 *       pMaterial;
 
     // Create the texture (if specified)
 
-    if (!configuration.m_Texture.empty())
+    if (!configuration.texture_.empty())
     {
         // If the texture is not already created, then create it. Otherwise, use the existing one.
 
-        pTexture = FindTexture(configuration.m_Texture);
+        pTexture = FindTexture(configuration.texture_);
         if (pTexture == 0)
         {
             HRESULT hr;
-            hr = D3DXCreateTextureFromFile(pD3dDevice, configuration.m_Texture.c_str(), &pTexture);
+            hr = D3DXCreateTextureFromFile(pD3dDevice, configuration.texture_.c_str(), &pTexture);
             assert_succeeded(hr);
 
-            AddTexture(configuration.m_Texture, pTexture);
+            AddTexture(configuration.texture_, pTexture);
         }
     }
     else
@@ -632,11 +594,11 @@ Appearance * Builder::BuildAppearance(Configuration::Appearance const & configur
 
 //	// Create the material (if specified)
 //
-//	if ( !configuration.m_Material.empty() )
+//	if ( !configuration.material_.empty() )
 //	{
 //		// If the material is not already created, then create it. Otherwise, use the existing one.
 //
-//		pMaterial = FindMaterial( configuration.m_Material );
+//		pMaterial = FindMaterial( configuration.material_ );
 //		if ( pMaterial == 0 )
 //		{
 //		}
@@ -646,219 +608,199 @@ Appearance * Builder::BuildAppearance(Configuration::Appearance const & configur
     pMaterial = 0;      // No material specified
 //	}
 
-    Appearance * const pAppearance = new Appearance(pCamera,
-                                                    configuration.m_ColorChange,
-                                                    configuration.m_RadiusChange,
-                                                    configuration.m_RadialVelocity,
-                                                    pMaterial,
-                                                    pTexture,
-                                                    configuration.m_Size);
+    Appearance * pAppearance = new Appearance(pCamera,
+                                              configuration.colorChange_,
+                                              configuration.radiusChange_,
+                                              configuration.radialVelocity_,
+                                              pMaterial,
+                                              pTexture,
+                                              configuration.size_);
 
     if (pAppearance == 0)
         throw std::bad_alloc();
 
-    AddAppearance(configuration.m_Name, pAppearance);
+    AddAppearance(configuration.name_, pAppearance);
 
     return pAppearance;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 EmitterVolume * Builder::BuildEmitterVolume(Configuration::EmitterVolume const & configuration)
 {
     // Prevent duplicate entries
 
-    if (FindEmitterVolume(configuration.m_Name) != 0)
+    if (FindEmitterVolume(configuration.name_) != 0)
         return 0;
 
     //	class Configuration::EmitterVolume
     //	{
     //	public:
     //
-    //		std::string	m_Name;
-    //		std::string	m_Type;
-    //		float		m_Length;
-    //		float		m_Width;
-    //		float		m_Height;
-    //		float		m_Depth;
-    //		float		m_Radius;
+    //		std::string	name_;
+    //		std::string	type_;
+    //		float		length_;
+    //		float		width_;
+    //		float		height_;
+    //		float		depth_;
+    //		float		radius_;
     //	};
 
     EmitterVolume * pVolume;
 
-    if (configuration.m_Type == "point")
+    if (configuration.type_ == "point")
     {
-        pVolume = new EmitterPoint(m_Rng.Get());
+        pVolume = new EmitterPoint(rng_.Get());
     }
-    else if (configuration.m_Type == "line")
+    else if (configuration.type_ == "line")
     {
-        pVolume = new EmitterLine(m_Rng.Get(), configuration.m_Length);
+        pVolume = new EmitterLine(rng_.Get(), configuration.length_);
     }
-    else if (configuration.m_Type == "rectangle")
+    else if (configuration.type_ == "rectangle")
     {
-        pVolume = new EmitterRectangle(m_Rng.Get(),
-                                       D3DXVECTOR2(configuration.m_Width, configuration.m_Height));
+        pVolume = new EmitterRectangle(rng_.Get(),
+                                       DirectX::XMFLOAT2(configuration.width_, configuration.height_));
     }
-    else if (configuration.m_Type == "circle")
+    else if (configuration.type_ == "circle")
     {
-        pVolume = new EmitterCircle(m_Rng.Get(), configuration.m_Radius);
+        pVolume = new EmitterCircle(rng_.Get(), configuration.radius_);
     }
-    else if (configuration.m_Type == "sphere")
+    else if (configuration.type_ == "sphere")
     {
-        pVolume = new EmitterSphere(m_Rng.Get(), configuration.m_Radius);
+        pVolume = new EmitterSphere(rng_.Get(), configuration.radius_);
     }
-    else if (configuration.m_Type == "box")
+    else if (configuration.type_ == "box")
     {
-        pVolume = new EmitterBox(m_Rng.Get(),
-                                 D3DXVECTOR3(configuration.m_Width,
-                                             configuration.m_Height,
-                                             configuration.m_Depth));
+        pVolume = new EmitterBox(rng_.Get(),
+                                 DirectX::XMFLOAT4(configuration.width_,
+                                                   configuration.height_,
+                                                   configuration.depth_));
     }
-    else if (configuration.m_Type == "cylinder")
+    else if (configuration.type_ == "cylinder")
     {
-        pVolume = new EmitterCylinder(m_Rng.Get(), configuration.m_Radius, configuration.m_Height);
+        pVolume = new EmitterCylinder(rng_.Get(), configuration.radius_, configuration.height_);
     }
-    else if (configuration.m_Type == "cone")
+    else if (configuration.type_ == "cone")
     {
-        pVolume = new EmitterCone(m_Rng.Get(), configuration.m_Radius, configuration.m_Height);
+        pVolume = new EmitterCone(rng_.Get(), configuration.radius_, configuration.height_);
     }
     else
     {
-        // Invalid configuration.m_Type
+        // Invalid configuration.type_
         pVolume = 0;
     }
 
     if (pVolume != 0)
-        AddEmitterVolume(configuration.m_Name, pVolume);
+        AddEmitterVolume(configuration.name_, pVolume);
 
     return pVolume;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Environment * Builder::BuildEnvironment(Configuration::Environment const & configuration)
 {
     // Prevent duplicate entries
 
-    if (FindEnvironment(configuration.m_Name) != 0)
+    if (FindEnvironment(configuration.name_) != 0)
         return 0;
 
     //	class Configuration::Environment
     //	{
     //	public:
-    //		std::string	m_Name;
-    //		D3DXVECTOR3	m_Gravity;
-    //		D3DXVECTOR3	m_WindVelocity;
-    //		D3DXVECTOR3	m_Gustiness;
-    //		float		m_AirFriction;
-    //		std::string	m_Bounce;
-    //		std::string	m_Clip;
+    //		std::string	name_;
+    //		DirectX::XMFLOAT4	gravity_;
+    //		DirectX::XMFLOAT4	windVelocity_;
+    //		DirectX::XMFLOAT4	gustiness_;
+    //		float		airFriction_;
+    //		std::string	bounce_;
+    //		std::string	clip_;
     //	};
 
-    Environment::BouncePlaneList * pBouncePlaneList = FindBouncePlaneList(configuration.m_Bounce);
-    Environment::ClipPlaneList *   pClipPlaneList   = FindClipPlaneList(configuration.m_Clip);
+    Environment::BouncePlaneList * pBouncePlaneList = FindBouncePlaneList(configuration.bounce_);
+    Environment::ClipPlaneList *   pClipPlaneList   = FindClipPlaneList(configuration.clip_);
 
-    Environment * const pEnvironment = new Environment(configuration.m_Gravity,
-                                                       configuration.m_WindVelocity,
-                                                       configuration.m_AirFriction,
-                                                       configuration.m_Gustiness,
-                                                       pBouncePlaneList, pClipPlaneList);
+    Environment * pEnvironment = new Environment(configuration.gravity_,
+                                                 configuration.windVelocity_,
+                                                 configuration.airFriction_,
+                                                 configuration.gustiness_,
+                                                 pBouncePlaneList, pClipPlaneList);
     if (pEnvironment == 0)
         throw std::bad_alloc();
 
-    AddEnvironment(configuration.m_Name, pEnvironment);
+    AddEnvironment(configuration.name_, pEnvironment);
 
     return pEnvironment;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Environment::BouncePlaneList * Builder::BuildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
 {
     // Prevent duplicate entries
 
-    if (FindBouncePlaneList(configuration.m_Name) != 0)
+    if (FindBouncePlaneList(configuration.name_) != 0)
         return 0;
 
     //	class Configuration::BouncePlaneList
     //	{
     //	public:
-    //		std::string					m_Name;
-    //		std::vector< BouncePlane >	m_BouncePlanes;
+    //		std::string					name_;
+    //		std::vector< BouncePlane >	bouncePlanes_;
     //	};
     //
     //	class Configuration::BouncePlane
     //	{
     //	public:
-    //		D3DXPLANE	m_Plane;
-    //		float		m_Dampening;
+    //		DirectX::XMFLOAT4	plane_;
+    //		float		dampening_;
     //	};
 
-    Environment::BouncePlaneList * const pList = new Environment::BouncePlaneList;
+    Environment::BouncePlaneList * pList = new Environment::BouncePlaneList;
     if (pList == 0)
         throw std::bad_alloc();
 
-    pList->resize(configuration.m_BouncePlanes.size());
-    for (size_t i = 0; i < configuration.m_BouncePlanes.size(); i++)
+    pList->resize(configuration.bouncePlanes_.size());
+    for (size_t i = 0; i < configuration.bouncePlanes_.size(); i++)
     {
-        (*pList)[i].m_Plane     = configuration.m_BouncePlanes[i].m_Plane;
-        (*pList)[i].m_Dampening = configuration.m_BouncePlanes[i].m_Dampening;
+        (*pList)[i].plane_     = configuration.bouncePlanes_[i].plane_;
+        (*pList)[i].dampening_ = configuration.bouncePlanes_[i].dampening_;
     }
 
-    AddBouncePlaneList(configuration.m_Name, pList);
+    AddBouncePlaneList(configuration.name_, pList);
 
     return pList;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Environment::ClipPlaneList * Builder::BuildClipPlaneList(Configuration::ClipPlaneList const & configuration)
 {
     // Prevent duplicate entries
 
-    if (FindClipPlaneList(configuration.m_Name) != 0)
+    if (FindClipPlaneList(configuration.name_) != 0)
         return 0;
 
     //	class Configuration::ClipPlaneList
     //	{
     //	public:
-    //		std::string					m_Name;
-    //		std::vector< D3DXPLANE >	m_ClipPlanes;
+    //		std::string					name_;
+    //		std::vector< DirectX::XMFLOAT4 >	clipPlanes_;
     //	};
 
-    Environment::ClipPlaneList * const pList = new Environment::ClipPlaneList();
+    Environment::ClipPlaneList * pList = new Environment::ClipPlaneList();
     if (pList == 0)
         throw std::bad_alloc();
 
-    pList->resize(configuration.m_ClipPlanes.size());
-    for (size_t i = 0; i < configuration.m_ClipPlanes.size(); i++)
+    pList->resize(configuration.clipPlanes_.size());
+    for (size_t i = 0; i < configuration.clipPlanes_.size(); i++)
     {
-        (*pList)[i] = configuration.m_ClipPlanes[i];
+        (*pList)[i] = configuration.clipPlanes_[i];
     }
 
-    AddClipPlaneList(configuration.m_Name, pList);
+    AddClipPlaneList(configuration.name_, pList);
 
     return pList;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 BasicEmitter * Builder::FindEmitter(std::string const & name)
 {
-    EmitterMap::iterator const pEntry = m_Emitters.find(name);
-    BasicEmitter * pEmitter;
+    EmitterMap::iterator pEntry = emitters_.find(name);
+    BasicEmitter *       pEmitter;
 
-    if (pEntry != m_Emitters.end())
+    if (pEntry != emitters_.end())
         pEmitter = pEntry->second;
     else
         pEmitter = 0;
@@ -866,16 +808,12 @@ BasicEmitter * Builder::FindEmitter(std::string const & name)
     return pEmitter;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Appearance * Builder::FindAppearance(std::string const & name)
 {
-    AppearanceMap::iterator const pEntry = m_Appearances.find(name);
+    AppearanceMap::iterator pEntry = appearances_.find(name);
     Appearance * pAppearance;
 
-    if (pEntry != m_Appearances.end())
+    if (pEntry != appearances_.end())
         pAppearance = pEntry->second;
     else
         pAppearance = 0;
@@ -883,16 +821,12 @@ Appearance * Builder::FindAppearance(std::string const & name)
     return pAppearance;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Environment * Builder::FindEnvironment(std::string const & name)
 {
-    EnvironmentMap::iterator const pEntry = m_Environments.find(name);
+    EnvironmentMap::iterator pEntry = environments_.find(name);
     Environment * pEnvironment;
 
-    if (pEntry != m_Environments.end())
+    if (pEntry != environments_.end())
         pEnvironment = pEntry->second;
     else
         pEnvironment = 0;
@@ -900,16 +834,12 @@ Environment * Builder::FindEnvironment(std::string const & name)
     return pEnvironment;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 EmitterVolume * Builder::FindEmitterVolume(std::string const & name)
 {
-    EmitterVolumeMap::iterator const pEntry = m_EmitterVolumes.find(name);
+    EmitterVolumeMap::iterator pEntry = emitterVolumes_.find(name);
     EmitterVolume * pEmitterVolume;
 
-    if (pEntry != m_EmitterVolumes.end())
+    if (pEntry != emitterVolumes_.end())
         pEmitterVolume = pEntry->second;
     else
         pEmitterVolume = 0;
@@ -917,16 +847,12 @@ EmitterVolume * Builder::FindEmitterVolume(std::string const & name)
     return pEmitterVolume;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Environment::BouncePlaneList * Builder::FindBouncePlaneList(std::string const & name)
 {
-    BouncePlaneListMap::iterator const pEntry = m_BouncePlaneLists.find(name);
-    Environment::BouncePlaneList *     pBouncePlaneList;
+    BouncePlaneListMap::iterator   pEntry = bouncePlaneLists_.find(name);
+    Environment::BouncePlaneList * pBouncePlaneList;
 
-    if (pEntry != m_BouncePlaneLists.end())
+    if (pEntry != bouncePlaneLists_.end())
         pBouncePlaneList = pEntry->second;
     else
         pBouncePlaneList = 0;
@@ -934,16 +860,12 @@ Environment::BouncePlaneList * Builder::FindBouncePlaneList(std::string const & 
     return pBouncePlaneList;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Environment::ClipPlaneList * Builder::FindClipPlaneList(std::string const & name)
 {
-    ClipPlaneListMap::iterator const pEntry = m_ClipPlaneLists.find(name);
-    Environment::ClipPlaneList *     pClipPlaneList;
+    ClipPlaneListMap::iterator   pEntry = clipPlaneLists_.find(name);
+    Environment::ClipPlaneList * pClipPlaneList;
 
-    if (pEntry != m_ClipPlaneLists.end())
+    if (pEntry != clipPlaneLists_.end())
         pClipPlaneList = pEntry->second;
     else
         pClipPlaneList = 0;
@@ -951,16 +873,12 @@ Environment::ClipPlaneList * Builder::FindClipPlaneList(std::string const & name
     return pClipPlaneList;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 D3DMATERIAL9 * Builder::FindMaterial(std::string const & name)
 {
-    MaterialMap::iterator const pEntry = m_Materials.find(name);
-    D3DMATERIAL9 * pMaterial;
+    MaterialMap::iterator pEntry = materials_.find(name);
+    D3DMATERIAL9 *        pMaterial;
 
-    if (pEntry != m_Materials.end())
+    if (pEntry != materials_.end())
         pMaterial = pEntry->second;
     else
         pMaterial = 0;
@@ -968,16 +886,12 @@ D3DMATERIAL9 * Builder::FindMaterial(std::string const & name)
     return pMaterial;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-IDirect3DTexture9 * Builder::FindTexture(std::string const & name)
+IDirect3DTexture11 * Builder::FindTexture(std::string const & name)
 {
-    TextureMap::iterator const pEntry = m_Textures.find(name);
-    IDirect3DTexture9 *        pTexture;
+    TextureMap::iterator pEntry = textures_.find(name);
+    IDirect3DTexture11 * pTexture;
 
-    if (pEntry != m_Textures.end())
+    if (pEntry != textures_.end())
         pTexture = pEntry->second;
     else
         pTexture = 0;
@@ -985,113 +899,81 @@ IDirect3DTexture9 * Builder::FindTexture(std::string const & name)
     return pTexture;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 Builder::EmitterMap::iterator Builder::AddEmitter(std::string const & name, BasicEmitter * pEmitter)
 {
     std::pair<EmitterMap::iterator, bool> rv;
 
-    rv = m_Emitters.insert(EmitterMap::value_type(name, pEmitter));
+    rv = emitters_.insert(EmitterMap::value_type(name, pEmitter));
     assert(rv.second);
 
     return rv.first;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Builder::EmitterVolumeMap::iterator Builder::AddEmitterVolume(std::string const & name, EmitterVolume * pVolume)
 {
     std::pair<EmitterVolumeMap::iterator, bool> rv;
 
-    rv = m_EmitterVolumes.insert(EmitterVolumeMap::value_type(name, pVolume));
+    rv = emitterVolumes_.insert(EmitterVolumeMap::value_type(name, pVolume));
     assert(rv.second);
 
     return rv.first;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Builder::EnvironmentMap::iterator Builder::AddEnvironment(std::string const & name, Environment * pEnvironment)
 {
     std::pair<EnvironmentMap::iterator, bool> rv;
 
-    rv = m_Environments.insert(EnvironmentMap::value_type(name, pEnvironment));
+    rv = environments_.insert(EnvironmentMap::value_type(name, pEnvironment));
     assert(rv.second);
 
     return rv.first;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Builder::AppearanceMap::iterator Builder::AddAppearance(std::string const & name, Appearance * pAppearance)
 {
     std::pair<AppearanceMap::iterator, bool> rv;
 
-    rv = m_Appearances.insert(AppearanceMap::value_type(name, pAppearance));
+    rv = appearances_.insert(AppearanceMap::value_type(name, pAppearance));
     assert(rv.second);
 
     return rv.first;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Builder::BouncePlaneListMap::iterator Builder::AddBouncePlaneList(std::string const & name, Environment::BouncePlaneList * pList)
 {
     std::pair<BouncePlaneListMap::iterator, bool> rv;
 
-    rv = m_BouncePlaneLists.insert(BouncePlaneListMap::value_type(name, pList));
+    rv = bouncePlaneLists_.insert(BouncePlaneListMap::value_type(name, pList));
     assert(rv.second);
 
     return rv.first;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 Builder::ClipPlaneListMap::iterator Builder::AddClipPlaneList(std::string const & name, Environment::ClipPlaneList * pList)
 {
     std::pair<ClipPlaneListMap::iterator, bool> rv;
 
-    rv = m_ClipPlaneLists.insert(ClipPlaneListMap::value_type(name, pList));
+    rv = clipPlaneLists_.insert(ClipPlaneListMap::value_type(name, pList));
     assert(rv.second);
 
     return rv.first;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-Builder::MaterialMap::iterator Builder::AddMaterial(std::string const & name, _D3DMATERIAL9 * pMaterial)
+Builder::MaterialMap::iterator Builder::AddMaterial(std::string const & name, _D3DMATERIAL11 * pMaterial)
 {
     std::pair<MaterialMap::iterator, bool> rv;
 
-    rv = m_Materials.insert(MaterialMap::value_type(name, pMaterial));
+    rv = materials_.insert(MaterialMap::value_type(name, pMaterial));
     assert(rv.second);
 
     return rv.first;
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-Builder::TextureMap::iterator Builder::AddTexture(std::string const & name, IDirect3DTexture9 * pTexture)
+Builder::TextureMap::iterator Builder::AddTexture(std::string const & name, IDirect3DTexture11 * pTexture)
 {
     std::pair<TextureMap::iterator, bool> rv;
 
-    rv = m_Textures.insert(TextureMap::value_type(name, pTexture));
+    rv = textures_.insert(TextureMap::value_type(name, pTexture));
     assert(rv.second);
 
     return rv.first;

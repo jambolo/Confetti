@@ -11,8 +11,6 @@
 
 ********************************************************************************************************************/
 
-#include "PrecompiledHeaders.h"
-
 #include "Emitter.h"
 
 #include "Appearance.h"
@@ -22,59 +20,37 @@
 
 #include "resource.h"
 
-// Define the following symbol if the particles are sorted loosely instead of strictly (loosely is faster)
-#define LOOSELY_SORTED
+#include <algorithm>
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
 
 // Vertex buffer size
 static int const VERTEX_BUFFER_SIZE = 1024 * 1024;
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 // This class sorts particles back-to-front.
 
 class ParticleSorter
 {
 public:
-    ParticleSorter(D3DXVECTOR3 const & cameraPosition)
-        : m_CameraPosition(cameraPosition)
+    ParticleSorter(DirectX::XMFLOAT4 const & cameraPosition)
+        : cameraPosition_(cameraPosition)
     {
     }
 
     bool operator ()(Confetti::Particle const & a, Confetti::Particle const & b)
     {
-        D3DXVECTOR3 da = a.GetPosition() - m_CameraPosition;
-        D3DXVECTOR3 db = b.GetPosition() - m_CameraPosition;
+        DirectX::XMFLOAT4 da = a.GetPosition() - cameraPosition_;
+        DirectX::XMFLOAT4 db = b.GetPosition() - cameraPosition_;
 
-        float da2 = D3DXVec3LengthSq(&da);
-        float db2 = D3DXVec3LengthSq(&db);
-
-#if defined(LOOSELY_SORTED)
-
-        int ea;
-        int eb;
-        frexp(da2, &ea);
-        frexp(db2, &eb);
-
-        return ea > eb;
-
-#else   // defined( LOOSELY_SORTED )
-
-        return da2 > db2;
-
-#endif  // defined( LOOSELY_SORTED )
+        return XMVector3Less(XMVector3LengthSq(da), XMVector3LengthSq(db));
     }
 
-    D3DXVECTOR3 const m_CameraPosition;
+    DirectX::XMFLOAT4 const cameraPosition_;
 };
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	paParticles		Array of particles (the emitter assumes ownership).
 //! @param	pVol			Emitter volume.
 //! @param	pEnv			Environment applied to all particles.
@@ -84,25 +60,25 @@ namespace Confetti
 //!
 //! @warning	paParticles must have been allocated with new[].
 
-BasicEmitter::BasicEmitter(IDirect3DDevice9 * pD3dDevice,
+BasicEmitter::BasicEmitter(IDirect3DDevice11 * pD3dDevice,
                            Particle * paParticles,
-                           int size, uint32 usage, D3DPOOL pool,
+                           int size, uint32_t usage, D3DPOOL pool,
                            EmitterVolume const * pVol,
                            Environment const * pEnv,
                            Appearance const * pApp,
                            int n,
                            bool sorted)
-    : m_paParticles(paParticles),
-    m_pEmitterVolume(pVol),
-    m_pEnvironment(pEnv),
-    m_pAppearance(pApp),
-    m_NumParticles(n),
-    m_Sorted(sorted),
-    m_Enabled(true),
-    m_Position(Dxx::Vector3Origin()),
-    m_Velocity(Dxx::Vector3Origin()),
-    m_pD3dDevice(pD3dDevice),
-    m_pVB(0)
+    : paParticles_(paParticles)
+    , pEmitterVolume_(pVol)
+    , pEnvironment_(pEnv)
+    , pAppearance_(pApp)
+    , numParticles_(n)
+    , sorted_(sorted)
+    , enabled_(true)
+    , position_(DirectX::XMVectorZero())
+    , velocity_(DirectX::XMVectorZero())
+    , pD3dDevice_(pD3dDevice)
+    , pVB_(0)
 {
     HRESULT hr;
 
@@ -113,38 +89,30 @@ BasicEmitter::BasicEmitter(IDirect3DDevice9 * pD3dDevice,
     {
         D3DCAPS9 caps;
 
-        m_pD3dDevice->GetDeviceCaps(&caps);
+        pD3dDevice_->GetDeviceCaps(&caps);
 
-        m_AlphaTestAvailable = ((caps.AlphaCmpCaps & D3DPCMPCAPS_GREATEREQUAL) != 0);
-        m_MaxPrimitives      = caps.MaxPrimitiveCount;
-        m_MaxVertexIndex     = caps.MaxVertexIndex;
+        alphaTestAvailable_ = ((caps.AlphaCmpCaps & D3DPCMPCAPS_GREATEREQUAL) != 0);
+        maxPrimitives_      = caps.MaxPrimitiveCount;
+        maxVertexIndex_     = caps.MaxVertexIndex;
     }
 
     // Create the vertex buffer
 
-    hr = pD3dDevice->CreateVertexBuffer(std::min(VERTEX_BUFFER_SIZE, n * size), usage, 0, pool, &m_pVB, NULL);
+    hr = pD3dDevice->CreateVertexBuffer(std::min(VERTEX_BUFFER_SIZE, n * size), usage, 0, pool, &pVB_, NULL);
     assert_succeeded(hr);
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 BasicEmitter::~BasicEmitter()
 {
-    Wx::SafeRelease(m_pVB);
-    Wx::SafeRelease(m_pD3dDevice);
+    Wx::SafeRelease(pVB_);
+    Wx::SafeRelease(pD3dDevice_);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	dt	Amount of time elapsed since the last update
 //! @param	position	The new position of the emitter.
 //! @param	velocity	The new velocity of the emitter.
 
-void BasicEmitter::Update(float dt, D3DXVECTOR3 const & position, D3DXVECTOR3 const & velocity)
+void BasicEmitter::Update(float dt, DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity)
 {
     // Update the emitter's position and velocity
 
@@ -156,17 +124,8 @@ void BasicEmitter::Update(float dt, D3DXVECTOR3 const & position, D3DXVECTOR3 co
 }
 
 /********************************************************************************************************************/
-/********************************************************************************************************************/
-/*																													*/
 /*										P O I N T   P A R T I C L E   E M I T T E R                                 */
-/*																													*/
 /********************************************************************************************************************/
-/********************************************************************************************************************/
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	pVol	Emitter volume.
 //! @param	pEnv	Environment.
 //! @param	pApp	Appearance.
@@ -174,13 +133,13 @@ void BasicEmitter::Update(float dt, D3DXVECTOR3 const & position, D3DXVECTOR3 co
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-PointEmitter::PointEmitter(IDirect3DDevice9 *    m_pD3dDevice,
+PointEmitter::PointEmitter(IDirect3DDevice11 *   pD3dDevice_,
                            EmitterVolume const * pVol,
                            Environment const *   pEnv,
                            Appearance const *    pApp,
                            int                   n,
                            bool                  sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    new PointParticle[n],
                    sizeof(PointParticle::VBEntry), PointParticle::USAGE, (D3DPOOL)PointParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -191,10 +150,6 @@ PointEmitter::PointEmitter(IDirect3DDevice9 *    m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	paParticles		Particle array (the emitter assumes ownership).
 //! @param	pVol			Emitter volume.
 //! @param	pEnv			Environment applied to all particles.
@@ -203,14 +158,14 @@ PointEmitter::PointEmitter(IDirect3DDevice9 *    m_pD3dDevice,
 //!
 //! @warning	paParticles must have been allocated with new[].
 
-PointEmitter::PointEmitter(IDirect3DDevice9 *           m_pD3dDevice,
+PointEmitter::PointEmitter(IDirect3DDevice11 *          pD3dDevice_,
                            std::auto_ptr<PointParticle> qaParticles,
                            EmitterVolume const *        pVol,
                            Environment const *          pEnv,
                            Appearance const *           pApp,
                            int                          n,
                            bool                         sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    qaParticles.release(),
                    sizeof(PointParticle::VBEntry), PointParticle::USAGE, (D3DPOOL)PointParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -218,19 +173,11 @@ PointEmitter::PointEmitter(IDirect3DDevice9 *           m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 PointEmitter::~PointEmitter()
 {
     Uninitialize();
     delete[] GetParticles();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 void PointEmitter::Initialize()
 {
@@ -248,10 +195,15 @@ void PointEmitter::Initialize()
     // Load the effects file
 
     {
+//         WCHAR str[MAX_PATH];
+//         DXUTFindDXSDKMediaFileCch(str, MAX_PATH, L"BasicHLSL10.fx");
+//
+//         hr = D3DX11CompileFromFile(str, NULL, NULL, pFunctionName, pProfile, D3D10_SHADER_ENABLE_STRICTNESS, NULL, NULL, &pBlob,
+// &pErrorBlob, NULL);
         ID3DXBuffer * pErrorMsgs;
-        hr = D3DXCreateEffectFromFile(m_pD3dDevice, _T("../res/PointParticle.fxo"), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs);
-//		hr = D3DXCreateEffectFromFile( m_pD3dDevice, _T( "res/PointParticle.fxo" ), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs );
-//		hr = D3DXCreateEffectFromResource( m_pD3dDevice, NULL, _T( "IDR_POINTEFFECT" ), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs
+        hr = D3DXCreateEffectFromFile(pD3dDevice_, _T("../res/PointParticle.fxo"), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
+//		hr = D3DXCreateEffectFromFile( pD3dDevice_, _T( "res/PointParticle.fxo" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs );
+//		hr = D3DXCreateEffectFromResource( pD3dDevice_, NULL, _T( "IDR_POINTEFFECT" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs
 // );
         if (FAILED(hr) && pErrorMsgs != 0 && pErrorMsgs->GetBufferPointer() != 0)
         {
@@ -262,31 +214,23 @@ void PointEmitter::Initialize()
         assert_succeeded(hr);
 
         D3DXHANDLE hTechnique;
-        hr = m_pEffect->FindNextValidTechnique(NULL, &hTechnique);
+        hr = pEffect_->FindNextValidTechnique(NULL, &hTechnique);
         assert_succeeded(hr);
 
-        m_pEffect->SetTechnique(hTechnique);
+        pEffect_->SetTechnique(hTechnique);
 
         Wx::SafeRelease(pErrorMsgs);
     }
 
-    hr = m_pD3dDevice->CreateVertexDeclaration(PointParticle::m_aVSDataDeclarationInfo, &m_pVertexDeclaration);
+    hr = pD3dDevice_->CreateVertexDeclaration(PointParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void PointEmitter::Uninitialize()
 {
-    Wx::SafeRelease(m_pEffect);
-    Wx::SafeRelease(m_pVertexDeclaration);
+    Wx::SafeRelease(pEffect_);
+    Wx::SafeRelease(pVertexDeclaration_);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt	Amount of time elapsed since the last update
@@ -310,10 +254,6 @@ void PointEmitter::Update(float dt)
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void PointEmitter::Draw() const
 {
     HRESULT hr;
@@ -329,39 +269,39 @@ void PointEmitter::Draw() const
     // when the nearer particle is transparent. If the particles are sorted back-to-front, then this problem does
     // not occur and writing to the Z-buffer is enabled so that particles do not have to treated as a special case.
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
     assert_succeeded(hr);
 
 #if defined(LOOSELY_SORTED)
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZWRITEENABLE, FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
 #else   // defined( LOOSELY_SORTED )
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZWRITEENABLE, IsSorted() ? TRUE : FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, IsSorted() ? TRUE : FALSE);
 #endif  // defined( LOOSELY_SORTED )
     assert_succeeded(hr);
 
     // No lighting
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_LIGHTING, FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
     assert_succeeded(hr);
 
     // Enable antialiasing so points less than a pixel in size are still drawn (but faded).
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
     assert_succeeded(hr);
 
 //	// Set point size
 //
 //	float	size	= GetAppearance()->GetSize();
-//	hr = Dxx::SetRenderState( m_pD3dDevice, D3DRS_POINTSIZE, *(DWORD*)&size );
+//	hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE, *(DWORD*)&size );
 //	assert_succeeded( hr );
 //
 //	float	minSize	= 0.5f;
-//	hr = Dxx::SetRenderState( m_pD3dDevice, D3DRS_POINTSIZE_MIN, *(DWORD*)&minSize );
+//	hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE_MIN, *(DWORD*)&minSize );
 //	assert_succeeded( hr );
 //
 //	// Enable point scaling
 //
-//	hr = Dxx::SetRenderState( m_pD3dDevice, D3DRS_POINTSCALEENABLE, TRUE );
+//	hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALEENABLE, TRUE );
 //	assert_succeeded( hr );
 //
 //	// Set point scale factors
@@ -369,43 +309,43 @@ void PointEmitter::Draw() const
 //	float	a	= 0.0f;
 //	float	b	= 0.0f;
 //	float	c	= 1.0f;	// FIXME: This should be tan( a/2 ) ** 2
-//	hr = Dxx::SetRenderState( m_pD3dDevice, D3DRS_POINTSCALE_A, *(DWORD*)&a );
+//	hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_A, *(DWORD*)&a );
 //	assert_succeeded( hr );
-//	hr = Dxx::SetRenderState( m_pD3dDevice, D3DRS_POINTSCALE_B, *(DWORD*)&b );
+//	hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_B, *(DWORD*)&b );
 //	assert_succeeded( hr );
-//	hr = Dxx::SetRenderState( m_pD3dDevice, D3DRS_POINTSCALE_C, *(DWORD*)&c );
+//	hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_C, *(DWORD*)&c );
 //	assert_succeeded( hr );
 
     // Turn on alphablending
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ALPHABLENDENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     assert_succeeded(hr);
 
     // Set effect variables
 
-//	D3DXMATRIX	view			= pAppearance->GetCamera()->GetViewMatrix();
-//	D3DXMATRIX	projection		= pAppearance->GetCamera()->GetProjectionMatrix();
-//	D3DXMATRIX	viewProjection	= pAppearance->GetCamera()->GetViewProjectionMatrix();
-//	m_pEffect->SetMatrix( "ViewMatrix", &view );
-//	m_pEffect->SetMatrix( "ProjectionMatrix", &projection );
-//	m_pEffect->SetMatrix( "ViewProjectionMatrix", &view );
-    m_pEffect->SetFloat("Size", GetAppearance()->GetSize());
+//	DirectX::XMFLOAT4X4	view			= pAppearance->GetCamera()->GetViewMatrix();
+//	DirectX::XMFLOAT4X4	projection		= pAppearance->GetCamera()->GetProjectionMatrix();
+//	DirectX::XMFLOAT4X4	viewProjection	= pAppearance->GetCamera()->GetViewProjectionMatrix();
+//	pEffect_->SetMatrix( "ViewMatrix", &view );
+//	pEffect_->SetMatrix( "ProjectionMatrix", &projection );
+//	pEffect_->SetMatrix( "ViewProjectionMatrix", &view );
+    pEffect_->SetFloat("Size", GetAppearance()->GetSize());
 
     // Set up vertex data
 
-    hr = m_pD3dDevice->SetVertexDeclaration(m_pVertexDeclaration);
+    hr = pD3dDevice_->SetVertexDeclaration(pVertexDeclaration_);
     assert_succeeded(hr);
 
-    hr = m_pD3dDevice->SetStreamSource(0, m_pVB, 0, sizeof(PointParticle::VBEntry::Vertex));
+    hr = pD3dDevice_->SetStreamSource(0, pVB_, 0, sizeof(PointParticle::VBEntry::Vertex));
     assert_succeeded(hr);
 
-    int particlesPerGroup = std::min(std::min(VERTEX_BUFFER_SIZE / (int)sizeof(PointParticle::VBEntry), m_MaxPrimitives),
+    int particlesPerGroup = std::min(std::min(VERTEX_BUFFER_SIZE / (int)sizeof(PointParticle::VBEntry), maxPrimitives_),
                                      nParticles);
 
     int i = 0;
@@ -414,7 +354,7 @@ void PointEmitter::Draw() const
         int count = 0;                      // Number of particles to be rendered this block
 
         {
-            Dxx::VertexBufferLock lock(m_pVB, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
+            Dxx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
 
             PointParticle::VBEntry * paVB        = (PointParticle::VBEntry *)lock.GetLockedBuffer();
             PointParticle const *    paParticles = GetParticles();
@@ -448,29 +388,21 @@ void PointEmitter::Draw() const
         {
             UINT nPasses;
 
-            m_pEffect->Begin(&nPasses, 0);
+            pEffect_->Begin(&nPasses, 0);
             assert(nPasses == 1);
 
-            m_pEffect->BeginPass(0);
-            m_pEffect->CommitChanges();
-            m_pD3dDevice->DrawPrimitive(D3DPT_POINTLIST, 0, count);
-            m_pEffect->EndPass();
+            pEffect_->BeginPass(0);
+            pEffect_->CommitChanges();
+            pD3dDevice_->DrawPrimitive(D3DPT_POINTLIST, 0, count);
+            pEffect_->EndPass();
 
-            m_pEffect->End();
+            pEffect_->End();
         }
     }
 }
 
 /********************************************************************************************************************/
-/********************************************************************************************************************/
-/*																													*/
 /*										S T R E A K   P A R T I C L E   E M I T T E R                               */
-/*																													*/
-/********************************************************************************************************************/
-/********************************************************************************************************************/
-
-/********************************************************************************************************************/
-/*																													*/
 /********************************************************************************************************************/
 
 //! @param	pVol	Emitter volume.
@@ -481,13 +413,13 @@ void PointEmitter::Draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-StreakEmitter::StreakEmitter(IDirect3DDevice9 *    m_pD3dDevice,
+StreakEmitter::StreakEmitter(IDirect3DDevice11 *   pD3dDevice_,
                              EmitterVolume const * pVol,
                              Environment const *   pEnv,
                              Appearance const *    pApp,
                              int                   n,
                              bool                  sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    new StreakParticle[n],
                    sizeof(StreakParticle::VBEntry), StreakParticle::USAGE, (D3DPOOL)StreakParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -498,10 +430,6 @@ StreakEmitter::StreakEmitter(IDirect3DDevice9 *    m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	paParticles		Particle array (the emitter assumes ownership).
 //! @param	pVol			Emitter volume.
 //! @param	pEnv			Environment applied to all particles.
@@ -511,14 +439,14 @@ StreakEmitter::StreakEmitter(IDirect3DDevice9 *    m_pD3dDevice,
 //!
 //! @warning	paParticles must have been allocated with new[].
 
-StreakEmitter::StreakEmitter(IDirect3DDevice9 *            m_pD3dDevice,
+StreakEmitter::StreakEmitter(IDirect3DDevice11 *           pD3dDevice_,
                              std::auto_ptr<StreakParticle> qaParticles,
                              EmitterVolume const *         pVol,
                              Environment const *           pEnv,
                              Appearance const *            pApp,
                              int                           n,
                              bool                          sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    qaParticles.release(),
                    sizeof(StreakParticle::VBEntry), StreakParticle::USAGE, (D3DPOOL)StreakParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -526,19 +454,11 @@ StreakEmitter::StreakEmitter(IDirect3DDevice9 *            m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 StreakEmitter::~StreakEmitter()
 {
     Uninitialize();
     delete[] GetParticles();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt	Amount of time elapsed since the last update
@@ -562,10 +482,6 @@ void StreakEmitter::Update(float dt)
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void StreakEmitter::Initialize()
 {
     HRESULT hr;
@@ -583,9 +499,9 @@ void StreakEmitter::Initialize()
 
     {
         ID3DXBuffer * pErrorMsgs;
-        hr = D3DXCreateEffectFromFile(m_pD3dDevice, _T("../res/StreakParticle.fxo"), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs);
-//		hr = D3DXCreateEffectFromFile( m_pD3dDevice, _T( "res/StreakParticle.fxo" ), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs );
-//		hr = D3DXCreateEffectFromResource( m_pD3dDevice, NULL, _T( "IDR_STREAKEFFECT" ), NULL, NULL, 0, NULL, &m_pEffect,
+        hr = D3DXCreateEffectFromFile(pD3dDevice_, _T("../res/StreakParticle.fxo"), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
+//		hr = D3DXCreateEffectFromFile( pD3dDevice_, _T( "res/StreakParticle.fxo" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs );
+//		hr = D3DXCreateEffectFromResource( pD3dDevice_, NULL, _T( "IDR_STREAKEFFECT" ), NULL, NULL, 0, NULL, &pEffect_,
 // &pErrorMsgs );
         if (FAILED(hr) && pErrorMsgs != 0 && pErrorMsgs->GetBufferPointer() != 0)
         {
@@ -596,31 +512,23 @@ void StreakEmitter::Initialize()
         assert_succeeded(hr);
 
         D3DXHANDLE hTechnique;
-        hr = m_pEffect->FindNextValidTechnique(NULL, &hTechnique);
+        hr = pEffect_->FindNextValidTechnique(NULL, &hTechnique);
         assert_succeeded(hr);
 
-        m_pEffect->SetTechnique(hTechnique);
+        pEffect_->SetTechnique(hTechnique);
 
         Wx::SafeRelease(pErrorMsgs);
     }
 
-    hr = m_pD3dDevice->CreateVertexDeclaration(StreakParticle::m_aVSDataDeclarationInfo, &m_pVertexDeclaration);
+    hr = pD3dDevice_->CreateVertexDeclaration(StreakParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void StreakEmitter::Uninitialize()
 {
-    Wx::SafeRelease(m_pEffect);
-    Wx::SafeRelease(m_pVertexDeclaration);
+    Wx::SafeRelease(pEffect_);
+    Wx::SafeRelease(pVertexDeclaration_);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 void StreakEmitter::Draw() const
 {
@@ -637,54 +545,54 @@ void StreakEmitter::Draw() const
     // when the nearer particle is transparent. If the particles are sorted back-to-front, then this problem does
     // not occur and writing to the Z-buffer is enabled so that particles do not have to treated as a special case.
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
     assert_succeeded(hr);
 
 #if defined(LOOSELY_SORTED)
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZWRITEENABLE, FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
 #else   // defined( LOOSELY_SORTED )
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZWRITEENABLE, IsSorted() ? TRUE : FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, IsSorted() ? TRUE : FALSE);
 #endif  // defined( LOOSELY_SORTED )
     assert_succeeded(hr);
 
     // No lighting
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_LIGHTING, FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
     assert_succeeded(hr);
 
     // Enable line antialiasing.
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
     assert_succeeded(hr);
 
     // Turn on alphablending
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ALPHABLENDENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     assert_succeeded(hr);
 
     // Set effect variables
 
-    D3DXMATRIX const & viewProjection = pAppearance->GetCamera()->GetViewProjectionMatrix();
-    m_pEffect->SetMatrix("ViewProjectionMatrix", &viewProjection);
+    DirectX::XMFLOAT4X4 const & viewProjection = pAppearance->GetCamera()->GetViewProjectionMatrix();
+    pEffect_->SetMatrix("ViewProjectionMatrix", &viewProjection);
 
     // Set up vertex data
 
-    hr = m_pD3dDevice->SetVertexDeclaration(m_pVertexDeclaration);
+    hr = pD3dDevice_->SetVertexDeclaration(pVertexDeclaration_);
     assert_succeeded(hr);
 
-    hr = m_pD3dDevice->SetStreamSource(0, m_pVB, 0, sizeof(StreakParticle::VBEntry::Vertex));
+    hr = pD3dDevice_->SetStreamSource(0, pVB_, 0, sizeof(StreakParticle::VBEntry::Vertex));
     assert_succeeded(hr);
 
     // Render
 
     int particlesPerGroup = std::min(std::min(VERTEX_BUFFER_SIZE / (int)sizeof(StreakParticle::VBEntry),
-                                              m_MaxPrimitives),
+                                              maxPrimitives_),
                                      nParticles);
 
     int i = 0;
@@ -693,7 +601,7 @@ void StreakEmitter::Draw() const
         int count = 0;
 
         {
-            Dxx::VertexBufferLock lock(m_pVB, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
+            Dxx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
 
             StreakParticle::VBEntry * paVB        = (StreakParticle::VBEntry *)lock.GetLockedBuffer();
             StreakParticle const *    paParticles = GetParticles();
@@ -733,29 +641,21 @@ void StreakEmitter::Draw() const
         {
             UINT nPasses;
 
-            m_pEffect->Begin(&nPasses, 0);
+            pEffect_->Begin(&nPasses, 0);
             assert(nPasses == 1);
 
-            m_pEffect->BeginPass(0);
-            m_pEffect->CommitChanges();
-            m_pD3dDevice->DrawPrimitive(D3DPT_LINELIST, 0, count);
-            m_pEffect->EndPass();
+            pEffect_->BeginPass(0);
+            pEffect_->CommitChanges();
+            pD3dDevice_->DrawPrimitive(D3DPT_LINELIST, 0, count);
+            pEffect_->EndPass();
 
-            m_pEffect->End();
+            pEffect_->End();
         }
     }
 }
 
 /********************************************************************************************************************/
-/********************************************************************************************************************/
-/*																													*/
 /*									T E X T U R E D   P A R T I C L E   E M I T T E R                               */
-/*																													*/
-/********************************************************************************************************************/
-/********************************************************************************************************************/
-
-/********************************************************************************************************************/
-/*																													*/
 /********************************************************************************************************************/
 
 //! @param	pVol	Emitter volume.
@@ -765,13 +665,13 @@ void StreakEmitter::Draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-TexturedEmitter::TexturedEmitter(IDirect3DDevice9 *    m_pD3dDevice,
+TexturedEmitter::TexturedEmitter(IDirect3DDevice11 *   pD3dDevice_,
                                  EmitterVolume const * pVol,
                                  Environment const *   pEnv,
                                  Appearance const *    pApp,
                                  int                   n,
                                  bool                  sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    new TexturedParticle[n],
                    sizeof(TexturedParticle::VBEntry), TexturedParticle::USAGE, (D3DPOOL)TexturedParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -782,10 +682,6 @@ TexturedEmitter::TexturedEmitter(IDirect3DDevice9 *    m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	paParticles		Particle array (the emitter assumes ownership).
 //! @param	pVol			Emitter volume.
 //! @param	pEnv			Environment applied to all particles.
@@ -794,14 +690,14 @@ TexturedEmitter::TexturedEmitter(IDirect3DDevice9 *    m_pD3dDevice,
 //!
 //! @warning	paParticles must have been allocated with new[].
 
-TexturedEmitter::TexturedEmitter(IDirect3DDevice9 *              m_pD3dDevice,
+TexturedEmitter::TexturedEmitter(IDirect3DDevice11 *             pD3dDevice_,
                                  std::auto_ptr<TexturedParticle> qaParticles,
                                  EmitterVolume const *           pVol,
                                  Environment const *             pEnv,
                                  Appearance const *              pApp,
                                  int                             n,
                                  bool                            sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    qaParticles.release(),
                    sizeof(TexturedParticle::VBEntry), TexturedParticle::USAGE, (D3DPOOL)TexturedParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -809,19 +705,11 @@ TexturedEmitter::TexturedEmitter(IDirect3DDevice9 *              m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 TexturedEmitter::~TexturedEmitter()
 {
     Uninitialize();
     delete[] GetParticles();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 void TexturedEmitter::Initialize()
 {
@@ -845,17 +733,17 @@ void TexturedEmitter::Initialize()
     int nIndexes = GetNumParticles() * 6;
     if (nIndexes > VERTEX_BUFFER_SIZE / sizeof(TexturedParticle::VBEntry) * 6)
         nIndexes = VERTEX_BUFFER_SIZE / sizeof(TexturedParticle::VBEntry) * 6;
-    if (nIndexes > m_MaxPrimitives * 3)
-        nIndexes = m_MaxPrimitives * 3;
+    if (nIndexes > maxPrimitives_ * 3)
+        nIndexes = maxPrimitives_ * 3;
 
     // Create the index buffer
 
-    hr = m_pD3dDevice->CreateIndexBuffer(nIndexes * sizeof(__int16),
-                                         TexturedParticle::USAGE,
-                                         D3DFMT_INDEX16,
-                                         (D3DPOOL)TexturedParticle::POOL,
-                                         &m_pIB,
-                                         NULL);
+    hr = pD3dDevice_->CreateIndexBuffer(nIndexes * sizeof(__int16),
+                                        TexturedParticle::USAGE,
+                                        D3DFMT_INDEX16,
+                                        (D3DPOOL)TexturedParticle::POOL,
+                                        &pIB_,
+                                        NULL);
     assert_succeeded(hr);
 
     // Load the effects file
@@ -863,10 +751,10 @@ void TexturedEmitter::Initialize()
     {
         ID3DXBuffer * pErrorMsgs;
         hr =
-            D3DXCreateEffectFromFile(m_pD3dDevice, _T("../res/TexturedParticle.fxo"), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs);
-//		hr = D3DXCreateEffectFromFile( m_pD3dDevice, _T( "res/TexturedParticle.fxo" ), NULL, NULL, 0, NULL, &m_pEffect, &pErrorMsgs
+            D3DXCreateEffectFromFile(pD3dDevice_, _T("../res/TexturedParticle.fxo"), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
+//		hr = D3DXCreateEffectFromFile( pD3dDevice_, _T( "res/TexturedParticle.fxo" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs
 // );
-//		hr = D3DXCreateEffectFromResource( m_pD3dDevice, NULL, _T( "IDR_TEXTUREDEFFECT" ), NULL, NULL, 0, NULL, &m_pEffect,
+//		hr = D3DXCreateEffectFromResource( pD3dDevice_, NULL, _T( "IDR_TEXTUREDEFFECT" ), NULL, NULL, 0, NULL, &pEffect_,
 // &pErrorMsgs );
         if (FAILED(hr) && pErrorMsgs != 0 && pErrorMsgs->GetBufferPointer() != 0)
         {
@@ -877,32 +765,24 @@ void TexturedEmitter::Initialize()
         assert_succeeded(hr);
 
         D3DXHANDLE hTechnique;
-        hr = m_pEffect->FindNextValidTechnique(NULL, &hTechnique);
+        hr = pEffect_->FindNextValidTechnique(NULL, &hTechnique);
         assert_succeeded(hr);
 
-        m_pEffect->SetTechnique(hTechnique);
+        pEffect_->SetTechnique(hTechnique);
 
         Wx::SafeRelease(pErrorMsgs);
     }
 
-    hr = m_pD3dDevice->CreateVertexDeclaration(TexturedParticle::m_aVSDataDeclarationInfo, &m_pVertexDeclaration);
+    hr = pD3dDevice_->CreateVertexDeclaration(TexturedParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void TexturedEmitter::Uninitialize()
 {
-    Wx::SafeRelease(m_pVertexDeclaration);
-    Wx::SafeRelease(m_pEffect);
-    Wx::SafeRelease(m_pIB);
+    Wx::SafeRelease(pVertexDeclaration_);
+    Wx::SafeRelease(pEffect_);
+    Wx::SafeRelease(pIB_);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt	Amount of time elapsed since the last update
@@ -926,16 +806,12 @@ void TexturedEmitter::Update(float dt)
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void TexturedEmitter::Draw() const
 {
     HRESULT hr;
 
-    Appearance const *  pAppearance = GetAppearance();
-    IDirect3DTexture9 * pTexture    = pAppearance->GetTexture();
+    Appearance const *   pAppearance = GetAppearance();
+    IDirect3DTexture11 * pTexture    = pAppearance->GetTexture();
     int nParticles = GetNumParticles();                         // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
@@ -946,35 +822,35 @@ void TexturedEmitter::Draw() const
     // when the nearer particle is transparent. If the particles are sorted back-to-front, then this problem does
     // not occur and writing to the Z-buffer is enabled so that particles do not have to treated as a special case.
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
     assert_succeeded(hr);
 
 #if defined(LOOSELY_SORTED)
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZWRITEENABLE, FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
 #else   // defined( LOOSELY_SORTED )
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ZWRITEENABLE, IsSorted() ? TRUE : FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, IsSorted() ? TRUE : FALSE);
 #endif  // defined( LOOSELY_SORTED )
     assert_succeeded(hr);
 
     // No back-face culling
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_CULLMODE, D3DCULL_NONE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_CULLMODE, D3DCULL_NONE);
     assert_succeeded(hr);
 
     // No lighting
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_LIGHTING, FALSE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
     assert_succeeded(hr);
 
     // Turn on alphablending
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_ALPHABLENDENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     assert_succeeded(hr);
 
     // Enable alpha testing (skips pixels with less than a certain alpha). This helps with unsorted particles since
@@ -982,38 +858,38 @@ void TexturedEmitter::Draw() const
     // Also, since the particles are triangles, there are large areas of transparent pixels, this will speed up
     // rendering by rejecting those pixels.
 
-    if (m_AlphaTestAvailable)
+    if (alphaTestAvailable_)
     {
-        m_pD3dDevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
-        m_pD3dDevice->SetRenderState(D3DRS_ALPHAREF, 8);
-        m_pD3dDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);
+        pD3dDevice_->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+        pD3dDevice_->SetRenderState(D3DRS_ALPHAREF, 8);
+        pD3dDevice_->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);
     }
 
     // ???
-    hr = Dxx::SetRenderState(m_pD3dDevice, D3DRS_DITHERENABLE, TRUE);
+    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DITHERENABLE, TRUE);
     assert_succeeded(hr);
 
     // Set effect variables
 
-    D3DXMATRIX viewProjection = pAppearance->GetCamera()->GetViewProjectionMatrix();
+    DirectX::XMFLOAT4X4 viewProjection = pAppearance->GetCamera()->GetViewProjectionMatrix();
 
-    m_pEffect->SetMatrix("g_viewProjection", &viewProjection);
-    m_pEffect->SetTexture("g_texture", pTexture);
+    pEffect_->SetMatrix("g_viewProjection", &viewProjection);
+    pEffect_->SetTexture("g_texture", pTexture);
 
     // Get the camera's (and thus particles') X and Y axes
 
-    D3DXMATRIX cameraOrientation = pAppearance->GetCamera()->GetFrame().GetOrientationMatrix();
-    m_pEffect->SetMatrix("g_cameraOrientation", &cameraOrientation);
+    DirectX::XMFLOAT4X4 cameraOrientation = pAppearance->GetCamera()->GetFrame().GetOrientationMatrix();
+    pEffect_->SetMatrix("g_cameraOrientation", &cameraOrientation);
 
     // Set up vertex data
 
-    hr = m_pD3dDevice->SetVertexDeclaration(m_pVertexDeclaration);
+    hr = pD3dDevice_->SetVertexDeclaration(pVertexDeclaration_);
     assert_succeeded(hr);
 
-    hr = m_pD3dDevice->SetStreamSource(0, m_pVB, 0, sizeof(TexturedParticle::VBEntry::Vertex));
+    hr = pD3dDevice_->SetStreamSource(0, pVB_, 0, sizeof(TexturedParticle::VBEntry::Vertex));
     assert_succeeded(hr);
 
-    hr = m_pD3dDevice->SetIndices(m_pIB);
+    hr = pD3dDevice_->SetIndices(pIB_);
     assert_succeeded(hr);
 
     // Render
@@ -1021,10 +897,10 @@ void TexturedEmitter::Draw() const
     int particlesPerGroup = nParticles;
     if (particlesPerGroup > VERTEX_BUFFER_SIZE / sizeof(TexturedParticle::VBEntry))
         particlesPerGroup = VERTEX_BUFFER_SIZE / sizeof(TexturedParticle::VBEntry);
-    if (particlesPerGroup * TexturedParticle::VBEntry::NUM_VERTICES - 1 > m_MaxVertexIndex)
-        particlesPerGroup = (m_MaxVertexIndex + 1) / TexturedParticle::VBEntry::NUM_VERTICES;
-    if (particlesPerGroup > m_MaxPrimitives)
-        particlesPerGroup = m_MaxPrimitives;
+    if (particlesPerGroup * TexturedParticle::VBEntry::NUM_VERTICES - 1 > maxVertexIndex_)
+        particlesPerGroup = (maxVertexIndex_ + 1) / TexturedParticle::VBEntry::NUM_VERTICES;
+    if (particlesPerGroup > maxPrimitives_)
+        particlesPerGroup = maxPrimitives_;
 
     int i = 0;
     while (i < nParticles)
@@ -1033,8 +909,8 @@ void TexturedEmitter::Draw() const
         unsigned __int16 baseIndex = 0;         //
 
         {
-            Dxx::VertexBufferLock vbLock(m_pVB, 0, particlesPerGroup * sizeof(TexturedParticle::VBEntry), D3DLOCK_DISCARD);
-            Dxx::IndexBufferLock  ibLock(m_pIB, 0, particlesPerGroup * 6 * sizeof(__int16), D3DLOCK_DISCARD);
+            Dxx::VertexBufferLock vbLock(pVB_, 0, particlesPerGroup * sizeof(TexturedParticle::VBEntry), D3DLOCK_DISCARD);
+            Dxx::IndexBufferLock  ibLock(pIB_, 0, particlesPerGroup * 6 * sizeof(__int16), D3DLOCK_DISCARD);
 
             TexturedParticle::VBEntry * paVB        = (TexturedParticle::VBEntry *)vbLock.GetLockedBuffer();
             unsigned __int16 *          pIB         = (unsigned __int16 *)ibLock.GetLockedBuffer();
@@ -1052,13 +928,13 @@ void TexturedEmitter::Draw() const
                 {
                     TexturedParticle::VBEntry * pVBEntry = &paVB[count];        // Convenience
 
-                    float       radius   = pParticle->GetRadius();
-                    D3DXVECTOR3 position = pParticle->GetPosition();
-                    float       rotation = pParticle->GetRotation();
-                    D3DCOLOR    color    = D3DCOLOR_COLORVALUE(pParticle->GetColor().r,
-                                                               pParticle->GetColor().g,
-                                                               pParticle->GetColor().b,
-                                                               pParticle->GetColor().a);
+                    float radius = pParticle->GetRadius();
+                    DirectX::XMFLOAT4 position = pParticle->GetPosition();
+                    float rotation          = pParticle->GetRotation();
+                    DirectX::XMFLOAT4 color = D3DCOLOR_COLORVALUE(pParticle->GetColor().r,
+                                                                  pParticle->GetColor().g,
+                                                                  pParticle->GetColor().b,
+                                                                  pParticle->GetColor().a);
 
                     /****************************************************************************************************/
 
@@ -1121,26 +997,22 @@ void TexturedEmitter::Draw() const
         {
             UINT nPasses;
 
-            m_pEffect->Begin(&nPasses, 0);
+            pEffect_->Begin(&nPasses, 0);
             assert(nPasses == 1);
 
-            m_pEffect->BeginPass(0);
-            m_pEffect->CommitChanges();
-            m_pD3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-                                               0,
-                                               0,
-                                               count * TexturedParticle::VBEntry::NUM_VERTICES,
-                                               0,
-                                               count * 2);
-            m_pEffect->EndPass();
-            m_pEffect->End();
+            pEffect_->BeginPass(0);
+            pEffect_->CommitChanges();
+            pD3dDevice_->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
+                                              0,
+                                              0,
+                                              count * TexturedParticle::VBEntry::NUM_VERTICES,
+                                              0,
+                                              count * 2);
+            pEffect_->EndPass();
+            pEffect_->End();
         }
     }
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	pVol	Emitter volume.
 //! @param	pEnv	Environment.
@@ -1149,13 +1021,13 @@ void TexturedEmitter::Draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-SphereEmitter::SphereEmitter(IDirect3DDevice9 *    m_pD3dDevice,
+SphereEmitter::SphereEmitter(IDirect3DDevice11 *   pD3dDevice_,
                              EmitterVolume const * pVol,
                              Environment const *   pEnv,
                              Appearance const *    pApp,
                              int                   n,
                              bool                  sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    new SphereParticle[n],
                    sizeof(SphereParticle::VBEntry), SphereParticle::USAGE, (D3DPOOL)SphereParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -1166,10 +1038,6 @@ SphereEmitter::SphereEmitter(IDirect3DDevice9 *    m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	paParticles		Particle array (the emitter assumes ownership).
 //! @param	pVol			Emitter volume.
 //! @param	pEnv			Environment applied to all particles.
@@ -1178,14 +1046,14 @@ SphereEmitter::SphereEmitter(IDirect3DDevice9 *    m_pD3dDevice,
 //!
 //! @warning	paParticles must have been allocated with new[].
 
-SphereEmitter::SphereEmitter(IDirect3DDevice9 *            m_pD3dDevice,
+SphereEmitter::SphereEmitter(IDirect3DDevice11 *           pD3dDevice_,
                              std::auto_ptr<SphereParticle> qaParticles,
                              EmitterVolume const *         pVol,
                              Environment const *           pEnv,
                              Appearance const *            pApp,
                              int                           n,
                              bool                          sorted)
-    : BasicEmitter(m_pD3dDevice,
+    : BasicEmitter(pD3dDevice_,
                    qaParticles.release(),
                    sizeof(SphereParticle::VBEntry), SphereParticle::USAGE, (D3DPOOL)SphereParticle::POOL,
                    pVol, pEnv, pApp, n, sorted)
@@ -1193,18 +1061,10 @@ SphereEmitter::SphereEmitter(IDirect3DDevice9 *            m_pD3dDevice,
     Initialize();
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 SphereEmitter::~SphereEmitter()
 {
     Uninitialize();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	dt	Amount of time elapsed since the last update
@@ -1228,10 +1088,6 @@ void SphereEmitter::Update(float dt)
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void SphereEmitter::Initialize()
 {
     // Point the particles' emitter value here
@@ -1244,18 +1100,10 @@ void SphereEmitter::Initialize()
     }
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 void SphereEmitter::Uninitialize()
 {
     delete[] GetParticles();
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 void SphereEmitter::Draw() const
 {

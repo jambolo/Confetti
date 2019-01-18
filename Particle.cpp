@@ -22,47 +22,35 @@
 #include "Math/FastMath.h"
 #include "Misc/Max.h"
 
+#include <d3d11.h>
+#include <DirectXMath.h>
+using namespace DirectX;
+
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
 //! @param	age				Initial age.
 //! @param	position		Position at birth.
 //! @param	velocity		Velocity at birth.
 
-Particle::Particle(BasicEmitter const * pEmitter,
-                   float                lifetime,
-                   float                age,
-                   D3DXVECTOR3 const &  position,
-                   D3DXVECTOR3 const &  velocity,
-                   D3DXCOLOR const &    color)
-    : m_pEmitter(pEmitter),
-    m_Lifetime(lifetime),
-    m_Age(age),
-    m_InitialPosition(position),
-    m_InitialVelocity(velocity),
-    m_Position(position),
-    m_Velocity(velocity),
-    m_InitialColor(color),
-    m_Color(color)
+Particle::Particle(BasicEmitter const *      pEmitter,
+                   float                     lifetime,
+                   float                     age,
+                   DirectX::XMFLOAT3 const & position,
+                   DirectX::XMFLOAT3 const & velocity,
+                   DirectX::XMFLOAT3 const & color)
+    : pEmitter_(pEmitter)
+    , lifetime_(lifetime)
+    , age_(age)
+    , initialPosition_(position)
+    , initialVelocity_(velocity)
+    , position_(position)
+    , velocity_(velocity)
+    , initialColor_(color)
+    , color_(color)
 {
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-Particle::~Particle()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	lifetime		How long the particle lives.
 //! @param	age				Initial age.
@@ -70,26 +58,22 @@ Particle::~Particle()
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth
 
-void Particle::Initialize(float               lifetime,
-                          float               age,
-                          D3DXVECTOR3 const & position,
-                          D3DXVECTOR3 const & velocity,
-                          D3DXCOLOR const &   color)
+void Particle::Initialize(float                     lifetime,
+                          float                     age,
+                          DirectX::XMFLOAT3 const & position,
+                          DirectX::XMFLOAT3 const & velocity,
+                          DirectX::XMFLOAT3 const & color)
 {
-    m_Lifetime        = lifetime;
-    m_Age             = age;
-    m_InitialPosition = position;
-    m_InitialVelocity = velocity;
-    m_InitialColor    = color;
+    lifetime_        = lifetime;
+    age_             = age;
+    initialPosition_ = position;
+    initialVelocity_ = velocity;
+    initialColor_    = color;
 
-    m_Position = position;
-    m_Velocity = velocity;
-    m_Color    = color;
+    position_ = position;
+    velocity_ = velocity;
+    color_    = color;
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	dt	The amount of time that has passed since the last update.
 //!
@@ -100,22 +84,22 @@ bool Particle::Update(float dt)
 {
     bool reborn;
 
-    m_Age += dt;
+    age_ += dt;
 
     // If the particle has not been born yet then do nothing
 
-    if (m_Age < 0.0f)
+    if (age_ < 0.0f)
         return false;
 
     // See if the particle is (re)born this frame
 
-    if (m_Age < dt)
+    if (age_ < dt)
     {
         reborn = true;
     }
-    else if (m_Age >= m_Lifetime)
+    else if (age_ >= lifetime_)
     {
-        m_Age -= m_Lifetime;
+        age_  -= lifetime_;
         reborn = true;
     }
     else
@@ -127,39 +111,39 @@ bool Particle::Update(float dt)
 
     if (reborn)
     {
-        m_Velocity = m_pEmitter->GetCurrentVelocity() + m_InitialVelocity;
-        m_Position = m_pEmitter->GetCurrentPosition() + m_InitialPosition;
-        m_Color    = m_InitialColor;
-        dt         = m_Age;
+        velocity_ = pEmitter_->GetCurrentVelocity() + initialVelocity_;
+        position_ = pEmitter_->GetCurrentPosition() + initialPosition_;
+        color_    = initialColor_;
+        dt        = age_;
     }
 
-    Environment const * const pE = m_pEmitter->GetEnvironment();
-    Appearance const * const  pA = m_pEmitter->GetAppearance();
+    Environment const * const pE = pEmitter_->GetEnvironment();
+    Appearance const * const  pA = pEmitter_->GetAppearance();
 
     // Update velocity and position
 
-    D3DXVECTOR3         dv;
-    D3DXVECTOR3         ds;
-    float const         c = pE->GetAirFriction();
-    D3DXVECTOR3 const & g = pE->GetGravity();
+    DirectX::XMFLOAT3         dv;
+    DirectX::XMFLOAT3         ds;
+    float const               c = pE->GetAirFriction();
+    DirectX::XMFLOAT3 const & g = pE->GetGravity();
 
     if (c != 0.0f)
     {
-        D3DXVECTOR3 const & terminalVelocity = pE->GetTerminalVelocity();
-        D3DXVECTOR3 const & terminalDistance = pE->GetTerminalDistance();
-        float const         ect1 = pE->GetEct1();
+        DirectX::XMFLOAT3 const & terminalVelocity = pE->GetTerminalVelocity();
+        DirectX::XMFLOAT3 const & terminalDistance = pE->GetTerminalDistance();
+        float const ect1 = pE->GetEct1();
 
-        dv = (terminalVelocity - m_Velocity) * ect1;
+        dv = (terminalVelocity - velocity_) * ect1;
         ds = terminalDistance - dv / c;
     }
     else
     {
         dv = g * dt;
-        ds = (m_Velocity + dv * 0.5f) * dt;
+        ds = (velocity_ + dv * 0.5f) * dt;
     }
 
-    m_Velocity += dv;
-    m_Position += ds;
+    velocity_ += dv;
+    position_ += ds;
 
     // Check for collision with clip planes
 
@@ -169,11 +153,11 @@ bool Particle::Update(float dt)
     {
         for (Environment::ClipPlaneList::const_iterator pC = pClipPlanes->begin(); pC != pClipPlanes->end(); ++pC)
         {
-            D3DXPLANE const & plane = *pC;
+            DirectX::XMFLOAT3 const & plane = *pC;
 
-            if (D3DXPlaneDotCoord(&plane, &m_Position) < 0.0f)
+            if (XMPlaneDotCoord(plane, position_) < 0.0f)
             {
-                m_Age -= m_Lifetime;
+                age_ -= lifetime_;
                 return reborn;
             }
         }
@@ -189,22 +173,22 @@ bool Particle::Update(float dt)
         {
             Environment::BouncePlane const & plane = *pB;
 
-            if (D3DXPlaneDotCoord(&plane.m_Plane, &m_Position) < 0.0f)
+            if (XMPlaneDotCoord(&plane.plane_, &position_) < 0.0f)
             {
-                float const f = 1.0f + plane.m_Dampening;
-                m_Velocity -=  D3DXVECTOR3(plane.m_Plane) * (f * D3DXPlaneDotNormal(&plane.m_Plane, &m_Velocity));
-                m_Position -=  D3DXVECTOR3(plane.m_Plane) * (f * D3DXPlaneDotCoord(&plane.m_Plane, &m_Position));
+                float const f = 1.0f + plane.dampening_;
+                velocity_ -=  DirectX::XMFLOAT3(plane.plane_) * (f * XMPlaneDotNormal(&plane.plane_, &velocity_));
+                position_ -=  DirectX::XMFLOAT3(plane.plane_) * (f * XMPlaneDotCoord(&plane.plane_, &position_));
             }
         }
     }
 
     // Update color
 
-    m_Color  += pA->GetColorRate() * dt;
-    m_Color.r = limit(0.0f, m_Color.r, 1.0f);
-    m_Color.g = limit(0.0f, m_Color.g, 1.0f);
-    m_Color.b = limit(0.0f, m_Color.b, 1.0f);
-    m_Color.a = limit(0.0f, m_Color.a, 1.0f);
+    color_  += pA->GetColorRate() * dt;
+    color_.r = limit(0.0f, color_.r, 1.0f);
+    color_.g = limit(0.0f, color_.g, 1.0f);
+    color_.b = limit(0.0f, color_.b, 1.0f);
+    color_.a = limit(0.0f, color_.a, 1.0f);
 
     return reborn;
 }
@@ -213,14 +197,14 @@ bool Particle::Update(float dt)
 /// *																													*/
 /// ********************************************************************************************************************/
 //
-// D3DXCOLOR Particle::GetColor() const
+// DirectX::XMFLOAT3 Particle::GetColor() const
 // {
-//	float const	r	= limit( 0., m_InitialColor.m_R + m_ColorDelta.m_R * m_Age, 1. );
-//	float const	g	= limit( 0., m_InitialColor.m_G + m_ColorDelta.m_G * m_Age, 1. );
-//	float const	b	= limit( 0., m_InitialColor.m_B + m_ColorDelta.m_B * m_Age, 1. );
-//	float const	a	= limit( 0., m_InitialColor.m_A + m_ColorDelta.m_A * m_Age, 1. );
+//	float const	r	= limit( 0., initialColor_.R_ + colorDelta_.R_ * age_, 1. );
+//	float const	g	= limit( 0., initialColor_.G_ + colorDelta_.G_ * age_, 1. );
+//	float const	b	= limit( 0., initialColor_.B_ + colorDelta_.B_ * age_, 1. );
+//	float const	a	= limit( 0., initialColor_.A_ + colorDelta_.A_ * age_, 1. );
 //
-//	return D3DXCOLOR( r, g, b, a );
+//	return DirectX::XMFLOAT3( r, g, b, a );
 // }
 //
 //
@@ -228,25 +212,25 @@ bool Particle::Update(float dt)
 /// *																													*/
 /// ********************************************************************************************************************/
 //
-// D3DXVECTOR3 Particle::GetPosition() const
+// DirectX::XMFLOAT3 Particle::GetPosition() const
 // {
-//	Environment const &	e	= *m_pEmitter->GetEnvironment();
+//	Environment const &	e	= *pEmitter_->GetEnvironment();
 //
 //	if ( Math::IsCloseToZero( e.GetAirFriction() ) )
 //	{
-//		D3DXVECTOR3	position	= e.GetGravity();
+//		DirectX::XMFLOAT3	position	= e.GetGravity();
 //
-//		position *= ( 0.5f * m_Age );
-//		position += m_AbsoluteInitialVelocity;
-//		position *= m_Age;
-//		position += m_AbsoluteInitialPosition;
+//		position *= ( 0.5f * age_ );
+//		position += absoluteInitialVelocity_;
+//		position *= age_;
+//		position += absoluteInitialPosition_;
 //
 //		return position;
 //
-////		return m_AbsoluteInitialPosition
-////			   + ( m_AbsoluteInitialVelocity
-////				   + e.GetGravity() * ( 0.5f * m_Age )
-////				 ) * m_Age;
+////		return absoluteInitialPosition_
+////			   + ( absoluteInitialVelocity_
+////				   + e.GetGravity() * ( 0.5f * age_ )
+////				 ) * age_;
 //	}
 //	else
 //	{
@@ -271,16 +255,16 @@ bool Particle::Update(float dt)
 //		//
 //		//		s = s0 + vT * t - ( vT - v0 ) * ( 1 - e**( -c * t ) ) / c
 //		//
-//		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== m_Age,
-//		// g <== e.GetGravity(), v0 <== m_AbsoluteInitialVelocity,
-//		// s0 <== m_AbsoluteInitialPosition
+//		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== age_,
+//		// g <== e.GetGravity(), v0 <== absoluteInitialVelocity_,
+//		// s0 <== absoluteInitialPosition_
 //		//
 //
-//		double const	ect1c	= ( 1. - exp( -e.GetAirFriction() * m_Age ) ) / e.GetAirFriction();
+//		double const	ect1c	= ( 1. - exp( -e.GetAirFriction() * age_ ) ) / e.GetAirFriction();
 //
-//		return m_AbsoluteInitialPosition
-//			   + m_TerminalVelocity * m_Age
-//			   - ( m_TerminalVelocity - m_AbsoluteInitialVelocity ) * ect1c;
+//		return absoluteInitialPosition_
+//			   + terminalVelocity_ * age_
+//			   - ( terminalVelocity_ - absoluteInitialVelocity_ ) * ect1c;
 //
 //	}
 // }
@@ -289,13 +273,13 @@ bool Particle::Update(float dt)
 /// *																													*/
 /// ********************************************************************************************************************/
 //
-// D3DXVECTOR3 Particle::GetVelocity() const
+// DirectX::XMFLOAT3 Particle::GetVelocity() const
 // {
-//	Environment const &	e	= *m_pEmitter->GetEnvironment();
+//	Environment const &	e	= *pEmitter_->GetEnvironment();
 //
 //	if ( Math::IsCloseToZero( e.GetAirFriction() ) )
 //	{
-//		return m_AbsoluteInitialVelocity + e.GetGravity() * m_Age;
+//		return absoluteInitialVelocity_ + e.GetGravity() * age_;
 //	}
 //	else
 //	{
@@ -314,12 +298,12 @@ bool Particle::Update(float dt)
 //		//
 //		//		v = vT - ( vT - v0 ) * e**( -c * t )
 //		//
-//		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== m_Age,
-//		// g <== e.GetGravity(), v0 <== m_AbsoluteInitialVelocity,
+//		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== age_,
+//		// g <== e.GetGravity(), v0 <== absoluteInitialVelocity_,
 //
-//		float const		ect		= exp( -e.GetAirFriction() * m_Age );
+//		float const		ect		= exp( -e.GetAirFriction() * age_ );
 //
-//		return m_TerminalVelocity - ( m_TerminalVelocity - m_AbsoluteInitialVelocity ) * ect;
+//		return terminalVelocity_ - ( terminalVelocity_ - absoluteInitialVelocity_ ) * ect;
 //	}
 // }
 } // namespace Confetti

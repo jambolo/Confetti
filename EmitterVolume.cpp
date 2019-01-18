@@ -17,29 +17,13 @@
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //!
 //! @param	seed	Initial seed
 
 EmitterVolume::EmitterVolume(unsigned int seed)
-    : m_Rng(seed)
+    : rng_(seed)
 {
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterVolume::~EmitterVolume()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //!
 //! @param	seed	Initial seed (not used)
@@ -49,139 +33,73 @@ EmitterPoint::EmitterPoint(unsigned int seed)
 {
 }
 
-EmitterPoint::~EmitterPoint()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! @param	seed	Initial seed.
 //! @param	size	Length of the line segment.
 
 EmitterLine::EmitterLine(unsigned int seed, float size)
-    : EmitterVolume(seed),
-    m_Size(size)
+    : EmitterVolume(seed)
+    , size_(size)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterLine::~EmitterLine()
+DirectX::XMFLOAT4 EmitterLine::next() const
 {
+    float const x = rng_.Get(size_) - size_ * 0.5f;
+
+    return DirectX::XMVectorSet(x, 0.0f, 0.0f, 1.0f);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterLine::Next() const
-{
-    float const x = m_Rng.Get(m_Size) - m_Size * 0.5f;
-
-    return D3DXVECTOR3(x, 0.0f, 0.0f);
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	seed	Initial seed.
-//! @param	size	Width and height of the rectangle.
+//! @param	w	    Size of the rectangle along the X axis.
+//! @param	h       Size of the rectangle along the Z axis.
 
-EmitterRectangle::EmitterRectangle(unsigned int seed, D3DXVECTOR2 const & size)
-    : EmitterVolume(seed),
-    m_Size(size)
+EmitterRectangle::EmitterRectangle(unsigned int seed, float w, float h)
+    : EmitterVolume(seed)
+    , width_(w)
+    , height_(h)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterRectangle::~EmitterRectangle()
+DirectX::XMFLOAT4 EmitterRectangle::next() const
 {
+    float const x = rng_.Get(size_.x) - size_.x * 0.5f;
+    float const z = rng_.Get(size_.y) - size_.y * 0.5f;
+
+    return DirectX::XMVectorSet(x, 0.0f, z, 1.0f);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterRectangle::Next() const
-{
-    float const x = m_Rng.Get(m_Size.x) - m_Size.x * 0.5f;
-    float const z = m_Rng.Get(m_Size.y) - m_Size.y * 0.5f;
-
-    return D3DXVECTOR3(x, 0.0f, z);
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	seed	Initial seed.
 //! @param	radius	Radius of the circle.
 
 EmitterCircle::EmitterCircle(unsigned int seed, float radius)
-    : EmitterVolume(seed),
-    m_Radius(radius)
+    : EmitterVolume(seed)
+    , radius_(radius)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterCircle::~EmitterCircle()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterCircle::Next() const
+DirectX::XMFLOAT4 EmitterCircle::next() const
 {
     // Source: http://mathworld.wolfram.com/DiskPointPicking.html
 
-    float const a = m_Rng.Get(float(Math::TWO_PI));
-    float const r = m_Radius * sqrtf(m_Rng.Get());
+    float const a = rng_.Get(float(Math::TWO_PI));
+    float const r = radius_ * sqrtf(rng_.Get());
     float       c, s;
 
     Math::fsincos(a, &s, &c);
 
-    return D3DXVECTOR3(c * r, s * r, 0.0f);
+    return DirectX::XMVectorSet(c * r, s * r, 0.0f, 1.0f);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	seed	Initial seed.
 //! @param	radius	radius of the sphere.
 
 EmitterSphere::EmitterSphere(unsigned int seed, float radius)
-    : EmitterVolume(seed),
-    m_Radius(radius)
+    : EmitterVolume(seed)
+    , radius_(radius)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterSphere::~EmitterSphere()
-{
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterSphere::Next() const
+DirectX::XMFLOAT4 EmitterSphere::next() const
 {
     // Source: http://mathworld.wolfram.com/SpherePointPicking.html
     //
@@ -197,129 +115,81 @@ D3DXVECTOR3 EmitterSphere::Next() const
     // sf = sin(f) = sqrt( 1. - cf*cf )
     // v = [ cf * ct, sf, cf * st ]
 
-    float const t = m_Rng.Get(float(-Math::PI), float(Math::PI));
-    float const cf = m_Rng.Get(-1, 1);
-    float const sf = sqrtf(1.0f - cf * cf);
-    float const r = m_Radius * powf(m_Rng.Get(), 1.0f / 3.0f);
-    float       st, ct;
+    float t = rng_.Get(float(-Math::PI), float(Math::PI));
+    float cf = rng_.Get(-1, 1);
+    float sf = sqrtf(1.0f - cf * cf);
+    float r = radius_ * powf(rng_.Get(), 1.0f / 3.0f);
+    float st, ct;
 
     Math::fsincos(t, &st, &ct);
 
-    return D3DXVECTOR3(cf * ct * r, sf * r, cf * st * r);
+    return DirectX::XMVectorSet(cf * ct * r, sf * r, cf * st * r, 1.0f);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	seed	Initial seed.
 //! @param	size	Width, height, and depth of the box.
 
-EmitterBox::EmitterBox(unsigned int seed, D3DXVECTOR3 const & size)
-    : EmitterVolume(seed),
-    m_Size(size)
+EmitterBox::EmitterBox(unsigned int seed, DirectX::XMFLOAT4 const & size)
+    : EmitterVolume(seed)
+    , size_(size)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterBox::~EmitterBox()
+DirectX::XMFLOAT4 EmitterBox::next() const
 {
+    float const x = rng_.Get(size_.x) - size_.x * 0.5f;
+    float const y = rng_.Get(size_.y) - size_.y * 0.5f;
+    float const z = rng_.Get(size_.z) - size_.z * 0.5f;
+
+    return DirectX::XMVectorSet(x, y, z, 1.0f);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterBox::Next() const
-{
-    float const x = m_Rng.Get(m_Size.x) - m_Size.x * 0.5f;
-    float const y = m_Rng.Get(m_Size.y) - m_Size.y * 0.5f;
-    float const z = m_Rng.Get(m_Size.z) - m_Size.z * 0.5f;
-
-    return D3DXVECTOR3(x, y, z);
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	seed	Initial seed.
 //! @param	radius	Radius of the cylinder.
 //! @param	height	Height of the cylinder.
 
 EmitterCylinder::EmitterCylinder(unsigned int seed, float radius, float height)
-    : EmitterVolume(seed),
-    m_Radius(radius),
-    m_Height(height)
+    : EmitterVolume(seed)
+    , radius_(radius)
+    , height_(height)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterCylinder::~EmitterCylinder()
+DirectX::XMFLOAT4 EmitterCylinder::next() const
 {
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterCylinder::Next() const
-{
-    float const a = m_Rng.Get(float(Math::TWO_PI));
-    float const h = m_Rng.Get(m_Height);
-    float const r = m_Radius * sqrtf(m_Rng.Get());
+    float const a = rng_.Get(float(Math::TWO_PI));
+    float const h = rng_.Get(height_);
+    float const r = radius_ * sqrtf(rng_.Get());
     float       c, s;
 
     Math::fsincos(a, &s, &c);
 
-    return D3DXVECTOR3(c * r, s * r, h);
+    return DirectX::XMVectorSet(c * r, s * r, h, 1.0f);
 }
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! @param	seed	Initial seed.
 //! @param	radius	Radius of the cone at the base.
 //! @param	height	Height of the cone.
 
 EmitterCone::EmitterCone(unsigned int seed, float radius, float height)
-    : EmitterVolume(seed),
-    m_Radius(radius),
-    m_Height(height)
+    : EmitterVolume(seed)
+    , radius_(radius)
+    , height_(height)
 {
 }
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-EmitterCone::~EmitterCone()
+DirectX::XMFLOAT4 EmitterCone::next() const
 {
-}
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
-D3DXVECTOR3 EmitterCone::Next() const
-{
-    float const a = m_Rng.Get(float(Math::TWO_PI));
-    float       h = m_Rng.Get();
-    float       r = m_Rng.Get();
+    float const a = rng_.Get(float(Math::TWO_PI));
+    float       h = rng_.Get();
+    float       r = rng_.Get();
     float       c, s;
 
     Math::fsincos(a, &s, &c);
 
-    h = powf(h, 1.0f / 3.0f) * m_Height;
-    r = sqrtf(r) / m_Radius * h;
+    h = powf(h, 1.0f / 3.0f) * height_;
+    r = sqrtf(r) / radius_ * h;
 
-    return D3DXVECTOR3(c * r, s * r, h);
+    return DirectX::XMVectorSet(c * r, s * r, h, 1.0f);
 }
 } // namespace Confetti

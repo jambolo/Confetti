@@ -15,14 +15,10 @@
 
 #include "Dxx/d3d.h"
 #include "Misc/Random.h"
-#include <d3dx9math.h>
+#include <DirectXMath.h>
 
 namespace Confetti
 {
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! This class generates random points in 3D whose locations are uniformly distributed in a specific volume.
 //
 //! @note	This is an abstract base class, so it must be derived from to be used.
@@ -36,22 +32,18 @@ public:
     EmitterVolume(unsigned int seed);
 
     // Destructor
-    virtual ~EmitterVolume();
+    virtual ~EmitterVolume() = default;
 
     //! Returns a value used to specify a particle's point of emission.
     //
     //!
     //! @note	This method must be overridden.
-    virtual D3DXVECTOR3 Next() const = 0;
+    virtual DirectX::XMFLOAT4 next() const = 0;
 
 protected:
 
-    mutable RandomFloat m_Rng;      // A random number generator.
+    mutable RandomFloat rng_;      // A random number generator.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the point <tt>[0,0,0]</tt>.
 
@@ -63,17 +55,13 @@ public:
     EmitterPoint(unsigned int seed);
 
     //! Destructor
-    virtual ~EmitterPoint();
+    virtual ~EmitterPoint() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const { return Dxx::Vector3Origin(); }
+    DirectX::XMFLOAT4 next() const override { return DirectX::XMVectorZero(); }
     //@}
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from a line segment.
 //
@@ -95,21 +83,17 @@ public:
     EmitterLine(unsigned int seed, float size);
 
     //! Destructor
-    virtual ~EmitterLine();
+    virtual ~EmitterLine() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    float m_Size;       // The length of the line segment.
+    float size_;       // The length of the line segment.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the interior of a rectangle.
 //
@@ -128,24 +112,20 @@ class EmitterRectangle : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterRectangle(unsigned int seed, D3DXVECTOR2 const & size);
+    EmitterRectangle(unsigned int seed, float w, float h);
 
     //! Destructor
-    virtual ~EmitterRectangle();
+    virtual ~EmitterRectangle() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    D3DXVECTOR2 m_Size;     // The width and height of the rectangle.
+    float width_, height_;     // The width and height of the rectangle.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the interior of a circle.
 //
@@ -167,21 +147,17 @@ public:
     EmitterCircle(unsigned int seed, float radius);
 
     //! Destructor
-    virtual ~EmitterCircle();
+    virtual ~EmitterCircle() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    float m_Radius;         // Thre radius of the circle.
+    float radius_;         // The radius of the circle.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the interior of a sphere.
 //
@@ -203,21 +179,17 @@ public:
     EmitterSphere(unsigned int seed, float radius);
 
     //! Destructor
-    virtual ~EmitterSphere();
+    virtual ~EmitterSphere() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    float m_Radius;         // The radius of the sphere.
+    float radius_;         // The radius of the sphere.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the interior of a box.
 //
@@ -237,24 +209,20 @@ class EmitterBox : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterBox(unsigned int seed, D3DXVECTOR3 const & size);
+    EmitterBox(unsigned int seed, DirectX::XMFLOAT4 const & size);
 
     //! Destructor
-    virtual ~EmitterBox();
+    virtual ~EmitterBox() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    D3DXVECTOR3 m_Size;     // The width, height, and depth of the box.
+    DirectX::XMFLOAT4 size_;     // The width, height, and depth of the box.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the interior of a cylinder.
 //
@@ -277,22 +245,18 @@ public:
     EmitterCylinder(unsigned int seed, float radius, float height);
 
     //! Destructor
-    virtual ~EmitterCylinder();
+    virtual ~EmitterCylinder() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    float m_Radius;             // The radius of the cylinder.
-    float m_Height;             // The height of the cylinder.
+    float radius_;             // The radius of the cylinder.
+    float height_;             // The height of the cylinder.
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An EmitterVolume that emits particles from the interior of a cone.
 //
@@ -315,16 +279,16 @@ public:
     EmitterCone(unsigned int seed, float radius, float height);
 
     //! Destructor
-    virtual ~EmitterCone();
+    virtual ~EmitterCone() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    D3DXVECTOR3 Next() const;
+    DirectX::XMFLOAT4 next() const override;
     //@}
 
 private:
 
-    float m_Radius;             // The radius of the cone at the base.
-    float m_Height;             // The height of the cone.
+    float radius_;             // The radius of the cone at the base.
+    float height_;             // The height of the cone.
 };
 } // namespace Confetti

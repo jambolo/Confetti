@@ -19,14 +19,14 @@
 #include "SphereParticle.h"
 #include "StreakParticle.h"
 #include "TexturedParticle.h"
-#include <boost/noncopyable.hpp>
-#include <d3dx9math.h>
+#include <DirectXMath.h>
+#include <memory>
 
-struct IDirect3DDevice9;
-struct IDirect3DVertexBuffer9;
-struct IDirect3DIndexBuffer9;
-struct ID3DXEffect;
-struct IDirect3DVertexDeclaration9;
+struct IDirect3DDevice11;
+struct IDirect3DVertexBuffer11;
+struct IDirect3DIndexBuffer11;
+struct ID3DX11Effect;
+struct IDirect3DVertexDeclaration11;
 
 namespace Confetti
 {
@@ -34,24 +34,20 @@ class EmitterVolume;
 class Appearance;
 class Environment;
 
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
-
 //! A particle emitter.
 //
 //! @ingroup	Emitters
 //!
 //! @note This class is an abstract base class and must be derived from in order to be used.
 
-class BasicEmitter : public boost::noncopyable
+class BasicEmitter
 {
 public:
 
     //! Constructor
-    BasicEmitter(IDirect3DDevice9 * pD3dDevice,
+    BasicEmitter(IDirect3DDevice11 * pD3dDevice,
                  Particle * paParticles,
-                 int size, uint32 usage, D3DPOOL pool,
+                 int size, uint32_t usage, D3DPOOL pool,
                  EmitterVolume const * pVol,
                  Environment const * pEnv,
                  Appearance const * pApp,
@@ -61,44 +57,48 @@ public:
     // Destructor
     virtual ~BasicEmitter();
 
-    //! Returns a pointer to the array of particles.
-    Particle * GetParticles() { return m_paParticles; }
+    // non-copyable
+    BasicEmitter(BasicEmitter const &) = delete;
+    BasicEmitter & operator =(BasicEmitter const &) = delete;
 
     //! Returns a pointer to the array of particles.
-    Particle const * GetParticles()             const { return m_paParticles; }
+    Particle * GetParticles() { return paParticles_; }
+
+    //! Returns a pointer to the array of particles.
+    Particle const * GetParticles()             const { return paParticles_; }
 
     //! Returns the emitter volume.
-    EmitterVolume const * GetEmitterVolume()    const { return m_pEmitterVolume; }
+    EmitterVolume const * GetEmitterVolume()    const { return pEmitterVolume_; }
 
     //! Returns the appearance.
-    Appearance const * GetAppearance()          const { return m_pAppearance; }
+    Appearance const * GetAppearance()          const { return pAppearance_; }
 
     //! Returns the environment.
-    Environment const * GetEnvironment()        const { return m_pEnvironment; }
+    Environment const * GetEnvironment()        const { return pEnvironment_; }
 
     //! Returns the number of particles.
-    int GetNumParticles()                       const { return m_NumParticles; }
+    int GetNumParticles()                       const { return numParticles_; }
 
     //! Returns the current position.
-    D3DXVECTOR3 const & GetCurrentPosition()    const { return m_Position; }
+    DirectX::XMFLOAT4 const & GetCurrentPosition()    const { return position_; }
 
     //! Returns the current velocity.
-    D3DXVECTOR3 const & GetCurrentVelocity()    const { return m_Velocity; }
+    DirectX::XMFLOAT4 const & GetCurrentVelocity()    const { return velocity_; }
 
     //! Returns true if the emitter is enabled.
-    bool IsEnabled()                            const { return m_Enabled; }
+    bool IsEnabled()                            const { return enabled_; }
 
     //! Returns true if the particles are sorted.
-    bool IsSorted()                             const { return m_Sorted; }
+    bool IsSorted()                             const { return sorted_; }
 
     //! Enables/Disables the emitter. Returns the previous state.
     bool Enable(bool enable);
 
     //! Sets the emitter's position and velocity
-    void Update(D3DXVECTOR3 const & position, D3DXVECTOR3 const & velocity);
+    void Update(DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity);
 
     //! Updates the emitter and its particles.
-    void Update(float dt, D3DXVECTOR3 const & position, D3DXVECTOR3 const & velocity);
+    void Update(float dt, DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity);
 
     //! Updates the emitter's particles.
     //
@@ -128,39 +128,35 @@ protected:
 
     // D3D Stuff
 
-    IDirect3DDevice9 * m_pD3dDevice;                        //!< D3D device
-    IDirect3DVertexBuffer9 * m_pVB;                         //!< Vertex buffer for particles
-    ID3DXEffect * m_pEffect;                                //!< The effect for rendering this emitter's particles
-    IDirect3DVertexDeclaration9 * m_pVertexDeclaration;     //!< The vertex buffer format
-    bool m_AlphaTestAvailable;                              //!< @c true if the device supports alpha test
-    int m_MaxPrimitives;                                    //!< Maximum number of primitives in a DrawPrimitive call
-    int m_MaxVertexIndex;                                   //!< Highest possible index value
+    IDirect3DDevice11 * pD3dDevice_;                    //!< D3D device
+    IDirect3DVertexBuffer11 * pVB_;                     //!< Vertex buffer for particles
+    ID3DX11Effect * pEffect_;                           //!< The effect for rendering this emitter's particles
+    IDirect3DVertexDeclaration11 * pVertexDeclaration_; //!< The vertex buffer format
+    bool alphaTestAvailable_;                           //!< @c true if the device supports alpha test
+    int maxPrimitives_;                                 //!< Maximum number of primitives in a DrawPrimitive call
+    int maxVertexIndex_;                                //!< Highest possible index value
 
 private:
 
     // Particle data
 
-    Particle * m_paParticles;                           // Particle array
-    EmitterVolume const * m_pEmitterVolume;             // Emitter volume
-    Appearance const * m_pAppearance;                   // Common appearance parameters
-    Environment const * m_pEnvironment;                 // Common environment parameters
-    int m_NumParticles;                                 // Number of particles
-    bool m_Sorted;                                      // Should the emitter sort the particles back to front?
+    Particle * paParticles_;                // Particle array
+    EmitterVolume const * pEmitterVolume_;  // Emitter volume
+    Appearance const * pAppearance_;        // Common appearance parameters
+    Environment const * pEnvironment_;      // Common environment parameters
+    int numParticles_;                      // Number of particles
+    bool sorted_;                           // Should the emitter sort the particles back to front?
 
     // Emitter state
 
-    bool m_Enabled;                                     // Enabled or not
-    D3DXVECTOR3 m_Position;                             // Current position
-    D3DXVECTOR3 m_Velocity;                             // Current velocity
+    bool enabled_;                  // Enabled or not
+    DirectX::XMFLOAT4 position_;    // Current position
+    DirectX::XMFLOAT4 velocity_;    // Current velocity
 };
 
 //! @name Basic Emitters
 //! @ingroup	Emitters
 //@{
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An Emitter that emits PointParticles
 //
@@ -172,7 +168,7 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    PointEmitter(IDirect3DDevice9 *    pD3dDevice,
+    PointEmitter(IDirect3DDevice11 *   pD3dDevice,
                  EmitterVolume const * pVol,
                  Environment const *   pEnv,
                  Appearance const *    pApp,
@@ -180,7 +176,7 @@ public:
                  bool                  sorted);
 
     //! Constructor
-    PointEmitter(IDirect3DDevice9 *           pD3dDevice,
+    PointEmitter(IDirect3DDevice11 *          pD3dDevice,
                  std::auto_ptr<PointParticle> qaParticles,
                  EmitterVolume const *        pVol,
                  Environment const *          pEnv,
@@ -188,7 +184,7 @@ public:
                  int                          n,
                  bool                         sorted);
 
-    virtual ~PointEmitter();
+    virtual ~PointEmitter() override;
 
     //! Initializes the emitter
     void Initialize();
@@ -198,26 +194,26 @@ public:
 
     //! @name Overrides BasicEmitter
     //@{
-    PointParticle * GetParticles()                            {
+    PointParticle * GetParticles()
+    {
         return static_cast<PointParticle *>(BasicEmitter::GetParticles());
     }
-    PointParticle const * GetParticles()                const {
+    PointParticle const * GetParticles() const override
+    {
         return static_cast<PointParticle const *>(BasicEmitter::GetParticles());
     }
-    virtual PointParticle * GetParticle(int i)              {
+    virtual PointParticle * GetParticle(int i) override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual PointParticle const * GetParticle(int i)  const {
+    virtual PointParticle const * GetParticle(int i)  const override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual void Update(float dt);
-    virtual void Draw() const;
+    virtual void Update(float dt) override;
+    virtual void Draw() const override;
     //@}
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An Emitter that emits StreakParticles
 //
@@ -229,7 +225,7 @@ class StreakEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    StreakEmitter(IDirect3DDevice9 *    pD3dDevice,
+    StreakEmitter(IDirect3DDevice11 *   pD3dDevice,
                   EmitterVolume const * pVol,
                   Environment const *   pEnv,
                   Appearance const *    pApp,
@@ -237,7 +233,7 @@ public:
                   bool                  sorted);
 
     //! Constructor
-    StreakEmitter(IDirect3DDevice9 *            pD3dDevice,
+    StreakEmitter(IDirect3DDevice11 *           pD3dDevice,
                   std::auto_ptr<StreakParticle> qaParticles,
                   EmitterVolume const *         pVol,
                   Environment const *           pEnv,
@@ -245,7 +241,7 @@ public:
                   int                           n,
                   bool                          sorted);
 
-    virtual ~StreakEmitter();
+    virtual ~StreakEmitter() override;
 
     //! Initializes the emitter
     void Initialize();
@@ -255,26 +251,26 @@ public:
 
     //! @name Overrides BasicEmitter
     //@{
-    StreakParticle * GetParticles()                           {
+    StreakParticle * GetParticles()
+    {
         return static_cast<StreakParticle *>(BasicEmitter::GetParticles());
     }
-    StreakParticle const * GetParticles()               const {
+    StreakParticle const * GetParticles() const
+    {
         return static_cast<StreakParticle const *>(BasicEmitter::GetParticles());
     }
-    virtual StreakParticle * GetParticle(int i)             {
+    virtual StreakParticle * GetParticle(int i) override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual StreakParticle const * GetParticle(int i) const {
+    virtual StreakParticle const * GetParticle(int i) const override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual void Update(float dt);
-    virtual void Draw() const;
+    virtual void Update(float dt) override;
+    virtual void Draw() const override;
     //@}
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An Emitter that emits TexturedParticles
 //
@@ -286,7 +282,7 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    TexturedEmitter(IDirect3DDevice9 *    pD3dDevice,
+    TexturedEmitter(IDirect3DDevice11 *   pD3dDevice,
                     EmitterVolume const * pVol,
                     Environment const *   pEnv,
                     Appearance const *    pApp,
@@ -294,7 +290,7 @@ public:
                     bool                  sorted);
 
     //! Constructor
-    TexturedEmitter(IDirect3DDevice9 *              pD3dDevice,
+    TexturedEmitter(IDirect3DDevice11 *             pD3dDevice,
                     std::auto_ptr<TexturedParticle> qaParticles,
                     EmitterVolume const *           pVol,
                     Environment const *             pEnv,
@@ -302,7 +298,7 @@ public:
                     int                             n,
                     bool                            sorted);
 
-    virtual ~TexturedEmitter();
+    virtual ~TexturedEmitter() override;
 
     //! Initializes the emitter
     void Initialize();
@@ -312,30 +308,30 @@ public:
 
     //! @name Overrides BasicEmitter
     //@{
-    TexturedParticle * GetParticles()                             {
+    TexturedParticle * GetParticles()
+    {
         return static_cast<TexturedParticle *>(BasicEmitter::GetParticles());
     }
-    TexturedParticle const * GetParticles()                 const {
+    TexturedParticle const * GetParticles() const
+    {
         return static_cast<TexturedParticle const *>(BasicEmitter::GetParticles());
     }
-    virtual TexturedParticle * GetParticle(int i)               {
+    virtual TexturedParticle * GetParticle(int i) override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual TexturedParticle const * GetParticle(int i)   const {
+    virtual TexturedParticle const * GetParticle(int i) const override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual void Update(float dt);
-    virtual void Draw() const;
+    virtual void Update(float dt) override;
+    virtual void Draw() const override;
     //@}
 
 private:
 
-    IDirect3DIndexBuffer9 * m_pIB;                      // Index buffer for particles
+    IDirect3DIndexBuffer11 * pIB_;                      // Index buffer for particles
 };
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! An Emitter that emits SphereParticles
 //
@@ -347,7 +343,7 @@ class SphereEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    SphereEmitter(IDirect3DDevice9 *    pD3dDevice,
+    SphereEmitter(IDirect3DDevice11 *   pD3dDevice,
                   EmitterVolume const * pVol,
                   Environment const *   pEnv,
                   Appearance const *    pApp,
@@ -355,7 +351,7 @@ public:
                   bool                  sorted);
 
     //! Constructor
-    SphereEmitter(IDirect3DDevice9 *            pD3dDevice,
+    SphereEmitter(IDirect3DDevice11 *           pD3dDevice,
                   std::auto_ptr<SphereParticle> qaParticles,
                   EmitterVolume const *         pVol,
                   Environment const *           pEnv,
@@ -363,7 +359,7 @@ public:
                   int                           n,
                   bool                          sorted);
 
-    virtual ~SphereEmitter();
+    virtual ~SphereEmitter() override;
 
     //! Initializes the emitter
     void Initialize();
@@ -373,27 +369,27 @@ public:
 
     //! @name Overrides BasicEmitter
     //@{
-    SphereParticle * GetParticles()                           {
+    SphereParticle * GetParticles()
+    {
         return static_cast<SphereParticle *>(BasicEmitter::GetParticles());
     }
-    SphereParticle const * GetParticles()               const {
+    SphereParticle const * GetParticles() const
+    {
         return static_cast<SphereParticle const *>(BasicEmitter::GetParticles());
     }
-    virtual SphereParticle * GetParticle(int i)             {
+    virtual SphereParticle * GetParticle(int i) override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual SphereParticle const * GetParticle(int i) const {
+    virtual SphereParticle const * GetParticle(int i) const override
+    {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual void Update(float dt);
-    virtual void Draw() const;
+    virtual void Update(float dt) override;
+    virtual void Draw() const override;
     //@}
 };
 } // namespace Confetti
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 // Inline functions
 

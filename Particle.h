@@ -13,17 +13,13 @@
 
 #pragma once
 
-#include <d3dx9math.h>
+#include <directxmath.h>
 
-struct IDirect3DDevice9;
+struct IDirect3DDevice11;
 
 namespace Confetti
 {
 class BasicEmitter;
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! A particle base class.
 //
@@ -39,18 +35,18 @@ class Particle
 public:
 
     //! Constructor
-    Particle() {}
+    Particle() = default;
 
     //! Constructor
-    Particle(BasicEmitter const * pEmitter,
-             float                lifetime,
-             float                age,
-             D3DXVECTOR3 const &  position,
-             D3DXVECTOR3 const &  velocity,
-             D3DXCOLOR const &    color);
+    Particle(BasicEmitter const *      pEmitter,
+             float                     lifetime,
+             float                     age,
+             DirectX::XMFLOAT3 const & position,
+             DirectX::XMFLOAT3 const & velocity,
+             DirectX::XMFLOAT3 const & color);
 
     // Destructor
-    virtual ~Particle();
+    virtual ~Particle() = default;
 
     //! Updates the particle. Returns true if the particle was reborn.
     virtual bool Update(float dt);
@@ -59,50 +55,50 @@ public:
     //
     //!
     //! @note	This method must be overridden.
-    virtual void Draw(IDirect3DDevice9 * pD3dDevice) const = 0;
+    virtual void Draw(IDirect3DDevice11 * pD3dDevice) const = 0;
 
     //! Binds to an emitter.
-    void Bind(BasicEmitter * pEmitter) { m_pEmitter = pEmitter; }
+    void Bind(BasicEmitter * pEmitter) { pEmitter_ = pEmitter; }
 
     //! Returns the age of the particle.
-    float GetAge() const { return m_Age; }
+    float GetAge() const { return age_; }
 
     //! Returns the particle's current position.
-    D3DXVECTOR3 GetPosition() const { return m_Position; }
+    DirectX::XMFLOAT3 GetPosition() const { return position_; }
 
     //! Returns the particle's current velocity.
-    D3DXVECTOR3 GetVelocity() const { return m_Velocity; }
+    DirectX::XMFLOAT3 GetVelocity() const { return velocity_; }
 
     //! Returns the particle's current velocity.
-    D3DXCOLOR GetColor() const { return m_Color; }
+    DirectX::XMFLOAT3 GetColor() const { return color_; }
 
 protected:
 
     //! Initializes after using the default constructor.
-    void Initialize(float               lifetime,
-                    float               age,
-                    D3DXVECTOR3 const & position,
-                    D3DXVECTOR3 const & velocity,
-                    D3DXCOLOR const &   color);
+    void Initialize(float                     lifetime,
+                    float                     age,
+                    DirectX::XMFLOAT3 const & position,
+                    DirectX::XMFLOAT3 const & velocity,
+                    DirectX::XMFLOAT3 const & color);
 
-    BasicEmitter const * m_pEmitter;            //!< This particle's emitter
+    BasicEmitter const * pEmitter_;            //!< This particle's emitter
 
     // Age data
 
-    float m_Lifetime;                           //!< Max age
-    float m_Age;                                //!< Current age
+    float lifetime_;    //!< Max age
+    float age_;         //!< Current age
 
     // Motion data
 
-    D3DXVECTOR3 m_InitialPosition;              //!< Position at birth relative to emitter
-    D3DXVECTOR3 m_InitialVelocity;              //!< Velocity at birth relative to emitter
+    DirectX::XMFLOAT3 initialPosition_; //!< Position at birth relative to emitter
+    DirectX::XMFLOAT3 initialVelocity_; //!< Velocity at birth relative to emitter
 
-    D3DXVECTOR3 m_Position;                     //!< Current position
-    D3DXVECTOR3 m_Velocity;                     //!< Current velocity
+    DirectX::XMFLOAT3 position_;        //!< Current position
+    DirectX::XMFLOAT3 velocity_;        //!< Current velocity
 
     // Appearance data
 
-    D3DXCOLOR m_InitialColor;                   //!< Color at birth
-    D3DXCOLOR m_Color;                          //!< Current color
+    DirectX::XMFLOAT3 initialColor_;    //!< Color at birth
+    DirectX::XMFLOAT3 color_;           //!< Current color
 };
 } // namespace Confetti

@@ -15,17 +15,13 @@
 
 #include "Particle.h"
 
-#include <d3dx9math.h>
-
-struct IDirect3DDevice9;
+#include <d3d11.h>
+#include <DirectXMath.h>
+struct IDirect3DDevice11;
 
 namespace Confetti
 {
 class BasicEmitter;
-
-/********************************************************************************************************************/
-/*																													*/
-/********************************************************************************************************************/
 
 //! A point Particle scaled by distance.
 //
@@ -37,30 +33,30 @@ class PointParticle : public Particle
 public:
 
     //! Constructor
-    PointParticle() {}
+    PointParticle() = default;
 
     //! Constructor
-    PointParticle(BasicEmitter const * pEmitter,
-                  float                lifetime,
-                  float                age,
-                  D3DXVECTOR3 const &  position,
-                  D3DXVECTOR3 const &  velocity,
-                  D3DXCOLOR const &    color);
+    PointParticle(BasicEmitter const *      pEmitter,
+                  float                     lifetime,
+                  float                     age,
+                  DirectX::XMFLOAT3 const & position,
+                  DirectX::XMFLOAT3 const & velocity,
+                  DirectX::XMFLOAT3 const & color);
 
     // Destructor
-    virtual ~PointParticle();
+    virtual ~PointParticle() override = default;
 
     //! Initializes a particle constructed with the default constructor
-    void Initialize(float               lifetime,
-                    float               age,
-                    D3DXVECTOR3 const & position,
-                    D3DXVECTOR3 const & velocity,
-                    D3DXCOLOR const &   color);
+    void Initialize(float                     lifetime,
+                    float                     age,
+                    DirectX::XMFLOAT3 const & position,
+                    DirectX::XMFLOAT3 const & velocity,
+                    DirectX::XMFLOAT3 const & color);
 
     //! @name Overrides Particle
     //@{
-    virtual bool Update(float dt);
-    virtual void Draw(IDirect3DDevice9 * pD3dDevice) const;
+    virtual bool Update(float dt) override;
+    virtual void Draw(IDirect3DDevice11 * pD3dDevice) const override;
     //@}
 
     // Vertex buffer info
@@ -70,8 +66,8 @@ public:
         static int const NUM_VERTICES = 1;
         struct Vertex
         {
-            D3DVECTOR position;
-            D3DCOLOR color;
+            DirectX::XMFLOAT3 position;
+            DirectX::XMFLOAT3 color;
         };
 
         Vertex v[NUM_VERTICES];
@@ -84,6 +80,6 @@ public:
     };
 
     //! Vertex shader data declaration
-    static D3DVERTEXELEMENT9 const m_aVSDataDeclarationInfo[];
+    static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
 };
 } // namespace Confetti
