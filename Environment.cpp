@@ -15,8 +15,8 @@
 
 #include "Environment.h"
 
-#include "Math/Constants.h"
-#include "Math/FastMath.h"
+#include "MyMath/Constants.h"
+#include "MyMath/FastMath.h"
 #include "Misc/Random.h"
 
 #include <d3d11.h>
@@ -56,13 +56,13 @@ void Environment::Update(float dt)
 
     if (XMVector3LengthSq(&gustiness_) != 0.0f)
     {
-        gust_.x += rng_.Get(float(Math::TWO_PI)) * dt;
-        gust_.y += rng_.Get(float(Math::TWO_PI)) * dt;
+        gust_.x += rng_.Get(float(MyMath::TWO_PI)) * dt;
+        gust_.y += rng_.Get(float(MyMath::TWO_PI)) * dt;
 
         float cx, sx, cy, sy;
 
-        Math::fsincos(gust_.x, &sx, &cx);
-        Math::fsincos(gust_.y, &sy, &cy);
+        MyMath::fsincos(gust_.x, &sx, &cx);
+        MyMath::fsincos(gust_.y, &sy, &cy);
 
         currentWindVelocity_ += DirectX::XMFLOAT3(cx * sy * gustiness_.x,
                                                   cy      * gustiness_.y,

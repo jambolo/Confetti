@@ -123,6 +123,27 @@ void BasicEmitter::Update(float dt, DirectX::XMFLOAT4 const & position, DirectX:
     Update(dt);
 }
 
+
+//!
+//! @param	enabled		If true, the emitter is enabled, otherwise the emitter is disabled.
+
+bool BasicEmitter::Enable(bool enabled)
+{
+    bool oldState = enabled_;
+    enabled_ = enabled;
+    return oldState;
+}
+
+//! @param	position	The new position of the emitter.
+//! @param	velocity	The new velocity of the emitter.
+
+void BasicEmitter::Update(DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity)
+{
+    position_ = position;
+    velocity_ = velocity;
+}
+
+
 /********************************************************************************************************************/
 /*										P O I N T   P A R T I C L E   E M I T T E R                                 */
 /********************************************************************************************************************/

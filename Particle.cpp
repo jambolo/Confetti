@@ -19,8 +19,8 @@
 #include "Emitter.h"
 #include "Environment.h"
 
-#include "Math/FastMath.h"
-#include "Misc/Max.h"
+#include "MyMath/MyMath.h"
+#include "MyMath/FastMath.h"
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -185,10 +185,10 @@ bool Particle::Update(float dt)
     // Update color
 
     color_  += pA->GetColorRate() * dt;
-    color_.r = limit(0.0f, color_.r, 1.0f);
-    color_.g = limit(0.0f, color_.g, 1.0f);
-    color_.b = limit(0.0f, color_.b, 1.0f);
-    color_.a = limit(0.0f, color_.a, 1.0f);
+    color_.r = MyMath::limit(0.0f, color_.r, 1.0f);
+    color_.g = MyMath::limit(0.0f, color_.g, 1.0f);
+    color_.b = MyMath::limit(0.0f, color_.b, 1.0f);
+    color_.a = MyMath::limit(0.0f, color_.a, 1.0f);
 
     return reborn;
 }
@@ -199,10 +199,10 @@ bool Particle::Update(float dt)
 //
 // DirectX::XMFLOAT3 Particle::GetColor() const
 // {
-//	float const	r	= limit( 0., initialColor_.R_ + colorDelta_.R_ * age_, 1. );
-//	float const	g	= limit( 0., initialColor_.G_ + colorDelta_.G_ * age_, 1. );
-//	float const	b	= limit( 0., initialColor_.B_ + colorDelta_.B_ * age_, 1. );
-//	float const	a	= limit( 0., initialColor_.A_ + colorDelta_.A_ * age_, 1. );
+//	float const	r	= MyMath::limit( 0., initialColor_.R_ + colorDelta_.R_ * age_, 1. );
+//	float const	g	= MyMath::limit( 0., initialColor_.G_ + colorDelta_.G_ * age_, 1. );
+//	float const	b	= MyMath::limit( 0., initialColor_.B_ + colorDelta_.B_ * age_, 1. );
+//	float const	a	= MyMath::limit( 0., initialColor_.A_ + colorDelta_.A_ * age_, 1. );
 //
 //	return DirectX::XMFLOAT3( r, g, b, a );
 // }
@@ -216,7 +216,7 @@ bool Particle::Update(float dt)
 // {
 //	Environment const &	e	= *pEmitter_->GetEnvironment();
 //
-//	if ( Math::IsCloseToZero( e.GetAirFriction() ) )
+//	if ( MyMath::IsCloseToZero( e.GetAirFriction() ) )
 //	{
 //		DirectX::XMFLOAT3	position	= e.GetGravity();
 //
@@ -277,7 +277,7 @@ bool Particle::Update(float dt)
 // {
 //	Environment const &	e	= *pEmitter_->GetEnvironment();
 //
-//	if ( Math::IsCloseToZero( e.GetAirFriction() ) )
+//	if ( MyMath::IsCloseToZero( e.GetAirFriction() ) )
 //	{
 //		return absoluteInitialVelocity_ + e.GetGravity() * age_;
 //	}

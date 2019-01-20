@@ -54,22 +54,22 @@ public:
     void Update(float dt);
 
     //! Returns the material.
-    D3DMATERIAL9 const * GetMaterial()              const { return pMaterial_; }
+    D3DMATERIAL9 const * GetMaterial() const { return pMaterial_; }
 
     //! Returns the texture.
-    IDirect3DTexture11 * GetTexture()                const { return pTexture_; }
+    IDirect3DTexture11 * GetTexture() const { return pTexture_; }
 
     //! Returns the rate of change in the color.
-    DirectX::XMFLOAT4 const & GetColorRate()                const { return colorRate_; }
+    DirectX::XMFLOAT4 const & GetColorRate() const { return colorRate_; }
 
     //! Returns the rate of change of the radius.
-    float GetRadiusRate()                           const { return radiusRate_; }
+    float GetRadiusRate() const { return radiusRate_; }
 
     //! Returns the angular velocity.
-    float GetRadialVelocity()                       const { return angularVelocity_; }
+    float GetRadialVelocity() const { return angularVelocity_; }
 
     //! Returns a pointer to the camera used to render.
-    Dxx::Camera const * GetCamera()                 const { return pCamera_; }
+    Dxx::Camera const * GetCamera() const { return pCamera_; }
 
     //! Returns the current line width or point size.
     float GetSize() const { return size_; }

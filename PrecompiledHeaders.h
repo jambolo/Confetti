@@ -1,22 +1,6 @@
-/*********************************************************************************************************************
+#if 0
 
-                                                 PrecompiledHeaders.h
-
-                                            Copyright 2002, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/PrecompiledHeaders.h#10 $
-
-    $NoKeywords: $
-
-*********************************************************************************************************************/
-
-#pragma once
-
-/* Windows header files																								*/
-
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
+/* Windows header files */
 
 #include <atlbase.h>
 #include <atlcomcli.h>
@@ -25,14 +9,14 @@
 #include <objbase.h>
 #include <windows.h>
 
-/* Direct X header files																							*/
+/* Direct X header files */
 
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <d3dx9math.h>
 #include <dxerr9.h>
 
-/* Standard Library header files																					*/
+/* Standard Library header files */
 
 #include <algorithm>
 #include <exception>
@@ -46,7 +30,7 @@
 #include <vector>
 #include <xutility>
 
-/* Library header files																								*/
+/* Library header files */
 
 #include <boost/noncopyable.hpp>
 #include <Dxx/Camera.h>
@@ -66,4 +50,6 @@
 #include <Msxmlx/Msxmlx.h>
 #include <Wx/Wx.h>
 
-/* Project header files																								*/
+/* Project header files */
+
+#endif

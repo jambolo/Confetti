@@ -65,31 +65,31 @@ public:
     Particle * GetParticles() { return paParticles_; }
 
     //! Returns a pointer to the array of particles.
-    Particle const * GetParticles()             const { return paParticles_; }
+    Particle const * GetParticles() const { return paParticles_; }
 
     //! Returns the emitter volume.
-    EmitterVolume const * GetEmitterVolume()    const { return pEmitterVolume_; }
+    EmitterVolume const * GetEmitterVolume() const { return pEmitterVolume_; }
 
     //! Returns the appearance.
-    Appearance const * GetAppearance()          const { return pAppearance_; }
+    Appearance const * GetAppearance() const { return pAppearance_; }
 
     //! Returns the environment.
-    Environment const * GetEnvironment()        const { return pEnvironment_; }
+    Environment const * GetEnvironment() const { return pEnvironment_; }
 
     //! Returns the number of particles.
-    int GetNumParticles()                       const { return numParticles_; }
+    int GetNumParticles() const { return numParticles_; }
 
     //! Returns the current position.
-    DirectX::XMFLOAT4 const & GetCurrentPosition()    const { return position_; }
+    DirectX::XMFLOAT4 const & GetCurrentPosition() const { return position_; }
 
     //! Returns the current velocity.
-    DirectX::XMFLOAT4 const & GetCurrentVelocity()    const { return velocity_; }
+    DirectX::XMFLOAT4 const & GetCurrentVelocity() const { return velocity_; }
 
     //! Returns true if the emitter is enabled.
-    bool IsEnabled()                            const { return enabled_; }
+    bool IsEnabled() const { return enabled_; }
 
     //! Returns true if the particles are sorted.
-    bool IsSorted()                             const { return sorted_; }
+    bool IsSorted() const { return sorted_; }
 
     //! Enables/Disables the emitter. Returns the previous state.
     bool Enable(bool enable);
@@ -206,7 +206,7 @@ public:
     {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }
-    virtual PointParticle const * GetParticle(int i)  const override
+    virtual PointParticle const * GetParticle(int i) const override
     {
         assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
     }

@@ -81,11 +81,11 @@ DirectX::XMFLOAT4 EmitterCircle::next() const
 {
     // Source: http://mathworld.wolfram.com/DiskPointPicking.html
 
-    float const a = rng_.Get(float(Math::TWO_PI));
+    float const a = rng_.Get(float(MyMath::TWO_PI));
     float const r = radius_ * sqrtf(rng_.Get());
     float       c, s;
 
-    Math::fsincos(a, &s, &c);
+    MyMath::fsincos(a, &s, &c);
 
     return DirectX::XMVectorSet(c * r, s * r, 0.0f, 1.0f);
 }
@@ -115,13 +115,13 @@ DirectX::XMFLOAT4 EmitterSphere::next() const
     // sf = sin(f) = sqrt( 1. - cf*cf )
     // v = [ cf * ct, sf, cf * st ]
 
-    float t = rng_.Get(float(-Math::PI), float(Math::PI));
+    float t = rng_.Get(float(-MyMath::PI), float(MyMath::PI));
     float cf = rng_.Get(-1, 1);
     float sf = sqrtf(1.0f - cf * cf);
     float r = radius_ * powf(rng_.Get(), 1.0f / 3.0f);
     float st, ct;
 
-    Math::fsincos(t, &st, &ct);
+    MyMath::fsincos(t, &st, &ct);
 
     return DirectX::XMVectorSet(cf * ct * r, sf * r, cf * st * r, 1.0f);
 }
@@ -157,12 +157,12 @@ EmitterCylinder::EmitterCylinder(unsigned int seed, float radius, float height)
 
 DirectX::XMFLOAT4 EmitterCylinder::next() const
 {
-    float const a = rng_.Get(float(Math::TWO_PI));
+    float const a = rng_.Get(float(MyMath::TWO_PI));
     float const h = rng_.Get(height_);
     float const r = radius_ * sqrtf(rng_.Get());
     float       c, s;
 
-    Math::fsincos(a, &s, &c);
+    MyMath::fsincos(a, &s, &c);
 
     return DirectX::XMVectorSet(c * r, s * r, h, 1.0f);
 }
@@ -180,12 +180,12 @@ EmitterCone::EmitterCone(unsigned int seed, float radius, float height)
 
 DirectX::XMFLOAT4 EmitterCone::next() const
 {
-    float const a = rng_.Get(float(Math::TWO_PI));
+    float const a = rng_.Get(float(MyMath::TWO_PI));
     float       h = rng_.Get();
     float       r = rng_.Get();
     float       c, s;
 
-    Math::fsincos(a, &s, &c);
+    MyMath::fsincos(a, &s, &c);
 
     h = powf(h, 1.0f / 3.0f) * height_;
     r = sqrtf(r) / radius_ * h;

@@ -13,9 +13,6 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-
 #include "Particle.h"
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -35,7 +32,7 @@ class SphereParticle : public Particle
 public:
 
     //! Constructor
-    SphereParticle() {}
+    SphereParticle() = default;
 
     //! Constructor
     SphereParticle(BasicEmitter const *      pEmitter,

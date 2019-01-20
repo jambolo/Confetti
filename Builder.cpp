@@ -270,7 +270,7 @@ std::auto_ptr<TexturedParticle> Builder::BuildTexturedParticles(
                                       velocity,
                                       emitterConfiguration.color_,
                                       emitterConfiguration.radius_,
-                                      fRng_.Get((float)Math::TWO_PI));
+                                      fRng_.Get((float)MyMath::TWO_PI));
         }
     }
     else

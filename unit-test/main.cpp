@@ -11,12 +11,6 @@
 
 *********************************************************************************************************************/
 
-#pragma warning( disable:4786 ) // 'identifier' : identifier was truncated to 'number' characters in the debug information
-
-#define STRICT
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-
 #include <tchar.h>
 #include <windows.h>
 
@@ -24,11 +18,11 @@
 // #include "DxUtility/dxutil.h"
 #include <stdlib.h>
 
-#include "../Confetti.h"
+#include "Confetti/Confetti.h"
 
 #include "Dxx/Dxx.h"
-#include "Math/Constants.h"
-#include "Math/FastMath.h"
+#include "MyMath/Constants.h"
+#include "MyMath/FastMath.h"
 #include "TgaFile/TgaFile.h"
 #include "Time/Clock.h"
 #include "Time/FrameRateCalculator.h"
@@ -370,7 +364,7 @@ static void InitializeRendering(HWND hWnd)
                                 1.0f, 1000.0f,
                                 1.0f,
                                 DirectX::XMFLOAT4(0.0f, 200.0f, 180.0f),
-                                DirectX::XMFLOAT4((float)sin(Math::PI_OVER_4), 0.0f, 0.0f, (float)cos(Math::PI_OVER_4)));
+                                DirectX::XMFLOAT4((float)sin(MyMath::PI_OVER_4), 0.0f, 0.0f, (float)cos(MyMath::PI_OVER_4)));
 
     // Create the grid
 
