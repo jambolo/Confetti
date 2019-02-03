@@ -1,16 +1,3 @@
-/** @file *//********************************************************************************************************
-
-                                                 TexturedParticle.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/TexturedParticle.cpp#13 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #include "TexturedParticle.h"
 
 #include "Appearance.h"
@@ -49,7 +36,7 @@ TexturedParticle::TexturedParticle(BasicEmitter const *      pEmitter,
                                    float                     age,
                                    DirectX::XMFLOAT3 const & position,
                                    DirectX::XMFLOAT3 const & velocity,
-                                   DirectX::XMFLOAT3 const & color,
+                                   DirectX::XMFLOAT4 const & color,
                                    float                     radius,
                                    float                     rotation /* = 0.0f*/)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
@@ -72,7 +59,7 @@ void TexturedParticle::Initialize(float                     lifetime,
                                   float                     age,
                                   DirectX::XMFLOAT3 const & position,
                                   DirectX::XMFLOAT3 const & velocity,
-                                  DirectX::XMFLOAT3 const & color,
+                                  DirectX::XMFLOAT4 const & color,
                                   float                     radius,
                                   float                     rotation)
 {
@@ -101,17 +88,17 @@ bool TexturedParticle::Update(float dt)
         dt        = age_;
     }
 
-    Appearance const * const pA = pEmitter_->GetAppearance();
+    Appearance const * const pA = pEmitter_->appearance();
 
     // Update size and rotation
 
-    radius_   += dt * pA->GetRadiusRate();
-    rotation_ += dt * pA->GetRadialVelocity();
+    radius_   += dt * pA->radiusRate();
+    rotation_ += dt * pA->angularVelocity();
 
     return reborn;
 }
 
-void TexturedParticle::Draw(IDirect3DDevice11 * pD3dDevice) const
+void TexturedParticle::Draw(ID3D11Device * pD3dDevice) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

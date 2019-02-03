@@ -1,26 +1,11 @@
-/** @file *//********************************************************************************************************
-
-                                                     Particle.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Particle.cpp#10 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
-#include "PrecompiledHeaders.h"
-
 #include "Particle.h"
 
 #include "Appearance.h"
 #include "Emitter.h"
 #include "Environment.h"
 
-#include "MyMath/MyMath.h"
 #include "MyMath/FastMath.h"
+#include "MyMath/MyMath.h"
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -39,7 +24,7 @@ Particle::Particle(BasicEmitter const *      pEmitter,
                    float                     age,
                    DirectX::XMFLOAT3 const & position,
                    DirectX::XMFLOAT3 const & velocity,
-                   DirectX::XMFLOAT3 const & color)
+                   DirectX::XMFLOAT4 const & color)
     : pEmitter_(pEmitter)
     , lifetime_(lifetime)
     , age_(age)
@@ -62,7 +47,7 @@ void Particle::Initialize(float                     lifetime,
                           float                     age,
                           DirectX::XMFLOAT3 const & position,
                           DirectX::XMFLOAT3 const & velocity,
-                          DirectX::XMFLOAT3 const & color)
+                          DirectX::XMFLOAT4 const & color)
 {
     lifetime_        = lifetime;
     age_             = age;
@@ -107,55 +92,59 @@ bool Particle::Update(float dt)
         reborn = false;
     }
 
+    DirectX::XMVECTOR velocity_simd(DirectX::XMLoadFloat3(&velocity_));
+    DirectX::XMVECTOR position_simd(DirectX::XMLoadFloat3(&position_));
+
     // If (re)born, then reset to initial values and adjust dt
 
     if (reborn)
     {
-        velocity_ = pEmitter_->GetCurrentVelocity() + initialVelocity_;
-        position_ = pEmitter_->GetCurrentPosition() + initialPosition_;
-        color_    = initialColor_;
-        dt        = age_;
+        DirectX::XMVECTOR emitterVelocity_simd(DirectX::XMLoadFloat3(&pEmitter_->currentVelocity()));
+        DirectX::XMVECTOR emitterPosition_simd(DirectX::XMLoadFloat3(&pEmitter_->currentPosition()));
+        DirectX::XMVECTOR initialVelocity_simd(DirectX::XMLoadFloat3(&initialVelocity_));
+        DirectX::XMVECTOR initialPosition_simd(DirectX::XMLoadFloat3(&initialPosition_));
+
+        velocity_simd = emitterVelocity_simd + initialVelocity_simd;
+        position_simd = emitterPosition_simd + initialPosition_simd;
+        color_        = initialColor_;
+        dt            = age_;
     }
 
-    Environment const * const pE = pEmitter_->GetEnvironment();
-    Appearance const * const  pA = pEmitter_->GetAppearance();
+    Environment const * pE = pEmitter_->environment();
+    Appearance const *  pA = pEmitter_->appearance();
 
     // Update velocity and position
-
-    DirectX::XMFLOAT3         dv;
-    DirectX::XMFLOAT3         ds;
-    float const               c = pE->GetAirFriction();
-    DirectX::XMFLOAT3 const & g = pE->GetGravity();
+    DirectX::XMVECTOR dv_simd;
+    DirectX::XMVECTOR ds_simd;
+    float c = pE->GetAirFriction();
+    DirectX::XMVECTOR g(DirectX::XMLoadFloat3(&pE->GetGravity()));
 
     if (c != 0.0f)
     {
-        DirectX::XMFLOAT3 const & terminalVelocity = pE->GetTerminalVelocity();
-        DirectX::XMFLOAT3 const & terminalDistance = pE->GetTerminalDistance();
-        float const ect1 = pE->GetEct1();
+        DirectX::XMVECTOR terminalVelocity_simd(DirectX::XMLoadFloat3(&pE->GetTerminalVelocity()));
+        DirectX::XMVECTOR terminalDistance_simd(DirectX::XMLoadFloat3(&pE->GetTerminalDistance()));
+        float ect1 = pE->GetEct1();
 
-        dv = (terminalVelocity - velocity_) * ect1;
-        ds = terminalDistance - dv / c;
+        dv_simd = (terminalVelocity_simd - velocity_simd) * ect1;
+        ds_simd = terminalDistance_simd - dv_simd / c;
     }
     else
     {
-        dv = g * dt;
-        ds = (velocity_ + dv * 0.5f) * dt;
+        dv_simd = g * dt;
+        ds_simd = (velocity_simd + dv_simd * 0.5f) * dt;
     }
 
-    velocity_ += dv;
-    position_ += ds;
+    velocity_simd += dv_simd;
+    position_simd += ds_simd;
 
     // Check for collision with clip planes
-
     Environment::ClipPlaneList const * pClipPlanes = pE->GetClipPlanes();
-
-    if (pClipPlanes != 0)
+    if (pClipPlanes)
     {
-        for (Environment::ClipPlaneList::const_iterator pC = pClipPlanes->begin(); pC != pClipPlanes->end(); ++pC)
+        for (auto const & plane : *pClipPlanes)
         {
-            DirectX::XMFLOAT3 const & plane = *pC;
-
-            if (XMPlaneDotCoord(plane, position_) < 0.0f)
+            DirectX::XMVECTOR plane_simd(DirectX::XMLoadFloat4(&plane));
+            if (XMVector3Less(XMPlaneDotCoord(plane_simd, position_simd), DirectX::XMVectorZero()))
             {
                 age_ -= lifetime_;
                 return reborn;
@@ -164,53 +153,44 @@ bool Particle::Update(float dt)
     }
 
     // Check for collision with bounce planes
-
     Environment::BouncePlaneList const * pBouncePlanes = pE->GetBouncePlanes();
-
-    if (pBouncePlanes != 0)
+    if (pBouncePlanes)
     {
-        for (Environment::BouncePlaneList::const_iterator pB = pBouncePlanes->begin(); pB != pBouncePlanes->end(); ++pB)
+        for (auto const & plane : *pBouncePlanes)
         {
-            Environment::BouncePlane const & plane = *pB;
-
-            if (XMPlaneDotCoord(&plane.plane_, &position_) < 0.0f)
+            DirectX::XMVECTOR plane_simd(DirectX::XMLoadFloat4(&plane.plane_));
+            if (XMVector3Less(XMPlaneDotCoord(plane_simd, position_simd), DirectX::XMVectorZero()))
             {
-                float const f = 1.0f + plane.dampening_;
-                velocity_ -=  DirectX::XMFLOAT3(plane.plane_) * (f * XMPlaneDotNormal(&plane.plane_, &velocity_));
-                position_ -=  DirectX::XMFLOAT3(plane.plane_) * (f * XMPlaneDotCoord(&plane.plane_, &position_));
+                float f = 1.0f + plane.dampening_;
+                velocity_simd -= plane_simd * (f * XMPlaneDotNormal(plane_simd, velocity_simd));
+                position_simd -= plane_simd * (f * XMPlaneDotCoord( plane_simd, position_simd));
             }
         }
     }
 
     // Update color
+    DirectX::XMVECTOR color_simd(DirectX::XMLoadFloat4(&color_));
+    DirectX::XMVECTOR colorRate_simd(DirectX::XMLoadFloat4(&pA->colorRate()));
+    color_simd += colorRate_simd * dt;
+    color_simd = DirectX::XMVectorClamp(color_simd, DirectX::XMVectorZero(), DirectX::XMVectorSplatOne());
 
-    color_  += pA->GetColorRate() * dt;
-    color_.r = MyMath::limit(0.0f, color_.r, 1.0f);
-    color_.g = MyMath::limit(0.0f, color_.g, 1.0f);
-    color_.b = MyMath::limit(0.0f, color_.b, 1.0f);
-    color_.a = MyMath::limit(0.0f, color_.a, 1.0f);
+    DirectX::XMStoreFloat3(&velocity_, velocity_simd);
+    DirectX::XMStoreFloat3(&position_, position_simd);
+    DirectX::XMStoreFloat4(&color_, color_simd);
 
     return reborn;
 }
 
-/// ********************************************************************************************************************/
-/// *																													*/
-/// ********************************************************************************************************************/
-//
 // DirectX::XMFLOAT3 Particle::GetColor() const
 // {
-//	float const	r	= MyMath::limit( 0., initialColor_.R_ + colorDelta_.R_ * age_, 1. );
-//	float const	g	= MyMath::limit( 0., initialColor_.G_ + colorDelta_.G_ * age_, 1. );
-//	float const	b	= MyMath::limit( 0., initialColor_.B_ + colorDelta_.B_ * age_, 1. );
-//	float const	a	= MyMath::limit( 0., initialColor_.A_ + colorDelta_.A_ * age_, 1. );
+//	float	r	= MyMath::limit( 0., initialColor_.R_ + colorDelta_.R_ * age_, 1. );
+//	float	g	= MyMath::limit( 0., initialColor_.G_ + colorDelta_.G_ * age_, 1. );
+//	float	b	= MyMath::limit( 0., initialColor_.B_ + colorDelta_.B_ * age_, 1. );
+//	float	a	= MyMath::limit( 0., initialColor_.A_ + colorDelta_.A_ * age_, 1. );
 //
 //	return DirectX::XMFLOAT3( r, g, b, a );
 // }
 //
-//
-/// ********************************************************************************************************************/
-/// *																													*/
-/// ********************************************************************************************************************/
 //
 // DirectX::XMFLOAT3 Particle::GetPosition() const
 // {
@@ -260,7 +240,7 @@ bool Particle::Update(float dt)
 //		// s0 <== absoluteInitialPosition_
 //		//
 //
-//		double const	ect1c	= ( 1. - exp( -e.GetAirFriction() * age_ ) ) / e.GetAirFriction();
+//		double	ect1c	= ( 1. - exp( -e.GetAirFriction() * age_ ) ) / e.GetAirFriction();
 //
 //		return absoluteInitialPosition_
 //			   + terminalVelocity_ * age_
@@ -269,9 +249,6 @@ bool Particle::Update(float dt)
 //	}
 // }
 //
-/// ********************************************************************************************************************/
-/// *																													*/
-/// ********************************************************************************************************************/
 //
 // DirectX::XMFLOAT3 Particle::GetVelocity() const
 // {
@@ -301,7 +278,7 @@ bool Particle::Update(float dt)
 //		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== age_,
 //		// g <== e.GetGravity(), v0 <== absoluteInitialVelocity_,
 //
-//		float const		ect		= exp( -e.GetAirFriction() * age_ );
+//		float		ect		= exp( -e.GetAirFriction() * age_ );
 //
 //		return terminalVelocity_ - ( terminalVelocity_ - absoluteInitialVelocity_ ) * ect;
 //	}

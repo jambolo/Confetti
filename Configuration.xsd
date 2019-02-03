@@ -161,9 +161,9 @@
 	<!-- Plane -->
 	<xsd:complexType name="plane">
 		<xsd:all>
-			<xsd:element name="X" type="xsd:float"/>
-			<xsd:element name="Y" type="xsd:float"/>
-			<xsd:element name="Z" type="xsd:float"/>
+			<xsd:element name="A" type="xsd:float"/>
+			<xsd:element name="B" type="xsd:float"/>
+			<xsd:element name="C" type="xsd:float"/>
 			<xsd:element name="D" type="xsd:float"/>
 		</xsd:all>
 	</xsd:complexType>

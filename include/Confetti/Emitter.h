@@ -1,20 +1,9 @@
-/** @file *//********************************************************************************************************
-
-                                                      Emitter.h
-
-                                            Copyright 2002, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Emitter.h#17 $
-
-    $NoKeywords: $
-
- *********************************************************************************************************************/
-
 #pragma once
 
-#include "Misc/Assert.h"
-#include "Misc/Types.h"
+#if !defined(CONFETTI_EMITTER_H)
+#define CONFETTI_EMITTER_H
+
+#include "Misc/Assertx.h"
 #include "PointParticle.h"
 #include "SphereParticle.h"
 #include "StreakParticle.h"
@@ -22,9 +11,9 @@
 #include <DirectXMath.h>
 #include <memory>
 
-struct IDirect3DDevice11;
-struct IDirect3DVertexBuffer11;
-struct IDirect3DIndexBuffer11;
+struct ID3D11Device;
+struct ID3D11Buffer;
+struct ID3D11Buffer;
 struct ID3DX11Effect;
 struct IDirect3DVertexDeclaration11;
 
@@ -35,7 +24,7 @@ class Appearance;
 class Environment;
 
 //! A particle emitter.
-//
+//!
 //! @ingroup	Emitters
 //!
 //! @note This class is an abstract base class and must be derived from in order to be used.
@@ -45,98 +34,94 @@ class BasicEmitter
 public:
 
     //! Constructor
-    BasicEmitter(IDirect3DDevice11 * pD3dDevice,
-                 Particle * paParticles,
-                 int size, uint32_t usage, D3DPOOL pool,
+    BasicEmitter(ID3D11Device *        pD3dDevice,
+                 Particle *            paParticles,
+                 int                   size,
                  EmitterVolume const * pVol,
-                 Environment const * pEnv,
-                 Appearance const * pApp,
-                 int n,
-                 bool sorted);
+                 Environment const *   pEnv,
+                 Appearance const *    pApp,
+                 int                   n,
+                 bool                  sorted);
 
     // Destructor
     virtual ~BasicEmitter();
 
-    // non-copyable
-    BasicEmitter(BasicEmitter const &) = delete;
-    BasicEmitter & operator =(BasicEmitter const &) = delete;
+    //! Returns a pointer to the array of particles.
+    Particle * particles() { return paParticles_; }
 
     //! Returns a pointer to the array of particles.
-    Particle * GetParticles() { return paParticles_; }
-
-    //! Returns a pointer to the array of particles.
-    Particle const * GetParticles() const { return paParticles_; }
+    Particle const * particles() const { return paParticles_; }
 
     //! Returns the emitter volume.
-    EmitterVolume const * GetEmitterVolume() const { return pEmitterVolume_; }
+    EmitterVolume const * emitterVolume() const { return pEmitterVolume_; }
 
     //! Returns the appearance.
-    Appearance const * GetAppearance() const { return pAppearance_; }
+    Appearance const * appearance() const { return pAppearance_; }
 
     //! Returns the environment.
-    Environment const * GetEnvironment() const { return pEnvironment_; }
+    Environment const * environment() const { return pEnvironment_; }
 
     //! Returns the number of particles.
-    int GetNumParticles() const { return numParticles_; }
+    int size() const { return numParticles_; }
 
     //! Returns the current position.
-    DirectX::XMFLOAT4 const & GetCurrentPosition() const { return position_; }
+    DirectX::XMFLOAT3 const & currentPosition() const { return position_; }
 
     //! Returns the current velocity.
-    DirectX::XMFLOAT4 const & GetCurrentVelocity() const { return velocity_; }
+    DirectX::XMFLOAT3 const & currentVelocity() const { return velocity_; }
 
     //! Returns true if the emitter is enabled.
-    bool IsEnabled() const { return enabled_; }
+    bool enabled() const { return enabled_; }
 
     //! Returns true if the particles are sorted.
-    bool IsSorted() const { return sorted_; }
+    bool sorted() const { return sorted_; }
 
     //! Enables/Disables the emitter. Returns the previous state.
-    bool Enable(bool enable);
+    bool enable(bool enable = true);
 
     //! Sets the emitter's position and velocity
-    void Update(DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity);
+    void update(DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 const & velocity);
 
     //! Updates the emitter and its particles.
-    void Update(float dt, DirectX::XMFLOAT4 const & position, DirectX::XMFLOAT4 const & velocity);
+    void update(float dt, DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 const & velocity);
 
     //! Updates the emitter's particles.
-    //
     //!
     //! @note	This method must be overridden.
-    virtual void Update(float dt) = 0;
+    virtual void update(float dt) = 0;
 
     //! Draws all the emitter's particles
-    //
     //!
     //! @note	This method must be overridden.
-    virtual void Draw() const = 0;
+    virtual void draw() const = 0;
 
     //! Returns a reference to an individual particle
-    //
     //!
     //! @note	This method must be overridden.
-    virtual Particle * GetParticle(int i) = 0;
+    virtual Particle * particle(int i) = 0;
 
     //! Returns a reference to an individual particle
-    //
     //!
     //! @note	This method must be overridden.
-    virtual Particle const * GetParticle(int i) const = 0;
+    virtual Particle const * particle(int i) const = 0;
 
 protected:
 
     // D3D Stuff
 
-    IDirect3DDevice11 * pD3dDevice_;                    //!< D3D device
-    IDirect3DVertexBuffer11 * pVB_;                     //!< Vertex buffer for particles
-    ID3DX11Effect * pEffect_;                           //!< The effect for rendering this emitter's particles
+    ID3D11Device * pD3dDevice_;                         //!< D3D device
+    ID3D11Buffer * pVB_;                                //!< Vertex buffer for particles
+    ID3DBlob * pEffect_;                                //!< The effect for rendering this emitter's particles
     IDirect3DVertexDeclaration11 * pVertexDeclaration_; //!< The vertex buffer format
-    bool alphaTestAvailable_;                           //!< @c true if the device supports alpha test
+    bool alphaTestAvailable_;                           //!< true if the device supports alpha test
     int maxPrimitives_;                                 //!< Maximum number of primitives in a DrawPrimitive call
     int maxVertexIndex_;                                //!< Highest possible index value
 
 private:
+
+    // non-copyable
+    BasicEmitter(BasicEmitter const &) = delete;
+    BasicEmitter & operator =(BasicEmitter const &) = delete;
 
     // Particle data
 
@@ -150,8 +135,8 @@ private:
     // Emitter state
 
     bool enabled_;                  // Enabled or not
-    DirectX::XMFLOAT4 position_;    // Current position
-    DirectX::XMFLOAT4 velocity_;    // Current velocity
+    DirectX::XMFLOAT3 position_;    // Current position
+    DirectX::XMFLOAT3 velocity_;    // Current velocity
 };
 
 //! @name Basic Emitters
@@ -168,7 +153,7 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    PointEmitter(IDirect3DDevice11 *   pD3dDevice,
+    PointEmitter(ID3D11Device *        pD3dDevice,
                  EmitterVolume const * pVol,
                  Environment const *   pEnv,
                  Appearance const *    pApp,
@@ -176,42 +161,42 @@ public:
                  bool                  sorted);
 
     //! Constructor
-    PointEmitter(IDirect3DDevice11 *          pD3dDevice,
-                 std::auto_ptr<PointParticle> qaParticles,
-                 EmitterVolume const *        pVol,
-                 Environment const *          pEnv,
-                 Appearance const *           pApp,
-                 int                          n,
-                 bool                         sorted);
+    PointEmitter(ID3D11Device *                 pD3dDevice,
+                 std::unique_ptr<PointParticle> qaParticles,
+                 EmitterVolume const *          pVol,
+                 Environment const *            pEnv,
+                 Appearance const *             pApp,
+                 int                            n,
+                 bool                           sorted);
 
     virtual ~PointEmitter() override;
 
     //! Initializes the emitter
-    void Initialize();
+    void initialize();
 
     //! Uninitializes the emitter
-    void Uninitialize();
+    void uninitialize();
 
     //! @name Overrides BasicEmitter
     //@{
-    PointParticle * GetParticles()
+    PointParticle * particles()
     {
-        return static_cast<PointParticle *>(BasicEmitter::GetParticles());
+        return static_cast<PointParticle *>(BasicEmitter::particles());
     }
-    PointParticle const * GetParticles() const override
+    PointParticle const * particles() const
     {
-        return static_cast<PointParticle const *>(BasicEmitter::GetParticles());
+        return static_cast<PointParticle const *>(BasicEmitter::particles());
     }
-    virtual PointParticle * GetParticle(int i) override
+    virtual PointParticle * particle(int i) override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual PointParticle const * GetParticle(int i) const override
+    virtual PointParticle const * particle(int i) const override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual void Update(float dt) override;
-    virtual void Draw() const override;
+    virtual void update(float dt) override;
+    virtual void draw() const override;
     //@}
 };
 
@@ -225,7 +210,7 @@ class StreakEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    StreakEmitter(IDirect3DDevice11 *   pD3dDevice,
+    StreakEmitter(ID3D11Device *        pD3dDevice,
                   EmitterVolume const * pVol,
                   Environment const *   pEnv,
                   Appearance const *    pApp,
@@ -233,42 +218,42 @@ public:
                   bool                  sorted);
 
     //! Constructor
-    StreakEmitter(IDirect3DDevice11 *           pD3dDevice,
-                  std::auto_ptr<StreakParticle> qaParticles,
-                  EmitterVolume const *         pVol,
-                  Environment const *           pEnv,
-                  Appearance const *            pApp,
-                  int                           n,
-                  bool                          sorted);
+    StreakEmitter(ID3D11Device *                  pD3dDevice,
+                  std::unique_ptr<StreakParticle> qaParticles,
+                  EmitterVolume const *           pVol,
+                  Environment const *             pEnv,
+                  Appearance const *              pApp,
+                  int                             n,
+                  bool                            sorted);
 
     virtual ~StreakEmitter() override;
 
     //! Initializes the emitter
-    void Initialize();
+    void initialize();
 
     //! Uninitializes the emitter
-    void Uninitialize();
+    void uninitialize();
 
     //! @name Overrides BasicEmitter
     //@{
-    StreakParticle * GetParticles()
+    StreakParticle * particles()
     {
-        return static_cast<StreakParticle *>(BasicEmitter::GetParticles());
+        return static_cast<StreakParticle *>(BasicEmitter::particles());
     }
-    StreakParticle const * GetParticles() const
+    StreakParticle const * particles() const
     {
-        return static_cast<StreakParticle const *>(BasicEmitter::GetParticles());
+        return static_cast<StreakParticle const *>(BasicEmitter::particles());
     }
-    virtual StreakParticle * GetParticle(int i) override
+    virtual StreakParticle * particle(int i) override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual StreakParticle const * GetParticle(int i) const override
+    virtual StreakParticle const * particle(int i) const override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual void Update(float dt) override;
-    virtual void Draw() const override;
+    virtual void update(float dt) override;
+    virtual void draw() const override;
     //@}
 };
 
@@ -282,7 +267,7 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    TexturedEmitter(IDirect3DDevice11 *   pD3dDevice,
+    TexturedEmitter(ID3D11Device *        pD3dDevice,
                     EmitterVolume const * pVol,
                     Environment const *   pEnv,
                     Appearance const *    pApp,
@@ -290,47 +275,47 @@ public:
                     bool                  sorted);
 
     //! Constructor
-    TexturedEmitter(IDirect3DDevice11 *             pD3dDevice,
-                    std::auto_ptr<TexturedParticle> qaParticles,
-                    EmitterVolume const *           pVol,
-                    Environment const *             pEnv,
-                    Appearance const *              pApp,
-                    int                             n,
-                    bool                            sorted);
+    TexturedEmitter(ID3D11Device *                    pD3dDevice,
+                    std::unique_ptr<TexturedParticle> qaParticles,
+                    EmitterVolume const *             pVol,
+                    Environment const *               pEnv,
+                    Appearance const *                pApp,
+                    int                               n,
+                    bool                              sorted);
 
     virtual ~TexturedEmitter() override;
 
     //! Initializes the emitter
-    void Initialize();
+    void initialize();
 
     //! Uninitializes the emitter
-    void Uninitialize();
+    void uninitialize();
 
     //! @name Overrides BasicEmitter
     //@{
-    TexturedParticle * GetParticles()
+    TexturedParticle * particles()
     {
-        return static_cast<TexturedParticle *>(BasicEmitter::GetParticles());
+        return static_cast<TexturedParticle *>(BasicEmitter::particles());
     }
-    TexturedParticle const * GetParticles() const
+    TexturedParticle const * particles() const
     {
-        return static_cast<TexturedParticle const *>(BasicEmitter::GetParticles());
+        return static_cast<TexturedParticle const *>(BasicEmitter::particles());
     }
-    virtual TexturedParticle * GetParticle(int i) override
+    virtual TexturedParticle * particle(int i) override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual TexturedParticle const * GetParticle(int i) const override
+    virtual TexturedParticle const * particle(int i) const override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual void Update(float dt) override;
-    virtual void Draw() const override;
+    virtual void update(float dt) override;
+    virtual void draw() const override;
     //@}
 
 private:
 
-    IDirect3DIndexBuffer11 * pIB_;                      // Index buffer for particles
+    ID3D11Buffer * pIB_;                      // Index buffer for particles
 };
 
 //! An Emitter that emits SphereParticles
@@ -343,7 +328,7 @@ class SphereEmitter : public BasicEmitter
 public:
 
     //! Constructor
-    SphereEmitter(IDirect3DDevice11 *   pD3dDevice,
+    SphereEmitter(ID3D11Device *        pD3dDevice,
                   EmitterVolume const * pVol,
                   Environment const *   pEnv,
                   Appearance const *    pApp,
@@ -351,46 +336,44 @@ public:
                   bool                  sorted);
 
     //! Constructor
-    SphereEmitter(IDirect3DDevice11 *           pD3dDevice,
-                  std::auto_ptr<SphereParticle> qaParticles,
-                  EmitterVolume const *         pVol,
-                  Environment const *           pEnv,
-                  Appearance const *            pApp,
-                  int                           n,
-                  bool                          sorted);
+    SphereEmitter(ID3D11Device *                  pD3dDevice,
+                  std::unique_ptr<SphereParticle> qaParticles,
+                  EmitterVolume const *           pVol,
+                  Environment const *             pEnv,
+                  Appearance const *              pApp,
+                  int                             n,
+                  bool                            sorted);
 
     virtual ~SphereEmitter() override;
 
     //! Initializes the emitter
-    void Initialize();
+    void initialize();
 
     //! Uninitializes the emitter
-    void Uninitialize();
+    void uninitialize();
 
     //! @name Overrides BasicEmitter
     //@{
-    SphereParticle * GetParticles()
+    SphereParticle * particles()
     {
-        return static_cast<SphereParticle *>(BasicEmitter::GetParticles());
+        return static_cast<SphereParticle *>(BasicEmitter::particles());
     }
-    SphereParticle const * GetParticles() const
+    SphereParticle const * particles() const
     {
-        return static_cast<SphereParticle const *>(BasicEmitter::GetParticles());
+        return static_cast<SphereParticle const *>(BasicEmitter::particles());
     }
-    virtual SphereParticle * GetParticle(int i) override
+    virtual SphereParticle * particle(int i) override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual SphereParticle const * GetParticle(int i) const override
+    virtual SphereParticle const * particle(int i) const override
     {
-        assert_limits(0, i, GetNumParticles() - 1); return GetParticles() + i;
+        assert_limits(0, i, size() - 1); return particles() + i;
     }
-    virtual void Update(float dt) override;
-    virtual void Draw() const override;
+    virtual void update(float dt) override;
+    virtual void draw() const override;
     //@}
 };
 } // namespace Confetti
 
-// Inline functions
-
-#include "Emitter.inl"
+#endif // !defined(CONFETTI_EMITTER_H)

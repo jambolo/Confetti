@@ -1,26 +1,16 @@
-/** @file *//********************************************************************************************************
-
-                                                     EmitterVolume.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/EmitterVolume.h#8 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
 
-#include "Dxx/d3d.h"
+#if !defined(CONFETTI_EMITTERVOLUME_H)
+#define CONFETTI_EMITTERVOLUME_H
+
+#include "Dxx/D3dx.h"
 #include "Misc/Random.h"
 #include <DirectXMath.h>
 
 namespace Confetti
 {
 //! This class generates random points in 3D whose locations are uniformly distributed in a specific volume.
-//
+//!
 //! @note	This is an abstract base class, so it must be derived from to be used.
 //!
 
@@ -31,14 +21,14 @@ public:
     //! Constructor
     EmitterVolume(unsigned int seed);
 
-    // Destructor
+    //! Destructor
     virtual ~EmitterVolume() = default;
 
     //! Returns a value used to specify a particle's point of emission.
-    //
+    //!
     //!
     //! @note	This method must be overridden.
-    virtual DirectX::XMFLOAT4 next() const = 0;
+    virtual DirectX::XMFLOAT3 next() const = 0;
 
 protected:
 
@@ -59,15 +49,15 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override { return DirectX::XMVectorZero(); }
+    DirectX::XMFLOAT3 next() const override { return { 0.0f, 0.0f, 0.0f }; }
     //@}
 };
 
 //! An EmitterVolume that emits particles from a line segment.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
-//!		Given the value @c a and the random value <tt>t:[0,1)</tt>,
+//!		Given the value a and the random value <tt>t:[0,1)</tt>,
 //!		<tt>
 //!			x = a * t - a/2
 //!			y = 0
@@ -87,7 +77,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
@@ -96,7 +86,7 @@ private:
 };
 
 //! An EmitterVolume that emits particles from the interior of a rectangle.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
 //!		Given the value <tt>[a,b]</tt> and the random values <tt>t:[0,1)</tt> and <tt>u:[0,1)</tt>,
@@ -119,7 +109,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
@@ -128,10 +118,10 @@ private:
 };
 
 //! An EmitterVolume that emits particles from the interior of a circle.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
-//!		Given the radius @c r and the random values <tt>t:[0,1)</tt> and <tt>u:[0,1)</tt>,
+//!		Given the radius r and the random values <tt>t:[0,1)</tt> and <tt>u:[0,1)</tt>,
 //!		<tt>
 //!			x = t * r * cos( u * TWO_PI )
 //!			y = t * r * sin( u * TWO_PI )
@@ -151,7 +141,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
@@ -160,10 +150,10 @@ private:
 };
 
 //! An EmitterVolume that emits particles from the interior of a sphere.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
-//!		Given the radius @c r and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and <tt>v:[0,1)</tt>,
+//!		Given the radius r and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and <tt>v:[0,1)</tt>,
 //!		<tt>
 //!			x = t * r * sin( u * PI ) * cos( v * TWO_PI )
 //!			y = t * r * sin( u * PI ) * sin( v * TWO_PI )
@@ -183,7 +173,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
@@ -192,7 +182,7 @@ private:
 };
 
 //! An EmitterVolume that emits particles from the interior of a box.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
 //!		Given the value <tt>[a,b,c]</tt> and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and
@@ -209,26 +199,26 @@ class EmitterBox : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterBox(unsigned int seed, DirectX::XMFLOAT4 const & size);
+    EmitterBox(unsigned int seed, DirectX::XMFLOAT3 const & size);
 
     //! Destructor
     virtual ~EmitterBox() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
 
-    DirectX::XMFLOAT4 size_;     // The width, height, and depth of the box.
+    DirectX::XMFLOAT3 size_;     // The width, height, and depth of the box.
 };
 
 //! An EmitterVolume that emits particles from the interior of a cylinder.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
-//!		Given the values @c r and @c h, and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and
+//!		Given the values r and h, and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and
 //!		<tt>v:[0,1)</tt>,
 //!		<tt>
 //!			x = t * r * cos( u * TWO_PI )
@@ -249,7 +239,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
@@ -259,10 +249,10 @@ private:
 };
 
 //! An EmitterVolume that emits particles from the interior of a cone.
-//
+//!
 //! The points are distributed uniformly in the volume using this function:
 //!	<pre>
-//!		Given the values @c r and @c h, and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and
+//!		Given the values r and h, and the random values <tt>t:[0,1)</tt>, <tt>u:[0,1)</tt>, and
 //!		<tt>v:[0,1)</tt>,
 //!		<tt>
 //!			x = sqrt( t ) / r * v**(1/3) * h * cos( u * TWO_PI )
@@ -283,7 +273,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT4 next() const override;
+    DirectX::XMFLOAT3 next() const override;
     //@}
 
 private:
@@ -292,3 +282,5 @@ private:
     float height_;             // The height of the cone.
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_EMITTERVOLUME_H)

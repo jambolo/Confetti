@@ -1,16 +1,3 @@
-/** @file *//********************************************************************************************************
-
-                                                     Appearance.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Appearance.cpp#11 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #include "Appearance.h"
 
 #include <Wx/Wx.h>
@@ -32,14 +19,12 @@ Appearance::Appearance(Dxx::Camera const *       pCamera,
                        DirectX::XMFLOAT4 const & colorRate /* = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f )*/,
                        float                     radiusRate /* = 0.0f*/,
                        float                     angularVelocity /* = 0.0f*/,
-                       D3DMATERIAL9 const *      pMaterial /* = nullptr*/,
-                       IDirect3DTexture11 *      pTexture /* = nullptr*/,
+                       ID3D11Texture2D *      pTexture /* = nullptr*/,
                        float                     size /* = 1.0f*/)
     : pCamera_(pCamera)
     , colorRate_(colorRate)
     , radiusRate_(radiusRate)
     , angularVelocity_(angularVelocity)
-    , pMaterial_(pMaterial)
     , pTexture_(pTexture)
     , size_(size)
 {
@@ -56,8 +41,7 @@ Appearance::~Appearance()
 }
 
 Appearance::Appearance(Appearance const & src)
-    : pMaterial_(src.pMaterial_)
-    , pTexture_(src.pTexture_)
+    : pTexture_(src.pTexture_)
     , colorRate_(src.colorRate_)
     , radiusRate_(src.radiusRate_)
     , angularVelocity_(src.angularVelocity_)
@@ -74,7 +58,6 @@ Appearance & Appearance::operator =(Appearance const & rhs)
     {
         Wx::SafeRelease(pTexture_);
 
-        pMaterial_ = rhs.pMaterial_;
         pTexture_  = rhs.pTexture_;
         if (pTexture_)
             pTexture_->AddRef();
@@ -91,7 +74,7 @@ Appearance & Appearance::operator =(Appearance const & rhs)
 //!
 //! @param	dt		Amount of time elapsed since the last update
 
-void Appearance::Update(float dt)
+void Appearance::update(float dt)
 {
     // Nothing to update
 }

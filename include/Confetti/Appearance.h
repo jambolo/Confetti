@@ -1,23 +1,12 @@
-/** @file *//********************************************************************************************************
-
-                                                     Appearance.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Appearance.h#11 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
 
-#include <cassert>
-#include <DirectXMath.h>
-#include <Dxx/Camera.h>
+#if !defined(CONFETTI_APPEARANCE_H)
+#define CONFETTI_APPEARANCE_H
 
-class D3DMATERIAL9;
+#include <DirectXMath.h>
+
+struct ID3D11Texture2D;
+namespace Dxx { class Camera; }
 
 namespace Confetti
 {
@@ -33,13 +22,12 @@ class Appearance
 public:
 
     //! Constructor
-    Appearance(Dxx::Camera const *       pCamera,
-               DirectX::XMFLOAT4 const & colorRate = DirectX::XMVectorZero(),
-               float                     radiusRate      = 0.0f,
-               float                     angularVelocity = 0.0f,
-               D3DMATERIAL9 const *      pMaterial = nullptr,
-               IDirect3DTexture11 *      pTexture  = nullptr,
-               float                     size = 1.0f);
+    explicit Appearance(Dxx::Camera const * pCamera,
+                        DirectX::XMFLOAT4 const & colorRate = { 0.0f, 0.0f, 0.0f, 0.0f },
+                        float radiusRate      = 0.0f,
+                        float angularVelocity = 0.0f,
+                        ID3D11Texture2D *         pTexture = nullptr,
+                        float size = 1.0f);
 
     // Destructor
     virtual ~Appearance();
@@ -51,37 +39,35 @@ public:
     Appearance & operator =(Appearance const & rhs);
 
     //! Updates the appearance values.
-    void Update(float dt);
-
-    //! Returns the material.
-    D3DMATERIAL9 const * GetMaterial() const { return pMaterial_; }
+    void update(float dt);
 
     //! Returns the texture.
-    IDirect3DTexture11 * GetTexture() const { return pTexture_; }
+    ID3D11Texture2D * texture() const { return pTexture_; }
 
     //! Returns the rate of change in the color.
-    DirectX::XMFLOAT4 const & GetColorRate() const { return colorRate_; }
+    DirectX::XMFLOAT4 const & colorRate() const { return colorRate_; }
 
     //! Returns the rate of change of the radius.
-    float GetRadiusRate() const { return radiusRate_; }
+    float radiusRate() const { return radiusRate_; }
 
     //! Returns the angular velocity.
-    float GetRadialVelocity() const { return angularVelocity_; }
+    float angularVelocity() const { return angularVelocity_; }
 
     //! Returns a pointer to the camera used to render.
-    Dxx::Camera const * GetCamera() const { return pCamera_; }
+    Dxx::Camera const * camera() const { return pCamera_; }
 
     //! Returns the current line width or point size.
-    float GetSize() const { return size_; }
+    float size() const { return size_; }
 
 private:
 
-    D3DMATERIAL9 const * pMaterial_;               // The material.
-    IDirect3DTexture11 * pTexture_;                 // The texture.
-    DirectX::XMFLOAT4 colorRate_;                          // Color rate of change
-    float radiusRate_;                             // Radius rate of change
-    float angularVelocity_;                        // Angular velocity
-    Dxx::Camera const * pCamera_;                  // Rendering camera
-    float size_;                                   // Particle size (width or radius)
+    ID3D11Texture2D * pTexture_;    // The texture.
+    DirectX::XMFLOAT4 colorRate_;   // Color rate of change
+    float radiusRate_;              // Radius rate of change
+    float angularVelocity_;         // Angular velocity
+    Dxx::Camera const * pCamera_;   // Rendering camera
+    float size_;                    // Particle size (width or radius)
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_APPEARANCE_H)

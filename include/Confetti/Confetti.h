@@ -1,17 +1,7 @@
-/** @file *//********************************************************************************************************
-
-                                                     Confetti.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Confetti.h#6 $
-
-    $NoKeywords: $
-
- *********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_CONFETTI_H)
+#define CONFETTI_CONFETTI_H
 
 #include "Appearance.h"
 #include "Builder.h"
@@ -41,3 +31,5 @@
 namespace Confetti
 {
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_CONFETTI_H)

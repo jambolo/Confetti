@@ -1,24 +1,7 @@
-/** @file *//********************************************************************************************************
-
-                                                  PointParticle.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/PointParticle.cpp#6 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
-#include "PrecompiledHeaders.h"
-
 #include "PointParticle.h"
 
 #include "Appearance.h"
 #include "Emitter.h"
-
-#include "Misc/Max.h"
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -47,7 +30,7 @@ PointParticle::PointParticle(BasicEmitter const *      pEmitter,
                              float                     age,
                              DirectX::XMFLOAT3 const & position,
                              DirectX::XMFLOAT3 const & velocity,
-                             DirectX::XMFLOAT3 const & color)
+                             DirectX::XMFLOAT4 const & color)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
 {
 }
@@ -56,7 +39,7 @@ void PointParticle::Initialize(float                     lifetime,
                                float                     age,
                                DirectX::XMFLOAT3 const & position,
                                DirectX::XMFLOAT3 const & velocity,
-                               DirectX::XMFLOAT3 const & color)
+                               DirectX::XMFLOAT4 const & color)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
 }
@@ -66,7 +49,7 @@ bool PointParticle::Update(float dt)
     return Particle::Update(dt);
 }
 
-void PointParticle::Draw(IDirect3DDevice11 * pD3dDevice) const
+void PointParticle::Draw(ID3D11Device * pD3dDevice) const
 {
     // Nothing to do. The particles are drawn by the emitter. This function should not be called.
     assert(false);

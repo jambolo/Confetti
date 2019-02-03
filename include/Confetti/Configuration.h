@@ -1,21 +1,10 @@
-/** @file *//********************************************************************************************************
-
-                                                   Configuration.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Configuration.h#10 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_CONFIGURATION_H)
+#define CONFETTI_CONFIGURATION_H
 
 #include <DirectXMath.h>
 #include <map>
-#include <Misc/Types.h>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -39,8 +28,8 @@ public:
 
         float lifetime_;
         float age_;
-        DirectX::XMFLOAT4 position_;
-        DirectX::XMFLOAT4 velocity_;
+        DirectX::XMFLOAT3 position_;
+        DirectX::XMFLOAT3 velocity_;
         DirectX::XMFLOAT4 color_;
         float radius_;
         float rotation_;
@@ -67,9 +56,9 @@ public:
         DirectX::XMFLOAT4 color_;
         float radius_;
         bool sorted_;
-        DirectX::XMFLOAT4 position_;
+        DirectX::XMFLOAT3 position_;
         DirectX::XMFLOAT4 orientation_;
-        DirectX::XMFLOAT4 velocity_;
+        DirectX::XMFLOAT3 velocity_;
         ParticleVector particleVector_;
     };
 
@@ -92,9 +81,9 @@ public:
     {
 public:
         std::string name_;
-        DirectX::XMFLOAT4 gravity_;
-        DirectX::XMFLOAT4 windVelocity_;
-        DirectX::XMFLOAT4 gustiness_;
+        DirectX::XMFLOAT3 gravity_;
+        DirectX::XMFLOAT3 windVelocity_;
+        DirectX::XMFLOAT3 gustiness_;
         float airFriction_;
         std::string bounce_;
         std::string clip_;
@@ -166,36 +155,36 @@ class XmlConfiguration : public Configuration
 public:
 
     //! Constructor
-    XmlConfiguration(char const * sFilename = 0);
+    XmlConfiguration(char const * sFilename = nullptr);
 
     //! Constructor
     XmlConfiguration(IXMLDOMDocument2 * pDoc);
 
     // Destructor
-    virtual ~XmlConfiguration() override;
+    virtual ~XmlConfiguration() override = default;
 
-    //! Loads a configuration from an XML file. Returns @c true if successful.
+    //! Loads a configuration from an XML file. Returns true if successful.
     bool Load(char const * sFilename);
 
-    //! Loads a configuration from an XML DOM. Returns @c true if successful.
+    //! Loads a configuration from an XML DOM. Returns true if successful.
     bool XmlConfiguration::Load(IXMLDOMDocument2 * pDocument);
 
-    //! Saves the configuration to an XML file. Returns @c true if successful.
+    //! Saves the configuration to an XML file. Returns true if successful.
     bool Save(char const * sFilename);
 
-    //! Saves the configuration to an XML DOM. Returns @c true if successful.
+    //! Saves the configuration to an XML DOM. Returns true if successful.
     bool Save(IXMLDOMDocument2 * pDocument);
 
 private:
 
-    static bool ProcessBouncePlane(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessClipPlane(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessClipPlaneList(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessEnvironment(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessAppearance(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessVolume(IXMLDOMElement * pElement, uint32_t context);
-    static bool ProcessEmitter(IXMLDOMElement * pElement, uint32_t context);
+    static bool ProcessBouncePlane(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessBouncePlaneList(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessClipPlane(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessClipPlaneList(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessAppearance(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessVolume(IXMLDOMElement * pElement, uintptr_t context);
+    static bool ProcessEmitter(IXMLDOMElement * pElement, uintptr_t context);
 //         static void ProcessPointParticles(PointEmitter *        pEmitter,
 //                                           IXMLDOMNodeVector *   pNodeVector,
 //                                           int                   numParticles,
@@ -257,3 +246,5 @@ public:
     nlohmann::json toJson();
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_CONFIGURATION_H)

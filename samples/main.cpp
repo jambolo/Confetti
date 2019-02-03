@@ -1,20 +1,7 @@
-/*********************************************************************************************************************
-
-                                                       main.cpp
-
-                                            Copyright 2002, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Test/main.cpp#16 $
-
-    $NoKeywords: $
-
-*********************************************************************************************************************/
-
 #include <tchar.h>
 #include <windows.h>
 
-#include <d3d9.h>
+#include <d3d11.h>
 // #include "DxUtility/dxutil.h"
 #include <stdlib.h>
 
@@ -52,7 +39,7 @@ static Dxx::Camera * s_pCamera;
 static float         s_CameraSpeed = 2.f;
 
 static IDirect3D9 *        s_pD3d;
-static IDirect3DDevice11 * s_pD3dDevice;
+static ID3D11Device * s_pD3dDevice;
 static D3DCAPS9 s_Caps;
 
 static FrameRateCalculator * s_pFrameRateCalculator;
@@ -151,27 +138,27 @@ static LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
                     break;
 
                 case ' ': // Forward
-                    s_pCamera->Move(Dxx::Vector3ZAxis() * s_CameraSpeed);
+                    s_pCamera->move(Dxx::Vector3ZAxis() * s_CameraSpeed);
                     break;
 
                 case 's': // Backwards
-                    s_pCamera->Move(-Dxx::Vector3ZAxis() * s_CameraSpeed);
+                    s_pCamera->move(-Dxx::Vector3ZAxis() * s_CameraSpeed);
                     break;
 
                 case 'd': // Strafe right
-                    s_pCamera->Move(Dxx::Vector3XAxis() * s_CameraSpeed);
+                    s_pCamera->move(Dxx::Vector3XAxis() * s_CameraSpeed);
                     break;
 
                 case 'a': // Strafe left
-                    s_pCamera->Move(-Dxx::Vector3XAxis() * s_CameraSpeed);
+                    s_pCamera->move(-Dxx::Vector3XAxis() * s_CameraSpeed);
                     break;
 
                 case 'w': // Strafe up
-                    s_pCamera->Move(Dxx::Vector3YAxis() * s_CameraSpeed);
+                    s_pCamera->move(Dxx::Vector3YAxis() * s_CameraSpeed);
                     break;
 
                 case 'x': // Strafe down
-                    s_pCamera->Move(-Dxx::Vector3YAxis() * s_CameraSpeed);
+                    s_pCamera->move(-Dxx::Vector3YAxis() * s_CameraSpeed);
                     break;
             }
 
@@ -182,27 +169,27 @@ static LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
             switch (wParam)
             {
                 case VK_UP:
-                    s_pCamera->Turn(-.1f, Dxx::Vector3XAxis());
+                    s_pCamera->turn(-.1f, Dxx::Vector3XAxis());
                     break;
 
                 case VK_DOWN:
-                    s_pCamera->Turn(.1f, Dxx::Vector3XAxis());
+                    s_pCamera->turn(.1f, Dxx::Vector3XAxis());
                     break;
 
                 case VK_LEFT:
-                    s_pCamera->Turn(-.1f, Dxx::Vector3YAxis());
+                    s_pCamera->turn(-.1f, Dxx::Vector3YAxis());
                     break;
 
                 case VK_RIGHT:
-                    s_pCamera->Turn(.1f, Dxx::Vector3YAxis());
+                    s_pCamera->turn(.1f, Dxx::Vector3YAxis());
                     break;
 
                 case VK_PRIOR:
-                    s_pCamera->Turn(-.1f, Dxx::Vector3ZAxis());
+                    s_pCamera->turn(-.1f, Dxx::Vector3ZAxis());
                     break;
 
                 case VK_INSERT:
-                    s_pCamera->Turn(.1f, Dxx::Vector3ZAxis());
+                    s_pCamera->turn(.1f, Dxx::Vector3ZAxis());
                     break;
             }
             return 0;
@@ -278,7 +265,7 @@ static GridVertex const s_aGridVertexData[] =
 
 #define GRIDVERTEX_FVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
 
-static IDirect3DVertexBuffer11 * s_pGridVB;
+static ID3D11Buffer * s_pGridVB;
 
 // static ID3DXMesh *	s_pTeapot;
 
@@ -491,7 +478,7 @@ static void Display()
 
     // Place the camera
 
-    s_pCamera->Look();
+    s_pCamera->look();
 
     // Lights
 
@@ -524,7 +511,7 @@ static void Reshape(HWND hWnd, int w, int h)
 //	hr = Dxx::ResetD3dWindowedDevice( s_pD3dDevice, D3DFMT_D24S8 );
 //	assert_succeeded( hr );
 
-    OutputDebugString("***s_pCamera->Reshape\n");
-    s_pCamera->SetAspectRatio(float(w), float(h));
-    s_pCamera->Reshape();
+    OutputDebugString("***s_pCamera->reshape\n");
+    s_pCamera->setAspectRatio(float(w), float(h));
+    s_pCamera->reshape();
 }

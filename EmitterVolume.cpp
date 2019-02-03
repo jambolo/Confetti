@@ -1,19 +1,6 @@
-/** @file *//********************************************************************************************************
-
-                                                  EmitterVolume.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/EmitterVolume.cpp#9 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
-#include "PrecompiledHeaders.h"
-
 #include "EmitterVolume.h"
+
+#include "MyMath/FastMath.h"
 
 namespace Confetti
 {
@@ -42,11 +29,11 @@ EmitterLine::EmitterLine(unsigned int seed, float size)
 {
 }
 
-DirectX::XMFLOAT4 EmitterLine::next() const
+DirectX::XMFLOAT3 EmitterLine::next() const
 {
-    float const x = rng_.Get(size_) - size_ * 0.5f;
+    float x = rng_(size_) - size_ * 0.5f;
 
-    return DirectX::XMVectorSet(x, 0.0f, 0.0f, 1.0f);
+    return DirectX::XMFLOAT3(x, 0.0f, 0.0f);
 }
 
 //! @param	seed	Initial seed.
@@ -60,12 +47,12 @@ EmitterRectangle::EmitterRectangle(unsigned int seed, float w, float h)
 {
 }
 
-DirectX::XMFLOAT4 EmitterRectangle::next() const
+DirectX::XMFLOAT3 EmitterRectangle::next() const
 {
-    float const x = rng_.Get(size_.x) - size_.x * 0.5f;
-    float const z = rng_.Get(size_.y) - size_.y * 0.5f;
+    float x = width_  * (rng_(1.0f) - 0.5f);
+    float z = height_ * (rng_(1.0f) - 0.5f);
 
-    return DirectX::XMVectorSet(x, 0.0f, z, 1.0f);
+    return DirectX::XMFLOAT3(x, 0.0f, z);
 }
 
 //! @param	seed	Initial seed.
@@ -77,17 +64,17 @@ EmitterCircle::EmitterCircle(unsigned int seed, float radius)
 {
 }
 
-DirectX::XMFLOAT4 EmitterCircle::next() const
+DirectX::XMFLOAT3 EmitterCircle::next() const
 {
     // Source: http://mathworld.wolfram.com/DiskPointPicking.html
 
-    float const a = rng_.Get(float(MyMath::TWO_PI));
-    float const r = radius_ * sqrtf(rng_.Get());
+    float a = rng_(float(DirectX::XM_2PI));
+    float r = radius_ * sqrtf(rng_());
     float       c, s;
 
     MyMath::fsincos(a, &s, &c);
 
-    return DirectX::XMVectorSet(c * r, s * r, 0.0f, 1.0f);
+    return DirectX::XMFLOAT3(c * r, s * r, 0.0f);
 }
 
 //! @param	seed	Initial seed.
@@ -99,7 +86,7 @@ EmitterSphere::EmitterSphere(unsigned int seed, float radius)
 {
 }
 
-DirectX::XMFLOAT4 EmitterSphere::next() const
+DirectX::XMFLOAT3 EmitterSphere::next() const
 {
     // Source: http://mathworld.wolfram.com/SpherePointPicking.html
     //
@@ -115,33 +102,33 @@ DirectX::XMFLOAT4 EmitterSphere::next() const
     // sf = sin(f) = sqrt( 1. - cf*cf )
     // v = [ cf * ct, sf, cf * st ]
 
-    float t = rng_.Get(float(-MyMath::PI), float(MyMath::PI));
-    float cf = rng_.Get(-1, 1);
+    float t = rng_(float(-DirectX::XM_PI), float(DirectX::XM_PI));
+    float cf = rng_(-1, 1);
     float sf = sqrtf(1.0f - cf * cf);
-    float r = radius_ * powf(rng_.Get(), 1.0f / 3.0f);
+    float r = radius_ * powf(rng_(), 1.0f / 3.0f);
     float st, ct;
 
     MyMath::fsincos(t, &st, &ct);
 
-    return DirectX::XMVectorSet(cf * ct * r, sf * r, cf * st * r, 1.0f);
+    return DirectX::XMFLOAT3(cf * ct * r, sf * r, cf * st * r);
 }
 
 //! @param	seed	Initial seed.
 //! @param	size	Width, height, and depth of the box.
 
-EmitterBox::EmitterBox(unsigned int seed, DirectX::XMFLOAT4 const & size)
+EmitterBox::EmitterBox(unsigned int seed, DirectX::XMFLOAT3 const & size)
     : EmitterVolume(seed)
     , size_(size)
 {
 }
 
-DirectX::XMFLOAT4 EmitterBox::next() const
+DirectX::XMFLOAT3 EmitterBox::next() const
 {
-    float const x = rng_.Get(size_.x) - size_.x * 0.5f;
-    float const y = rng_.Get(size_.y) - size_.y * 0.5f;
-    float const z = rng_.Get(size_.z) - size_.z * 0.5f;
+    float x = rng_(size_.x) - size_.x * 0.5f;
+    float y = rng_(size_.y) - size_.y * 0.5f;
+    float z = rng_(size_.z) - size_.z * 0.5f;
 
-    return DirectX::XMVectorSet(x, y, z, 1.0f);
+    return DirectX::XMFLOAT3(x, y, z);
 }
 
 //! @param	seed	Initial seed.
@@ -155,16 +142,16 @@ EmitterCylinder::EmitterCylinder(unsigned int seed, float radius, float height)
 {
 }
 
-DirectX::XMFLOAT4 EmitterCylinder::next() const
+DirectX::XMFLOAT3 EmitterCylinder::next() const
 {
-    float const a = rng_.Get(float(MyMath::TWO_PI));
-    float const h = rng_.Get(height_);
-    float const r = radius_ * sqrtf(rng_.Get());
+    float a = rng_(float(DirectX::XM_2PI));
+    float h = rng_(height_);
+    float r = radius_ * sqrtf(rng_());
     float       c, s;
 
     MyMath::fsincos(a, &s, &c);
 
-    return DirectX::XMVectorSet(c * r, s * r, h, 1.0f);
+    return DirectX::XMFLOAT3(c * r, s * r, h);
 }
 
 //! @param	seed	Initial seed.
@@ -178,11 +165,11 @@ EmitterCone::EmitterCone(unsigned int seed, float radius, float height)
 {
 }
 
-DirectX::XMFLOAT4 EmitterCone::next() const
+DirectX::XMFLOAT3 EmitterCone::next() const
 {
-    float const a = rng_.Get(float(MyMath::TWO_PI));
-    float       h = rng_.Get();
-    float       r = rng_.Get();
+    float a = rng_(float(DirectX::XM_2PI));
+    float       h = rng_();
+    float       r = rng_();
     float       c, s;
 
     MyMath::fsincos(a, &s, &c);
@@ -190,6 +177,6 @@ DirectX::XMFLOAT4 EmitterCone::next() const
     h = powf(h, 1.0f / 3.0f) * height_;
     r = sqrtf(r) / radius_ * h;
 
-    return DirectX::XMVectorSet(c * r, s * r, h, 1.0f);
+    return DirectX::XMFLOAT3(c * r, s * r, h);
 }
 } // namespace Confetti

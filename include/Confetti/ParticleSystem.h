@@ -1,21 +1,11 @@
-/** @file *//********************************************************************************************************
-
-                                                   ParticleSystem.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/ParticleSystem.h#10 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_PARTICLESYSTEM_H)
+#define CONFETTI_PARTICLESYSTEM_H
 
 #include <vector>
 
-struct IDirect3DDevice11;
+struct ID3D11Device;
 
 namespace Confetti
 {
@@ -34,7 +24,7 @@ class ParticleSystem
 public:
 
     //! Constructor
-    ParticleSystem(IDirect3DDevice11 * pD3dDevice);
+    ParticleSystem(ID3D11Device * pD3dDevice);
 
     //! Destructor
     ~ParticleSystem();
@@ -63,10 +53,12 @@ private:
     using EnvironmentList = std::vector<Environment *>;
     using AppearanceList  = std::vector<Appearance *>;
 
-    IDirect3DDevice11 * pD3dDevice_;
+    ID3D11Device * pD3dDevice_;
 
     EmitterList emitters_;                                     // Active emitters
     EnvironmentList environments_;                             // Active environments
     AppearanceList appearances_;                               // Active appearances
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_PARTICLESYSTEM_H)

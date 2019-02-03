@@ -1,21 +1,11 @@
-/** @file *//********************************************************************************************************
-
-                                                     Particle.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Particle.h#8 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_PARTICLE_H)
+#define CONFETTI_PARTICLE_H
 
 #include <directxmath.h>
 
-struct IDirect3DDevice11;
+struct ID3D11Device;
 
 namespace Confetti
 {
@@ -43,7 +33,7 @@ public:
              float                     age,
              DirectX::XMFLOAT3 const & position,
              DirectX::XMFLOAT3 const & velocity,
-             DirectX::XMFLOAT3 const & color);
+             DirectX::XMFLOAT4 const & color);
 
     // Destructor
     virtual ~Particle() = default;
@@ -55,7 +45,7 @@ public:
     //
     //!
     //! @note	This method must be overridden.
-    virtual void Draw(IDirect3DDevice11 * pD3dDevice) const = 0;
+    virtual void Draw(ID3D11Device * pD3dDevice) const = 0;
 
     //! Binds to an emitter.
     void Bind(BasicEmitter * pEmitter) { pEmitter_ = pEmitter; }
@@ -70,7 +60,7 @@ public:
     DirectX::XMFLOAT3 GetVelocity() const { return velocity_; }
 
     //! Returns the particle's current velocity.
-    DirectX::XMFLOAT3 GetColor() const { return color_; }
+    DirectX::XMFLOAT4 GetColor() const { return color_; }
 
 protected:
 
@@ -79,7 +69,7 @@ protected:
                     float                     age,
                     DirectX::XMFLOAT3 const & position,
                     DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT3 const & color);
+                    DirectX::XMFLOAT4 const & color);
 
     BasicEmitter const * pEmitter_;            //!< This particle's emitter
 
@@ -98,7 +88,9 @@ protected:
 
     // Appearance data
 
-    DirectX::XMFLOAT3 initialColor_;    //!< Color at birth
-    DirectX::XMFLOAT3 color_;           //!< Current color
+    DirectX::XMFLOAT4 initialColor_;    //!< Color at birth
+    DirectX::XMFLOAT4 color_;           //!< Current color
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_PARTICLE_H)

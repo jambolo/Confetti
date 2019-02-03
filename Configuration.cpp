@@ -1,61 +1,42 @@
-/** @file *//********************************************************************************************************
-
-                                                  Configuration.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Configuration.cpp#15 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #include "Configuration.h"
+
+#include "Dxx/D3dx.h"
+#include "Misc/Exceptions.h"
+#include "Msxmlx/Msxmlx.h"
+#include "Wx/Wx.h"
 
 #include <atlbase.h>
 #include <d3d11.h>
+// #include <DirectXColors.h>
 #include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+
+#include <iomanip>
+#include <sstream>
+
 using namespace DirectX;
 
 namespace
 {
-DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pElement,
-                                                char const *              sName,
-                                                DirectX::XMFLOAT4 const & defaultVec = DirectX::XMVectorZero());
-
-DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement * pElement,
-                                                char const * sName,
-                                                DirectX::XMFLOAT4 const & defaultPlane = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f,
-                                                                                                              0.0f));
-
-DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement *          pElement,
-                                    char const *              sName,
-                                    DirectX::XMFLOAT4 const & defaultRgba = DirectX::XMVectorZero());
-
-DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
-                                    char const *              sName,
-                                    DirectX::XMFLOAT4 const & defaultQuat = Dxx::QuaternionIdentity());
-
-DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pElement,
-                                                char const *              sName,
-                                                DirectX::XMFLOAT4 const & defaultVec /* = DirectX::XMVectorZero()*/)
+DirectX::XMFLOAT3 GetVectorSubElement(IXMLDOMElement * pElement,
+                                      char const * sName,
+                                      DirectX::XMFLOAT3 const & defaultVec = { 0.0f, 0.0f, 0.0f })
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
 
     hr = Msxmlx::GetSubElement(pElement, sName, &pSubElement);
-    if (pSubElement != NULL)
+    if (pSubElement)
     {
-        //	<xsd:complexType name="vector3">
-        //		<xsd:all>
-        //			<xsd:element name="X" type="xsd:float" />
-        //			<xsd:element name="Y" type="xsd:float" />
-        //			<xsd:element name="Z" type="xsd:float" />
-        //		</xsd:all>
-        //	</xsd:complexType>
+        //    <xsd:complexType name="vector3">
+        //        <xsd:all>
+        //            <xsd:element name="X" type="xsd:float" />
+        //            <xsd:element name="Y" type="xsd:float" />
+        //            <xsd:element name="Z" type="xsd:float" />
+        //        </xsd:all>
+        //    </xsd:complexType>
 
-        DirectX::XMFLOAT4 v;
+        DirectX::XMFLOAT3 v;
 
         v.x = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultVec.x);
         v.y = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultVec.y);
@@ -69,32 +50,31 @@ DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pEleme
     }
 }
 
-DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pElement,
-                                                char const *              sName,
-                                                DirectX::XMFLOAT4 const & defaultPlane /* = DirectX::XMFLOAT4( 0.0f, 1.0f, 0.0f,
-                                                                                          0.0f )*/                                       )
+DirectX::XMFLOAT4 GetPlaneSubElement(IXMLDOMElement * pElement,
+                                     char const * sName,
+                                     DirectX::XMFLOAT4 const & defaultPlane = { 0.0f, 1.0f, 0.0f, 0.0f })
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
 
     hr = Msxmlx::GetSubElement(pElement, sName, &pSubElement);
-    if (pSubElement != NULL)
+    if (pSubElement)
     {
-        //	<xsd:complexType name="plane">
-        //		<xsd:all>
-        //			<xsd:element name="X" type="xsd:float" />
-        //			<xsd:element name="Y" type="xsd:float" />
-        //			<xsd:element name="Z" type="xsd:float" />
-        //			<xsd:element name="D" type="xsd:float" />
-        //		</xsd:all>
-        //	</xsd:complexType>
+        //    <xsd:complexType name="plane">
+        //        <xsd:all>
+        //            <xsd:element name="A" type="xsd:float" />
+        //            <xsd:element name="B" type="xsd:float" />
+        //            <xsd:element name="C" type="xsd:float" />
+        //            <xsd:element name="D" type="xsd:float" />
+        //        </xsd:all>
+        //    </xsd:complexType>
 
         DirectX::XMFLOAT4 plane;
 
-        plane.a = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultPlane.a);
-        plane.b = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultPlane.b);
-        plane.c = Msxmlx::GetFloatSubElement(pSubElement, "Z", defaultPlane.c);
-        plane.d = Msxmlx::GetFloatSubElement(pSubElement, "D", defaultPlane.d);
+        plane.x = Msxmlx::GetFloatSubElement(pSubElement, "A", defaultPlane.x);
+        plane.y = Msxmlx::GetFloatSubElement(pSubElement, "B", defaultPlane.y);
+        plane.z = Msxmlx::GetFloatSubElement(pSubElement, "C", defaultPlane.z);
+        plane.w = Msxmlx::GetFloatSubElement(pSubElement, "D", defaultPlane.w);
 
         return plane;
     }
@@ -104,31 +84,31 @@ DirectX::XMFLOAT4 GetDirect3DXMVECTORSubElement(IXMLDOMElement *          pEleme
     }
 }
 
-DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement *          pElement,
-                                    char const *              sName,
-                                    DirectX::XMFLOAT4 const & defaultRgba /* = DirectX::XMFLOAT4( 0.0f, 0.0f, 0.0f, 0.0f )*/)
+DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement * pElement,
+                                    char const * sName,
+                                    DirectX::XMFLOAT4 const & defaultRgba = { 0.0f, 0.0f, 0.0f, 0.0f })
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
 
     hr = Msxmlx::GetSubElement(pElement, sName, &pSubElement);
-    if (pSubElement != NULL)
+    if (pSubElement)
     {
-        //	<xsd:complexType name="glcolor">
-        //		<xsd:all>
-        //			<xsd:element name="R" type="glcolorelement" />
-        //			<xsd:element name="G" type="glcolorelement" />
-        //			<xsd:element name="B" type="glcolorelement" />
-        //			<xsd:element name="A" type="glcolorelement" minOccurs="0" default="1.0" />
-        //		</xsd:all>
-        //	</xsd:complexType>
+        //    <xsd:complexType name="glcolor">
+        //        <xsd:all>
+        //            <xsd:element name="R" type="glcolorelement" />
+        //            <xsd:element name="G" type="glcolorelement" />
+        //            <xsd:element name="B" type="glcolorelement" />
+        //            <xsd:element name="A" type="glcolorelement" minOccurs="0" default="1.0" />
+        //        </xsd:all>
+        //    </xsd:complexType>
 
         DirectX::XMFLOAT4 rgba;
 
-        rgba.r = Msxmlx::GetFloatSubElement(pSubElement, "R", defaultRgba.r);
-        rgba.g = Msxmlx::GetFloatSubElement(pSubElement, "G", defaultRgba.g);
-        rgba.b = Msxmlx::GetFloatSubElement(pSubElement, "B", defaultRgba.b);
-        rgba.a = Msxmlx::GetFloatSubElement(pSubElement, "A", defaultRgba.a);
+        rgba.x = Msxmlx::GetFloatSubElement(pSubElement, "R", defaultRgba.x);
+        rgba.y = Msxmlx::GetFloatSubElement(pSubElement, "G", defaultRgba.y);
+        rgba.z = Msxmlx::GetFloatSubElement(pSubElement, "B", defaultRgba.z);
+        rgba.w = Msxmlx::GetFloatSubElement(pSubElement, "A", defaultRgba.w);
 
         return rgba;
     }
@@ -140,22 +120,22 @@ DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement *          pElement,
 
 DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
                                     char const *              sName,
-                                    DirectX::XMFLOAT4 const & defaultQuat /* = Dxx::QuaternionIdentity()*/)
+                                    DirectX::XMFLOAT4 const & defaultQuat = Dxx::QuaternionIdentity())
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
 
     hr = Msxmlx::GetSubElement(pElement, sName, &pSubElement);
-    if (pSubElement != NULL)
+    if (pSubElement)
     {
-        //	<xsd:complexType name="quaternion">
-        //		<xsd:all>
-        //			<xsd:element name="X" type="xsd:float" />
-        //			<xsd:element name="Y" type="xsd:float" />
-        //			<xsd:element name="Z" type="xsd:float" />
-        //			<xsd:element name="W" type="xsd:float" />
-        //		</xsd:all>
-        //	</xsd:complexType>
+        //    <xsd:complexType name="quaternion">
+        //        <xsd:all>
+        //            <xsd:element name="X" type="xsd:float" />
+        //            <xsd:element name="Y" type="xsd:float" />
+        //            <xsd:element name="Z" type="xsd:float" />
+        //            <xsd:element name="W" type="xsd:float" />
+        //        </xsd:all>
+        //    </xsd:complexType>
 
         DirectX::XMFLOAT4 q;
 
@@ -184,7 +164,7 @@ std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT4 const & q)
     return s;
 }
 
-std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT4 const & v)
+std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT3 const & v)
 {
     s << v.x << ','
       << v.y << ','
@@ -216,10 +196,6 @@ XmlConfiguration::XmlConfiguration(IXMLDOMDocument2 * pDocument)
     }
 }
 
-XmlConfiguration::~XmlConfiguration()
-{
-}
-
 bool XmlConfiguration::Load(char const * sFilename)
 {
     Wx::ComInitializer cominit;
@@ -233,14 +209,14 @@ bool XmlConfiguration::Load(char const * sFilename)
     hr = pDocument->put_async(VARIANT_FALSE);
     if (FAILED(hr))
     {
-//		OutputDebugString( "XmlConfiguration::Load: Failed to set async property\n" );
+//        OutputDebugString( "XmlConfiguration::Load: Failed to set async property\n" );
         return false;
     }
 
     hr = pDocument->load(CComVariant(sFilename), &status);
     if (FAILED(hr))
     {
-//		trace( "XmlConfiguration::Load: load( \"%s\" ) failed.\n", sFilename );
+//        trace( "XmlConfiguration::Load: load( \"%s\" ) failed.\n", sFilename );
         return false;
     }
 
@@ -252,7 +228,7 @@ bool XmlConfiguration::Load(char const * sFilename)
 
         hr = pDocument->get_parseError(&pObjError);
         hr = pObjError->get_reason(&reason);
-//		trace( "XmlConfiguration::Load: Failed to load DOM from '%s'\n%S\n", sFilename, reason );
+//        trace( "XmlConfiguration::Load: Failed to load DOM from '%s'\n%S\n", sFilename, reason );
 #endif      // defined( _DEBUG )
 
         return false;
@@ -267,37 +243,37 @@ bool XmlConfiguration::Load(IXMLDOMDocument2 * pDocument)
 
     // Parse the XML
 
-    //	<xsd:element name="ParticleSystem" type="particlesystem" />
-    //	<xsd:complexType name="particlesystem">
-    //		<xsd:choice minOccurs="0" maxOccurs="unbounded">
-    //			<xsd:element name="Emitter" type="emitter" />
-    //			<xsd:element name="Environment" type="environment" />
-    //			<xsd:element name="Appearance" type="appearance" />
-    //			<xsd:element name="Volume" type="volume" />
-    //			<xsd:element name="BouncePlaneList" type="bounceplanelist" />
-    //			<xsd:element name="ClipPlaneList" type="clipplanelist" />
-    //		</xsd:choice>
-    //	</xsd:complexType>
+    //    <xsd:element name="ParticleSystem" type="particlesystem" />
+    //    <xsd:complexType name="particlesystem">
+    //        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+    //            <xsd:element name="Emitter" type="emitter" />
+    //            <xsd:element name="Environment" type="environment" />
+    //            <xsd:element name="Appearance" type="appearance" />
+    //            <xsd:element name="Volume" type="volume" />
+    //            <xsd:element name="BouncePlaneList" type="bounceplanelist" />
+    //            <xsd:element name="ClipPlaneList" type="clipplanelist" />
+    //        </xsd:choice>
+    //    </xsd:complexType>
 
     CComPtr<IXMLDOMElement> pRoot;
     hr = pDocument->get_documentElement(&pRoot);
     if (FAILED(hr))
     {
-//		trace( "XmlConfiguration::Load: Failed to get document element\n" );
+//        trace( "XmlConfiguration::Load: Failed to get document element\n" );
         return false;
     }
 
-    Msxmlx::ForEachSubElement(pRoot, ProcessBouncePlaneList,   (uint32_t)this);   // Process all the BouncePlaneLists
-    Msxmlx::ForEachSubElement(pRoot, ProcessClipPlaneList,     (uint32_t)this);   // Process all the ClipPlaneLists
-    Msxmlx::ForEachSubElement(pRoot, ProcessEnvironment,       (uint32_t)this);   // Process all the Environments
-    Msxmlx::ForEachSubElement(pRoot, ProcessAppearance,        (uint32_t)this);   // Process all the Appearances
-    Msxmlx::ForEachSubElement(pRoot, ProcessVolume,            (uint32_t)this);   // Process all the Volumes
-    Msxmlx::ForEachSubElement(pRoot, ProcessEmitter,           (uint32_t)this);   // Process all the Emitters
+    Msxmlx::ForEachSubElement(pRoot, ProcessBouncePlaneList,   (uintptr_t)this);   // Process all the BouncePlaneLists
+    Msxmlx::ForEachSubElement(pRoot, ProcessClipPlaneList,     (uintptr_t)this);   // Process all the ClipPlaneLists
+    Msxmlx::ForEachSubElement(pRoot, ProcessEnvironment,       (uintptr_t)this);   // Process all the Environments
+    Msxmlx::ForEachSubElement(pRoot, ProcessAppearance,        (uintptr_t)this);   // Process all the Appearances
+    Msxmlx::ForEachSubElement(pRoot, ProcessVolume,            (uintptr_t)this);   // Process all the Volumes
+    Msxmlx::ForEachSubElement(pRoot, ProcessEmitter,           (uintptr_t)this);   // Process all the Emitters
 
     return true;
 }
 
-bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uintptr_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -307,12 +283,12 @@ bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32_
 
     if (tag == CComBSTR("BouncePlaneList"))
     {
-        //	<xsd:complexType name="bounceplanelist">
-        //		<xsd:sequence>
-        //			<xsd:element name="BouncePlane" type="bounceplane" minOccurs="0" maxOccurs="unbounded" />
-        //		</xsd:sequence>
-        //		<xsd:attribute name="name" type="xsd:string" use="required" />
-        //	</xsd:complexType>
+        //    <xsd:complexType name="bounceplanelist">
+        //        <xsd:sequence>
+        //            <xsd:element name="BouncePlane" type="bounceplane" minOccurs="0" maxOccurs="unbounded" />
+        //        </xsd:sequence>
+        //        <xsd:attribute name="name" type="xsd:string" use="required" />
+        //    </xsd:complexType>
 
         BouncePlaneList bouncePlanes;
 
@@ -328,7 +304,7 @@ bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32_
 
         // Process all the BouncePlanes in the list
 
-        Msxmlx::ForEachSubElement(pElement, ProcessBouncePlane, (uint32_t)&bouncePlanes);
+        Msxmlx::ForEachSubElement(pElement, ProcessBouncePlane, (uintptr_t)&bouncePlanes);
 
         // Save this BouncePlaneList
 
@@ -337,30 +313,30 @@ bool XmlConfiguration::ProcessBouncePlaneList(IXMLDOMElement * pElement, uint32_
     return true;
 }
 
-bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uintptr_t context)
 {
     BouncePlaneList * const pBouncePlanes = reinterpret_cast<BouncePlaneList *>(context);
 
-//	<xsd:complexType name="bounceplane">
-//		<xsd:all>
-//			<xsd:element name="Plane" type="plane" />
-//			<xsd:element name="Dampening" type="xsd:float" />
-//		</xsd:all>
-//	</xsd:complexType>
+//    <xsd:complexType name="bounceplane">
+//        <xsd:all>
+//            <xsd:element name="Plane" type="plane" />
+//            <xsd:element name="Dampening" type="xsd:float" />
+//        </xsd:all>
+//    </xsd:complexType>
 
     BouncePlane bouncePlane;
 
-    bouncePlane.plane_     = GetDirect3DXMVECTORSubElement(pElement, "Plane");
+    bouncePlane.plane_     = GetPlaneSubElement(pElement, "Plane");
     bouncePlane.dampening_ = Msxmlx::GetFloatSubElement(pElement, "Dampening");
 
 #if defined(_DEBUG)
     {
         std::ostringstream msg;
         msg << "    BouncePlane: ["
-            << bouncePlane.plane_.a << " "
-            << bouncePlane.plane_.b << " "
-            << bouncePlane.plane_.c << " "
-            << bouncePlane.plane_.d << "], "
+            << bouncePlane.plane_.x << " "
+            << bouncePlane.plane_.y << " "
+            << bouncePlane.plane_.z << " "
+            << bouncePlane.plane_.w << "], "
             << bouncePlane.dampening_
             << std::endl;
         OutputDebugString(msg.str().c_str());
@@ -374,7 +350,7 @@ bool XmlConfiguration::ProcessBouncePlane(IXMLDOMElement * pElement, uint32_t co
     return true;
 }
 
-bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uintptr_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -384,12 +360,12 @@ bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32_t 
 
     if (tag == CComBSTR("ClipPlaneList"))
     {
-        //	<xsd:complexType name="clipplanelist">
-        //		<xsd:sequence>
-        //			<xsd:element name="ClipPlane" type="plane" minOccurs="0" maxOccurs="unbounded" />
-        //		</xsd:sequence>
-        //		<xsd:attribute name="name" type="xsd:string" use="required" />
-        //	</xsd:complexType>
+        //    <xsd:complexType name="clipplanelist">
+        //        <xsd:sequence>
+        //            <xsd:element name="ClipPlane" type="plane" minOccurs="0" maxOccurs="unbounded" />
+        //        </xsd:sequence>
+        //        <xsd:attribute name="name" type="xsd:string" use="required" />
+        //    </xsd:complexType>
 
         ClipPlaneList clipPlanes;
 
@@ -405,7 +381,7 @@ bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32_t 
 
         // Process all the ClipPlanes in the list
 
-        Msxmlx::ForEachSubElement(pElement, ProcessClipPlane, (uint32_t)&clipPlanes);
+        Msxmlx::ForEachSubElement(pElement, ProcessClipPlane, (uintptr_t)&clipPlanes);
 
         // Save this ClipPlaneList
 
@@ -415,33 +391,34 @@ bool XmlConfiguration::ProcessClipPlaneList(IXMLDOMElement * pElement, uint32_t 
     return true;
 }
 
-bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uintptr_t context)
 {
     ClipPlaneList * const pClipPlanes =   reinterpret_cast<ClipPlaneList *>(context);
 
-    //	<xsd:complexType name="plane">
-    //		<xsd:all>
-    //			<xsd:element name="X" type="xsd:float" />
-    //			<xsd:element name="Y" type="xsd:float" />
-    //			<xsd:element name="Z" type="xsd:float" />
-    //			<xsd:element name="D" type="xsd:float" />
-    //		</xsd:all>
-    //	</xsd:complexType>
+    //    <xsd:complexType name="plane">
+    //        <xsd:all>
+    //            <xsd:element name="A" type="xsd:float" />
+    //            <xsd:element name="B" type="xsd:float" />
+    //            <xsd:element name="C" type="xsd:float" />
+    //            <xsd:element name="D" type="xsd:float" />
+    //        </xsd:all>
+    //    </xsd:complexType>
 
     DirectX::XMFLOAT4 clipPlane;
 
-    clipPlane.a = Msxmlx::GetFloatSubElement(pElement, "X");
-    clipPlane.b = Msxmlx::GetFloatSubElement(pElement, "Y");
-    clipPlane.c = Msxmlx::GetFloatSubElement(pElement, "Z");
-    clipPlane.d = Msxmlx::GetFloatSubElement(pElement, "D");
+    clipPlane.x = Msxmlx::GetFloatSubElement(pElement, "A");
+    clipPlane.y = Msxmlx::GetFloatSubElement(pElement, "B");
+    clipPlane.z = Msxmlx::GetFloatSubElement(pElement, "C");
+    clipPlane.w = Msxmlx::GetFloatSubElement(pElement, "D");
 
 #if defined(_DEBUG)
     {
         std::ostringstream msg;
-        msg << "    ClipPlane: [" << clipPlane.a << " "
-            << clipPlane.b << " "
-            << clipPlane.c << " "
-            << clipPlane.d << ']'
+        msg << "    ClipPlane: ["
+            << clipPlane.x << " "
+            << clipPlane.y << " "
+            << clipPlane.z << " "
+            << clipPlane.w << ']'
             << std::endl;
         OutputDebugString(msg.str().c_str());
     }
@@ -454,7 +431,7 @@ bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uint32_t cont
     return true;
 }
 
-bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -464,24 +441,24 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32_t co
 
     if (tag == CComBSTR("Environment"))
     {
-        //	<xsd:complexType name="environment">
-        //		<xsd:all>
-        //			<xsd:element name="Gravity" type="vector3" minOccurs="0" />
-        //			<xsd:element name="WindVelocity" type="vector3" minOccurs="0" />
-        //			<xsd:element name="Gustiness" type="vector3" minOccurs="0" />
-        //			<xsd:element name="AirFriction" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="Bounce" type="xsd:string" minOccurs="0" />
-        //			<xsd:element name="Clip" type="xsd:string" minOccurs="0" />
-        //		</xsd:all>
-        //		<xsd:attribute name="name" type="xsd:string" use="required" />
-        //	</xsd:complexType>
+        //    <xsd:complexType name="environment">
+        //        <xsd:all>
+        //            <xsd:element name="Gravity" type="vector3" minOccurs="0" />
+        //            <xsd:element name="WindVelocity" type="vector3" minOccurs="0" />
+        //            <xsd:element name="Gustiness" type="vector3" minOccurs="0" />
+        //            <xsd:element name="AirFriction" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="Bounce" type="xsd:string" minOccurs="0" />
+        //            <xsd:element name="Clip" type="xsd:string" minOccurs="0" />
+        //        </xsd:all>
+        //        <xsd:attribute name="name" type="xsd:string" use="required" />
+        //    </xsd:complexType>
 
         Environment environment;
 
         environment.name_         = Msxmlx::GetStringAttribute(pElement, "name");
-        environment.gravity_      = GetDirect3DXMVECTORSubElement(pElement, "Gravity");
-        environment.windVelocity_ = GetDirect3DXMVECTORSubElement(pElement, "WindVelocity");
-        environment.gustiness_    = GetDirect3DXMVECTORSubElement(pElement, "Gustiness");
+        environment.gravity_      = GetVectorSubElement(pElement, "Gravity");
+        environment.windVelocity_ = GetVectorSubElement(pElement, "WindVelocity");
+        environment.gustiness_    = GetVectorSubElement(pElement, "Gustiness");
         environment.airFriction_  = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
         environment.bounce_       = Msxmlx::GetStringSubElement(pElement, "Bounce");
         environment.clip_         = Msxmlx::GetStringSubElement(pElement, "Clip");
@@ -509,7 +486,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uint32_t co
     return true;
 }
 
-bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uintptr_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -519,16 +496,16 @@ bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uint32_t con
 
     if (tag == CComBSTR("Appearance"))
     {
-        //	<xsd:complexType name="appearance">
-        //		<xsd:all>
-        //			<xsd:element name="ColorChange" type="glcolorchange" minOccurs="0" />
-        //			<xsd:element name="RadiusChange" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="RadialVelocity" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="Texture" type="xsd:anyURI" minOccurs="0" />
-        //			<xsd:element name="Size" type="xsd:float" minOccurs="0" />
-        //		</xsd:all>
-        //		<xsd:attribute name="name" type="xsd:string" use="required" />
-        //	</xsd:complexType>
+        //    <xsd:complexType name="appearance">
+        //        <xsd:all>
+        //            <xsd:element name="ColorChange" type="glcolorchange" minOccurs="0" />
+        //            <xsd:element name="RadiusChange" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="RadialVelocity" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="Texture" type="xsd:anyURI" minOccurs="0" />
+        //            <xsd:element name="Size" type="xsd:float" minOccurs="0" />
+        //        </xsd:all>
+        //        <xsd:attribute name="name" type="xsd:string" use="required" />
+        //    </xsd:complexType>
 
         Appearance appearance;
 
@@ -559,7 +536,7 @@ bool XmlConfiguration::ProcessAppearance(IXMLDOMElement * pElement, uint32_t con
     return true;
 }
 
-bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uintptr_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -569,17 +546,17 @@ bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32_t context
 
     if (tag == CComBSTR("Volume"))
     {
-        //	<xsd:complexType name="volume">
-        //		<xsd:all>
-        //			<xsd:element name="Length" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="Width" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="Height" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="Depth" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="Radius" type="xsd:float" minOccurs="0" />
-        //		</xsd:all>
-        //		<xsd:attribute name="name" type="xsd:string" use="required" />
-        //		<xsd:attribute name="type" type="volumetype" use="required" />
-        //	</xsd:complexType>
+        //    <xsd:complexType name="volume">
+        //        <xsd:all>
+        //            <xsd:element name="Length" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="Width" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="Height" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="Depth" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="Radius" type="xsd:float" minOccurs="0" />
+        //        </xsd:all>
+        //        <xsd:attribute name="name" type="xsd:string" use="required" />
+        //        <xsd:attribute name="type" type="volumetype" use="required" />
+        //    </xsd:complexType>
 
         EmitterVolume volume;
 
@@ -613,7 +590,7 @@ bool XmlConfiguration::ProcessVolume(IXMLDOMElement * pElement, uint32_t context
     return true;
 }
 
-bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32_t context)
+bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t context)
 {
     XmlConfiguration * const pConfiguration = reinterpret_cast<XmlConfiguration *>(context);
 
@@ -624,27 +601,27 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32_t contex
 
     if (emitterTag == CComBSTR("Emitter"))
     {
-        //	<xsd:complexType name="emitter">
-        //		<xsd:all>
-        //			<xsd:element name="Volume" type="xsd:string" />
-        //			<xsd:element name="Environment" type="xsd:string" />
-        //			<xsd:element name="Appearance" type="xsd:string" />
-        //			<xsd:element name="Position" type="vector3" minOccurs="0" />
-        //			<xsd:element name="Orientation" type="quaternion" minOccurs="0" />
-        //			<xsd:element name="Velocity" type="vector3" minOccurs="0" />
-        //			<xsd:element name="MinSpeed" type="xsd:float" />
-        //			<xsd:element name="MaxSpeed" type="xsd:float" />
-        //			<xsd:element name="Count" type="xsd:integer" />
-        //			<xsd:element name="Lifetime" type="xsd:float" />
-        //			<xsd:element name="Spread" type="xsd:float" />
-        //			<xsd:element name="Color" type="rgba" minOccurs="0" />
-        //			<xsd:element name="Radius" type="xsd:float" minOccurs="0" />
-        //			<xsd:element name="ParticleList" type="particlelist" minOccurs="0" />
-        //			<xsd:element name="Sorted" type="xsd:boolean" minOccurs="0" />
-        //		</xsd:all>
-        //		<xsd:attribute name="name" type="xsd:string" use="required" />
-        //		<xsd:attribute name="type" type="emittertype" use="required" />
-        //	</xsd:complexType>
+        //    <xsd:complexType name="emitter">
+        //        <xsd:all>
+        //            <xsd:element name="Volume" type="xsd:string" />
+        //            <xsd:element name="Environment" type="xsd:string" />
+        //            <xsd:element name="Appearance" type="xsd:string" />
+        //            <xsd:element name="Position" type="vector3" minOccurs="0" />
+        //            <xsd:element name="Orientation" type="quaternion" minOccurs="0" />
+        //            <xsd:element name="Velocity" type="vector3" minOccurs="0" />
+        //            <xsd:element name="MinSpeed" type="xsd:float" />
+        //            <xsd:element name="MaxSpeed" type="xsd:float" />
+        //            <xsd:element name="Count" type="xsd:integer" />
+        //            <xsd:element name="Lifetime" type="xsd:float" />
+        //            <xsd:element name="Spread" type="xsd:float" />
+        //            <xsd:element name="Color" type="rgba" minOccurs="0" />
+        //            <xsd:element name="Radius" type="xsd:float" minOccurs="0" />
+        //            <xsd:element name="ParticleList" type="particlelist" minOccurs="0" />
+        //            <xsd:element name="Sorted" type="xsd:boolean" minOccurs="0" />
+        //        </xsd:all>
+        //        <xsd:attribute name="name" type="xsd:string" use="required" />
+        //        <xsd:attribute name="type" type="emittertype" use="required" />
+        //    </xsd:complexType>
 
         Emitter emitter;
         emitter.name_        = Msxmlx::GetStringAttribute(pElement, "name");
@@ -652,17 +629,20 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32_t contex
         emitter.volume_      = Msxmlx::GetStringSubElement(pElement, "Volume");
         emitter.environment_ = Msxmlx::GetStringSubElement(pElement, "Environment");
         emitter.appearance_  = Msxmlx::GetStringSubElement(pElement, "Appearance");
-        emitter.position_    = GetDirect3DXMVECTORSubElement(pElement, "Position");
+        emitter.position_    = GetVectorSubElement(pElement, "Position");
         emitter.orientation_ = GetQuatSubElement(pElement, "Orientation");
-        emitter.velocity_    = GetDirect3DXMVECTORSubElement(pElement, "Velocity");
+        emitter.velocity_    = GetVectorSubElement(pElement, "Velocity");
         emitter.count_       = Msxmlx::GetIntSubElement(pElement, "Count");
         emitter.lifetime_    = Msxmlx::GetFloatSubElement(pElement, "Lifetime", 1.0f);
         emitter.spread_      = Msxmlx::GetFloatSubElement(pElement, "Spread");
         emitter.minSpeed_    = Msxmlx::GetFloatSubElement(pElement, "MinSpeed");
         emitter.maxSpeed_    = Msxmlx::GetFloatSubElement(pElement, "MaxSpeed");
-        emitter.color_       = Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff);
-        emitter.radius_      = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.0f);
-        emitter.sorted_      = Msxmlx::GetBoolSubElement(pElement, "Sorted");
+        DirectX::XMStoreFloat4(&emitter.color_,
+                               DirectX::PackedVector::XMLoadColor(
+                                   &DirectX::PackedVector::XMCOLOR(
+                                       Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff))));
+        emitter.radius_ = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.0f);
+        emitter.sorted_ = Msxmlx::GetBoolSubElement(pElement, "Sorted");
 
 #if defined(_DEBUG)
         {
@@ -692,8 +672,8 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32_t contex
 
         long actualCount;
 
-        CComPtr<IXMLDOMNode>     pParticleListNode     = NULL;
-        CComPtr<IXMLDOMNodeList> pParticleListNodeList = NULL;
+        CComPtr<IXMLDOMNode>     pParticleListNode     = nullptr;
+        CComPtr<IXMLDOMNodeList> pParticleListNodeList = nullptr;
         pElement->selectSingleNode(CComBSTR("ParticleList"), &pParticleListNode);
         if (pParticleListNode)
         {
@@ -727,321 +707,295 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uint32_t contex
     return true;
 }
 
-/// ********************************************************************************************************************/
-/// *																													*/
-/// *																													*/
-/// ********************************************************************************************************************/
-//
 // void XmlConfiguration::ProcessPointParticles( PointEmitter * pEmitter,
-//											  IXMLDOMNodeList * pNodeList,
-//											  int numParticles,
-//											  Configuration const * pConfiguration,
-//											  float globalLifetime, uint32_t globalColor,
-//											  float spread, float minSpeed, float maxSpeed )
+//                                              IXMLDOMNodeList * pNodeList,
+//                                              int numParticles,
+//                                              Configuration const * pConfiguration,
+//                                              float globalLifetime, uint32_t globalColor,
+//                                              float spread, float minSpeed, float maxSpeed )
 // {
-//	RandomFloat				rng( timeGetTime()  ^ (uint32_t)pEmitter );
-//	RandomDirection			rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
+//    RandomFloat                rng( timeGetTime()  ^ (uint32_t)pEmitter );
+//    RandomDirection            rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
-//	PointParticle * const	paParticles		= pEmitter->GetParticles();
+//    PointParticle * const    paParticles        = pEmitter->GetParticles();
 //
-//	for ( int i = 0; i < numParticles; i++ )
-//	{
-//		float		lifetime	= globalLifetime;
-//		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
-//															( i & 1 ? 0 : 0x000000ff ) |
-//															( i & 2 ? 0 : 0x0000ff00 ) |
-//															( i & 4 ? 0 : 0x00ff0000 ) |
-//																		  0xff000000;
-//		float		radius		= 1.0f;
-//		float		orientation	= 0.0f;
-//		DirectX::XMFLOAT4	position	= pEmitter->GetEmitterVolume()->Next();
-//		DirectX::XMFLOAT4	velocity;
+//    for ( int i = 0; i < numParticles; i++ )
+//    {
+//        float        lifetime    = globalLifetime;
+//        float        age            = rng.Get( -lifetime, 0.0f );
+//        uint32_t        color        = ( globalColor != 0 ) ? globalColor :
+//                                                            ( i & 1 ? 0 : 0x000000ff ) |
+//                                                            ( i & 2 ? 0 : 0x0000ff00 ) |
+//                                                            ( i & 4 ? 0 : 0x00ff0000 ) |
+//                                                                          0xff000000;
+//        float        radius        = 1.0f;
+//        float        orientation    = 0.0f;
+//        DirectX::XMFLOAT4    position    = pEmitter->GetEmitterVolume()->Next();
+//        DirectX::XMFLOAT4    velocity;
 //
-//		{
-//			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
+//        {
+//            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.Y_;
-//			velocity.y	= v.X_;
-//			velocity.z	= v.Z_;
-//		}
+//            velocity.x    = v.Y_;
+//            velocity.y    = v.X_;
+//            velocity.z    = v.Z_;
+//        }
 //
-//		// If we are processing a list of particle elements, then load non-default values from the next element
+//        // If we are processing a list of particle elements, then load non-default values from the next element
 //
-//		if ( pNodeList )
-//		{
-//			CComPtr< IXMLDOMNode >		pNode;
-//			HRESULT						hr;
+//        if ( pNodeList )
+//        {
+//            CComPtr< IXMLDOMNode >        pNode;
+//            HRESULT                        hr;
 //
-//			hr = pNodeList->nextNode( &pNode );
-//			ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
-//		}
+//            hr = pNodeList->nextNode( &pNode );
+//            ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
+//        }
 //
-//		// Initialize the particle
+//        // Initialize the particle
 //
-//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
-//										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
-//										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
-//										 float( color & 0xff000000U ) / float( 0xff000000U ) );
+//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
+//                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
+//                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
 //
-//		paParticles[ i ].Initialize( lifetime, age, position, velocity, rgba );
-//	}
+//        paParticles[ i ].Initialize( lifetime, age, position, velocity, rgba );
+//    }
 // }
 //
-//
-/// ********************************************************************************************************************/
-/// *																													*/
-/// *																													*/
-/// ********************************************************************************************************************/
 //
 // void XmlConfiguration::ProcessStreakParticles( StreakEmitter * pEmitter,
-//											   IXMLDOMNodeList * pNodeList,
-//											   int numParticles,
-//											   Configuration const * pConfiguration,
-//											   float globalLifetime, uint32_t globalColor,
+//                                               IXMLDOMNodeList * pNodeList,
+//                                               int numParticles,
+//                                               Configuration const * pConfiguration,
+//                                               float globalLifetime, uint32_t globalColor,
 //                                               float spread, float minSpeed, float maxSpeed )
 // {
-//	StreakParticle * const	paParticles				= pEmitter->GetParticles();
-//	RandomFloat				rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
-//	RandomDirection			rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
+//    StreakParticle * const    paParticles                = pEmitter->GetParticles();
+//    RandomFloat                rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
+//    RandomDirection            rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
-//	for ( int i = 0; i < numParticles; i++ )
-//	{
-//		float		lifetime	= globalLifetime;
-//		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
-//															( i & 1 ? 0 : 0x000000ff ) |
-//															( i & 2 ? 0 : 0x0000ff00 ) |
-//															( i & 4 ? 0 : 0x00ff0000 ) |
-//																		  0xff000000;
-//		float		radius		= 1.0f;
-//		float		orientation	= 0.0f;
-//		DirectX::XMFLOAT4		position	= pEmitter->GetEmitterVolume()->Next();
-//		DirectX::XMFLOAT4		velocity;
+//    for ( int i = 0; i < numParticles; i++ )
+//    {
+//        float        lifetime    = globalLifetime;
+//        float        age            = rng.Get( -lifetime, 0.0f );
+//        uint32_t        color        = ( globalColor != 0 ) ? globalColor :
+//                                                            ( i & 1 ? 0 : 0x000000ff ) |
+//                                                            ( i & 2 ? 0 : 0x0000ff00 ) |
+//                                                            ( i & 4 ? 0 : 0x00ff0000 ) |
+//                                                                          0xff000000;
+//        float        radius        = 1.0f;
+//        float        orientation    = 0.0f;
+//        DirectX::XMFLOAT4        position    = pEmitter->GetEmitterVolume()->Next();
+//        DirectX::XMFLOAT4        velocity;
 //
-//		{
-//			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
+//        {
+//            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.Y_;
-//			velocity.y	= v.X_;
-//			velocity.z	= v.Z_;
-//		}
+//            velocity.x    = v.Y_;
+//            velocity.y    = v.X_;
+//            velocity.z    = v.Z_;
+//        }
 //
-//		// If we are processing a list of particle elements, then load non-default values from the next element
+//        // If we are processing a list of particle elements, then load non-default values from the next element
 //
-//		if ( pNodeList )
-//		{
-//			CComPtr< IXMLDOMNode >		pNode;
-//			HRESULT						hr;
+//        if ( pNodeList )
+//        {
+//            CComPtr< IXMLDOMNode >        pNode;
+//            HRESULT                        hr;
 //
-//			hr = pNodeList->nextNode( &pNode );
-//			ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
-//		}
+//            hr = pNodeList->nextNode( &pNode );
+//            ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
+//        }
 //
-//		// Initialize the particle
+//        // Initialize the particle
 //
-//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
-//										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
-//										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
-//										 float( color & 0xff000000U ) / float( 0xff000000U ) );
+//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
+//                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
+//                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
 //
-//		paParticles[ i ].Initialize( lifetime, age, position, velocity, rgba );
-//	}
+//        paParticles[ i ].Initialize( lifetime, age, position, velocity, rgba );
+//    }
 // }
 //
-//
-/// ********************************************************************************************************************/
-/// *																													*/
-/// *																													*/
-/// ********************************************************************************************************************/
 //
 // void XmlConfiguration::ProcessTexturedParticles( TexturedEmitter * pEmitter,
-//												 IXMLDOMNodeList * pNodeList,
-//												 int numParticles,
-//												 Configuration const * pConfiguration,
-//												 float globalLifetime, uint32_t globalColor,
-//												 float spread, float minSpeed, float maxSpeed )
+//                                                 IXMLDOMNodeList * pNodeList,
+//                                                 int numParticles,
+//                                                 Configuration const * pConfiguration,
+//                                                 float globalLifetime, uint32_t globalColor,
+//                                                 float spread, float minSpeed, float maxSpeed )
 // {
-//	TexturedParticle * const	paParticles				= pEmitter->GetParticles();
-//	RandomFloat					rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
-//	RandomDirection				rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
+//    TexturedParticle * const    paParticles                = pEmitter->GetParticles();
+//    RandomFloat                    rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
+//    RandomDirection                rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
-//	for ( int i = 0; i < numParticles; i++ )
-//	{
-//		float		lifetime	= globalLifetime;
-//		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
-//															( i & 1 ? 0 : 0x000000ff ) |
-//															( i & 2 ? 0 : 0x0000ff00 ) |
-//															( i & 4 ? 0 : 0x00ff0000 ) |
-//																		  0xff000000;
-//		float		radius		= 1.0f;
-//		float		orientation	= 0.0f;
-//		DirectX::XMFLOAT4	position	= pEmitter->GetEmitterVolume()->Next();
-//		std::swap( position.y, position.z );
+//    for ( int i = 0; i < numParticles; i++ )
+//    {
+//        float        lifetime    = globalLifetime;
+//        float        age            = rng.Get( -lifetime, 0.0f );
+//        uint32_t        color        = ( globalColor != 0 ) ? globalColor :
+//                                                            ( i & 1 ? 0 : 0x000000ff ) |
+//                                                            ( i & 2 ? 0 : 0x0000ff00 ) |
+//                                                            ( i & 4 ? 0 : 0x00ff0000 ) |
+//                                                                          0xff000000;
+//        float        radius        = 1.0f;
+//        float        orientation    = 0.0f;
+//        DirectX::XMFLOAT4    position    = pEmitter->GetEmitterVolume()->Next();
+//        std::swap( position.y, position.z );
 //
-//		DirectX::XMFLOAT4	velocity;
+//        DirectX::XMFLOAT4    velocity;
 //
-//		{
-//			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
+//        {
+//            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.Y_;
-//			velocity.y	= v.X_;
-//			velocity.z	= v.Z_;
-//		}
+//            velocity.x    = v.Y_;
+//            velocity.y    = v.X_;
+//            velocity.z    = v.Z_;
+//        }
 //
-//		// If we are processing a list of particle elements, then load non-default values from the next element
+//        // If we are processing a list of particle elements, then load non-default values from the next element
 //
-//		if ( pNodeList )
-//		{
-//			CComPtr< IXMLDOMNode >		pNode;
-//			HRESULT						hr;
+//        if ( pNodeList )
+//        {
+//            CComPtr< IXMLDOMNode >        pNode;
+//            HRESULT                        hr;
 //
-//			hr = pNodeList->nextNode( &pNode );
-//			ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
-//		}
+//            hr = pNodeList->nextNode( &pNode );
+//            ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
+//        }
 //
-//		// Initialize the particle
+//        // Initialize the particle
 //
-//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
-//										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
-//										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
-//										 float( color & 0xff000000U ) / float( 0xff000000U ) );
+//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
+//                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
+//                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
 //
-//		paParticles[ i ].Initialize( lifetime, age, position, velocity, rgba, radius, orientation );
-//	}
+//        paParticles[ i ].Initialize( lifetime, age, position, velocity, rgba, radius, orientation );
+//    }
 // }
 //
-//
-/// ********************************************************************************************************************/
-/// *																													*/
-/// *																													*/
-/// ********************************************************************************************************************/
 //
 // void XmlConfiguration::ProcessSphereParticles( SphereEmitter * pEmitter,
-//											   IXMLDOMNodeList * pNodeList,
-//											   int numParticles,
-//											   Configuration const * pConfiguration,
-//											   float globalLifetime, uint32_t globalColor,
-//											   float spread, float minSpeed, float maxSpeed )
+//                                               IXMLDOMNodeList * pNodeList,
+//                                               int numParticles,
+//                                               Configuration const * pConfiguration,
+//                                               float globalLifetime, uint32_t globalColor,
+//                                               float spread, float minSpeed, float maxSpeed )
 // {
-//	SphereParticle * const	paParticles				= pEmitter->GetParticles();
-//	RandomFloat				rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
-//	RandomDirection			rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
+//    SphereParticle * const    paParticles                = pEmitter->GetParticles();
+//    RandomFloat                rng( ( timeGetTime() ^ (uint32_t)pEmitter ) );
+//    RandomDirection            rdir( ( timeGetTime() ^ (uint32_t)pEmitter ) + 1 );
 //
-//	for ( int i = 0; i < numParticles; i++ )
-//	{
-//		float		lifetime	= globalLifetime;
-//		float		age			= rng.Get( -lifetime, 0.0f );
-//		uint32_t		color		= ( globalColor != 0 ) ? globalColor :
-//															( i & 1 ? 0 : 0x000000ff ) |
-//															( i & 2 ? 0 : 0x0000ff00 ) |
-//															( i & 4 ? 0 : 0x00ff0000 ) |
-//																		  0xff000000;
-//		float		radius		= 1.0f;
-//		float		orientation	= 0.0f;
-//		DirectX::XMFLOAT4		position	= pEmitter->GetEmitterVolume()->Next();
-//		DirectX::XMFLOAT4		velocity;
+//    for ( int i = 0; i < numParticles; i++ )
+//    {
+//        float        lifetime    = globalLifetime;
+//        float        age            = rng.Get( -lifetime, 0.0f );
+//        uint32_t        color        = ( globalColor != 0 ) ? globalColor :
+//                                                            ( i & 1 ? 0 : 0x000000ff ) |
+//                                                            ( i & 2 ? 0 : 0x0000ff00 ) |
+//                                                            ( i & 4 ? 0 : 0x00ff0000 ) |
+//                                                                          0xff000000;
+//        float        radius        = 1.0f;
+//        float        orientation    = 0.0f;
+//        DirectX::XMFLOAT4        position    = pEmitter->GetEmitterVolume()->Next();
+//        DirectX::XMFLOAT4        velocity;
 //
-//		{
-//			List3 const	v	= rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
+//        {
+//            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
 //
-//			velocity.x	= v.Y_;
-//			velocity.y	= v.X_;
-//			velocity.z	= v.Z_;
-//		}
+//            velocity.x    = v.Y_;
+//            velocity.y    = v.X_;
+//            velocity.z    = v.Z_;
+//        }
 //
-//		// If we are processing a list of particle elements, then load non-default values from the next element
+//        // If we are processing a list of particle elements, then load non-default values from the next element
 //
-//		if ( pNodeList )
-//		{
-//			CComPtr< IXMLDOMNode >		pNode;
-//			HRESULT						hr;
+//        if ( pNodeList )
+//        {
+//            CComPtr< IXMLDOMNode >        pNode;
+//            HRESULT                        hr;
 //
-//			hr = pNodeList->nextNode( &pNode );
-//			ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
-//		}
+//            hr = pNodeList->nextNode( &pNode );
+//            ProcessParticle( pNode, &lifetime, &age, &color, &radius, &orientation, &position, &velocity );
+//        }
 //
-//		// Initialize the particle
+//        // Initialize the particle
 //
-//		DirectX::XMFLOAT4	rgba	= DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
-//										 float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
-//										 float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
-//										 float( color & 0xff000000U ) / float( 0xff000000U ) );
+//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
+//                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
+//                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
 //
-////		paParticles[ i ].Initialize( lifetime, age, rgba, position, velocity );
-//	}
+////        paParticles[ i ].Initialize( lifetime, age, rgba, position, velocity );
+//    }
 // }
 //
-//
-//
-//
-//
-/// ********************************************************************************************************************/
-/// *																													*/
-/// *																													*/
-/// ********************************************************************************************************************/
-//
-// void XmlConfiguration::ProcessParticle( IXMLDOMNode *		pNode,
-//										  float *			pLifetime,
-//										  float *			pAge,
-//										  DirectX::XMFLOAT4 *		pVelocity,
-//										  DirectX::XMFLOAT4 *		pPosition,
-//										  uint32_t *			pColor,
-//										  float *			pRadius,
-//										  float *			pRotation,
-//										  D3DXQUATERINION *	pOrientation )
+// void XmlConfiguration::ProcessParticle( IXMLDOMNode *        pNode,
+//                                          float *            pLifetime,
+//                                          float *            pAge,
+//                                          DirectX::XMFLOAT4 *        pVelocity,
+//                                          DirectX::XMFLOAT4 *        pPosition,
+//                                          uint32_t *            pColor,
+//                                          float *            pRadius,
+//                                          float *            pRotation,
+//                                          D3DXQUATERINION *    pOrientation )
 // {
-//	HRESULT		hr;
+//    HRESULT        hr;
 //
-//	if ( Msxmlx::IsElementNode( pNode ) )
-//	{
-//		CComQIPtr< IXMLDOMElement >	pElement( pNode );
-//		CComBSTR					tag;
+//    if ( Msxmlx::IsElementNode( pNode ) )
+//    {
+//        CComQIPtr< IXMLDOMElement >    pElement( pNode );
+//        CComBSTR                    tag;
 //
-//		hr = pElement->get_tagName( &tag );
+//        hr = pElement->get_tagName( &tag );
 //
-//		if ( tag == CComBSTR( "Particle" ) )
-//		{
-//			//	<xsd:complexType name="particle">
-//			//		<xsd:all>
-//			//			<xsd:element name="Lifetime" type="xsd:float" minOccurs="0" />
-//			//			<xsd:element name="Age" type="xsd:float" minOccurs="0" />
-//			//			<xsd:element name="Position" type="vector3" />
-//			//			<xsd:element name="Velocity" type="vector3" />
-//			//			<xsd:element name="Color" type="rgba" minOccurs="0" />
-//			//			<xsd:element name="Radius" type="xsd:float" minOccurs="0" />
-//			//			<xsd:element name="Rotation" type="xsd:float" minOccurs="0" />
-//			//			<xsd:element name="Orientation" type="quaternion" minOccurs="0" />
-//			//		</xsd:all>
-//			//	</xsd:complexType>
+//        if ( tag == CComBSTR( "Particle" ) )
+//        {
+//            //    <xsd:complexType name="particle">
+//            //        <xsd:all>
+//            //            <xsd:element name="Lifetime" type="xsd:float" minOccurs="0" />
+//            //            <xsd:element name="Age" type="xsd:float" minOccurs="0" />
+//            //            <xsd:element name="Position" type="vector3" />
+//            //            <xsd:element name="Velocity" type="vector3" />
+//            //            <xsd:element name="Color" type="rgba" minOccurs="0" />
+//            //            <xsd:element name="Radius" type="xsd:float" minOccurs="0" />
+//            //            <xsd:element name="Rotation" type="xsd:float" minOccurs="0" />
+//            //            <xsd:element name="Orientation" type="quaternion" minOccurs="0" />
+//            //        </xsd:all>
+//            //    </xsd:complexType>
 //
-//			*pPosition		= GetDirect3DXMVECTORSubElement(    pElement, "Position",    *pPosition );
-//			*pVelocity		= GetDirect3DXMVECTORSubElement(    pElement, "Velocity",    *pVelocity );
-//			*pLifetime		= Msxmlx::GetFloatSubElement(  pElement, "Lifetime",    *pLifetime );
-//			*pAge			= Msxmlx::GetFloatSubElement(  pElement, "Age",	        *pAge );
-//			*pColor			= Msxmlx::GetHexSubElement(    pElement, "Color",	    *pColor );
-//			*pRadius		= Msxmlx::GetFloatSubElement(  pElement, "Radius",	    *pRadius );
-//			*pRotation		= Msxmlx::GetFloatSubElement(  pElement, "Rotation",	*pRotation );
-//			*pOrientation	= GetDirectX::XMVECTORSubElement( pElement, "Orientation",	*pOrientation );
+//            *pPosition        = GetVectorSubElement(    pElement, "Position",    *pPosition );
+//            *pVelocity        = GetVectorSubElement(    pElement, "Velocity",    *pVelocity );
+//            *pLifetime        = Msxmlx::GetFloatSubElement(  pElement, "Lifetime",    *pLifetime );
+//            *pAge            = Msxmlx::GetFloatSubElement(  pElement, "Age",            *pAge );
+//            DirectX::XMStoreFloat4(pColor,
+//                DirectX::PackedVector::XMLoadColor(
+//                    &DirectX::PackedVector::XMCOLOR(
+//                        Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff))));
+//            *pRadius        = Msxmlx::GetFloatSubElement(  pElement, "Radius",        *pRadius );
+//            *pRotation        = Msxmlx::GetFloatSubElement(  pElement, "Rotation",    *pRotation );
+//            *pOrientation    = GetDirectX::XMVECTORSubElement( pElement, "Orientation",    *pOrientation );
 //
 // #if defined( _DEBUG )
-//			{
-//				std::ostringstream	msg;
-//				msg << "    Particle: "
-//					<< *pLifetime << ", "
-//					<< *pAge << ", "
-//					<< "[" << *pVelocity << "],"
-//					<< "[" << *pPosition << "] )"
-//					<< *pColor << ", "
-//					<< *pRadius << ", "
-//					<< *pRotation << ", "
-//					<< *pOrientation << ", "
-//					<< std::endl;
-//				OutputDebugString( msg.str().c_str() );
-//			}
+//            {
+//                std::ostringstream    msg;
+//                msg << "    Particle: "
+//                    << *pLifetime << ", "
+//                    << *pAge << ", "
+//                    << "[" << *pVelocity << "],"
+//                    << "[" << *pPosition << "] )"
+//                    << *pColor << ", "
+//                    << *pRadius << ", "
+//                    << *pRotation << ", "
+//                    << *pOrientation << ", "
+//                    << std::endl;
+//                OutputDebugString( msg.str().c_str() );
+//            }
 // #endif // defined( _DEBUG )
-//		}
-//	}
+//        }
+//    }
 // }
 } // namespace Confetti

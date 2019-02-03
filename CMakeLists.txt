@@ -1,7 +1,6 @@
-cmake_minimum_required (VERSION 3.4)
+cmake_minimum_required (VERSION 3.10)
 project(Confetti CXX)
 
-option(${PROJECT_NAME}_BUILD_UNIT_TESTS "Build unit tests for ${PROJECT_NAME}" FALSE)
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 set(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY "" CACHE PATH "Doxygen output directory (empty to disable)")
 
@@ -55,29 +54,45 @@ set(SOURCES
     Particle.cpp
     ParticleSystem.cpp
     PointParticle.cpp
-#    PrecompiledHeaders.h
-#    PrecompiledHeaders.cpp
     SphereParticle.cpp
     StreakParticle.cpp
     TexturedParticle.cpp
 )
+source_group(Sources FILE ${SOURCES})
 
 add_library(${PROJECT_NAME} ${SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
+target_link_libraries(${PROJECT_NAME}
+    Dxx
+    Misc
+    Msxmlx
+    MyMath
+    nlohmann_json::nlohmann_json
+    Wx
+)
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         -DNOMINMAX
         -DWIN32_LEAN_AND_MEAN
         -DVC_EXTRALEAN
-#        -D_CRT_SECURE_NO_WARNINGS
-#        -D_SECURE_SCL=0
-#        -D_SCL_SECURE_NO_WARNINGS
+        -D_CRT_SECURE_NO_WARNINGS
+        -D_SECURE_SCL=0
+        -D_SCL_SECURE_NO_WARNINGS
 )
-target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
-target_link_libraries(${PROJECT_NAME} Dxx MyMath Misc Time Wx)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
 add_subdirectory(Dxx)
+add_subdirectory(json)
+add_subdirectory(Msxmlx)
 add_subdirectory(MyMath)
 add_subdirectory(Misc)
-add_subdirectory(Time)
-add_subdirectory(unit-test)
 add_subdirectory(Wx)
+
+if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+    message(STATUS "Testing is enabled. Turn on BUILD_TESTING to build tests.")
+    if(BUILD_TESTING)
+        add_subdirectory(test)
+    endif()
+endif()

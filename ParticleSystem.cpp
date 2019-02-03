@@ -1,18 +1,3 @@
-/** @file *//********************************************************************************************************
-
-                                                  ParticleSystem.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/ParticleSystem.cpp#11 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
-#include "PrecompiledHeaders.h"
-
 #include "ParticleSystem.h"
 
 #include "Appearance.h"
@@ -21,11 +6,13 @@
 #include "EmitterVolume.h"
 #include "Environment.h"
 
+#include "Wx/Wx.h"
+
 #include <d3d11.h>
 
 namespace Confetti
 {
-ParticleSystem::ParticleSystem(IDirect3DDevice11 * pD3dDevice)
+ParticleSystem::ParticleSystem(ID3D11Device * pD3dDevice)
     : pD3dDevice_(pD3dDevice)
 {
     pD3dDevice_->AddRef();
@@ -111,7 +98,7 @@ void ParticleSystem::Update(float dt)
 
     for (Appearance * pAppearance : appearances_)
     {
-        pAppearance->Update(dt);
+        pAppearance->update(dt);
     }
 
     // Update all the environments
@@ -125,8 +112,8 @@ void ParticleSystem::Update(float dt)
 
     for (BasicEmitter * pEmitter : emitters_)
     {
-        if (pEmitter && pEmitter->IsEnabled())
-            pEmitter->Update(dt);
+        if (pEmitter && pEmitter->enabled())
+            pEmitter->update(dt);
     }
 }
 
@@ -136,8 +123,8 @@ void ParticleSystem::Draw() const
 
     for (BasicEmitter * pEmitter : emitters_)
     {
-        if (pEmitter && pEmitter->IsEnabled())
-            pEmitter->Draw();
+        if (pEmitter && pEmitter->enabled())
+            pEmitter->draw();
     }
 }
 } // namespace Confetti

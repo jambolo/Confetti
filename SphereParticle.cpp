@@ -1,18 +1,3 @@
-/** @file *//********************************************************************************************************
-
-                                                  SphereParticle.cpp
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/SphereParticle.cpp#8 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
-#include "PrecompiledHeaders.h"
-
 #include "SphereParticle.h"
 
 #include "Appearance.h"
@@ -38,7 +23,7 @@ SphereParticle::SphereParticle(BasicEmitter const *      pEmitter,
                                float                     age,
                                DirectX::XMFLOAT3 const & position,
                                DirectX::XMFLOAT3 const & velocity,
-                               DirectX::XMFLOAT3 const & color,
+                               DirectX::XMFLOAT4 const & color,
                                float                     radius)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
     , initialRadius_(radius)
@@ -56,7 +41,7 @@ void SphereParticle::Initialize(float                     lifetime,
                                 float                     age,
                                 DirectX::XMFLOAT3 const & position,
                                 DirectX::XMFLOAT3 const & velocity,
-                                DirectX::XMFLOAT3 const & color,
+                                DirectX::XMFLOAT4 const & color,
                                 float                     radius)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
@@ -79,16 +64,16 @@ bool SphereParticle::Update(float dt)
         dt      = age_;
     }
 
-    Appearance const * const pA = pEmitter_->GetAppearance();
+    Appearance const * const pA = pEmitter_->appearance();
 
     // Update size and rotation
 
-    radius_ += dt * pA->GetRadiusRate();
+    radius_ += dt * pA->radiusRate();
 
     return reborn;
 }
 
-void SphereParticle::Draw(IDirect3DDevice11 * pD3dDevice) const
+void SphereParticle::Draw(ID3D11Device * pD3dDevice) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

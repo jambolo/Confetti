@@ -1,23 +1,13 @@
-/** @file *//********************************************************************************************************
-
-                                                   PointParticle.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/PointParticle.h#7 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_POINTPARTICLE_H)
+#define CONFETTI_POINTPARTICLE_H
 
 #include "Particle.h"
 
 #include <d3d11.h>
 #include <DirectXMath.h>
-struct IDirect3DDevice11;
+struct ID3D11Device;
 
 namespace Confetti
 {
@@ -32,18 +22,18 @@ class PointParticle : public Particle
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     PointParticle() = default;
 
-    //! Constructor
+    //! Constructor.
     PointParticle(BasicEmitter const *      pEmitter,
                   float                     lifetime,
                   float                     age,
                   DirectX::XMFLOAT3 const & position,
                   DirectX::XMFLOAT3 const & velocity,
-                  DirectX::XMFLOAT3 const & color);
+                  DirectX::XMFLOAT4 const & color);
 
-    // Destructor
+    //! Destructor.
     virtual ~PointParticle() override = default;
 
     //! Initializes a particle constructed with the default constructor
@@ -51,16 +41,15 @@ public:
                     float                     age,
                     DirectX::XMFLOAT3 const & position,
                     DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT3 const & color);
+                    DirectX::XMFLOAT4 const & color);
 
     //! @name Overrides Particle
     //@{
     virtual bool Update(float dt) override;
-    virtual void Draw(IDirect3DDevice11 * pD3dDevice) const override;
+    virtual void Draw(ID3D11Device * pD3dDevice) const override;
     //@}
 
-    // Vertex buffer info
-
+    //! Vertex buffer info.
     struct VBEntry
     {
         static int const NUM_VERTICES = 1;
@@ -73,13 +62,9 @@ public:
         Vertex v[NUM_VERTICES];
     };
 
-    enum
-    {
-        POOL  = D3DPOOL_DEFAULT,
-        USAGE = D3DUSAGE_DYNAMIC | D3DUSAGE_POINTS | D3DUSAGE_WRITEONLY
-    };
-
-    //! Vertex shader data declaration
-    static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
+//     //! Vertex shader data declaration
+//     static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_POINTPARTICLE_H)

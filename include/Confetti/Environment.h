@@ -1,19 +1,9 @@
-/** @file *//********************************************************************************************************
-
-                                                     Environment.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Environment.h#9 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
 
-#include "Dxx/d3d.h"
+#if !defined(CONFETTI_ENVIRONMENT_H)
+#define CONFETTI_ENVIRONMENT_H
+
+#include "Dxx/D3dx.h"
 #include "Misc/Random.h"
 #include <DirectXMath.h>
 #include <vector>
@@ -41,17 +31,17 @@ public:
         }
 
         //! Constructor
-        BouncePlane(DirectX::XMFLOAT3 const & plane, float dampening)
+        BouncePlane(DirectX::XMFLOAT4 const & plane, float dampening)
             : plane_(plane)
             , dampening_(dampening)
         {
         }
-        DirectX::XMFLOAT3 plane_;          //!< The plane
-        float dampening_;          //!< The ratio of the post-bounce velocity to the pre-bounce velocity.
+        DirectX::XMFLOAT4 plane_;   //!< The plane
+        float dampening_;           //!< The ratio of the post-bounce velocity to the pre-bounce velocity.
     };
 
     //! A plane that clips particles.
-    using ClipPlane = DirectX::XMFLOAT3;
+    using ClipPlane = DirectX::XMFLOAT4;
 
     //! A list of BouncePlanes.
     using BouncePlaneList = std::vector<BouncePlane>;
@@ -60,12 +50,12 @@ public:
     using ClipPlaneList = std::vector<ClipPlane>;
 
     //! Constructor
-    Environment(DirectX::XMFLOAT3 const & gravity      = DirectX::XMVectorZero(),
-                DirectX::XMFLOAT3 const & windVelocity = DirectX::XMVectorZero(),
-                float                     airFriction = 0.0f,
-                DirectX::XMFLOAT3 const & gustiness = DirectX::XMVectorZero(),
-                BouncePlaneList const *   pBPL      = nullptr,
-                ClipPlaneList const *     pCPL      = nullptr);
+    explicit Environment(DirectX::XMFLOAT3 const & gravity      = { 0.0f, 0.0f, 0.0f },
+                         DirectX::XMFLOAT3 const & windVelocity = { 0.0f, 0.0f, 0.0f },
+                         float airFriction = 0.0f,
+                         DirectX::XMFLOAT3 const & gustiness = { 0.0f, 0.0f, 0.0f },
+                         BouncePlaneList const *   pBPL      = nullptr,
+                         ClipPlaneList const *     pCPL      = nullptr);
 
     // Destructor
     virtual ~Environment() = default;
@@ -125,3 +115,5 @@ private:
     static RandomFloat rng_;                // The RNG for environments
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_ENVIRONMENT_H)

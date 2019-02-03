@@ -1,24 +1,14 @@
-/** @file *//********************************************************************************************************
-
-                                                   SphereParticle.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/SphereParticle.h#7 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_SPHEREPARTICLE_H)
+#define CONFETTI_SPHEREPARTICLE_H
 
 #include "Particle.h"
 #include <d3d11.h>
 #include <DirectXMath.h>
 using namespace DirectX;
 
-struct IDirect3DDevice11;
+struct ID3D11Device;
 
 namespace Confetti
 {
@@ -40,7 +30,7 @@ public:
                    float                     age,
                    DirectX::XMFLOAT3 const & position,
                    DirectX::XMFLOAT3 const & velocity,
-                   DirectX::XMFLOAT3 const & color,
+                   DirectX::XMFLOAT4 const & color,
                    float                     radius);
 
     // Destructor
@@ -52,11 +42,11 @@ public:
                     float                     age,
                     DirectX::XMFLOAT3 const & position,
                     DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT3 const & color,
+                    DirectX::XMFLOAT4 const & color,
                     float                     radius);
 
     virtual bool Update(float dt) override;
-    virtual void Draw(IDirect3DDevice11 * pD3dDevice) const override;
+    virtual void Draw(ID3D11Device * pD3dDevice) const override;
     //!@}
 
     //! Returns the particle's radius.
@@ -70,15 +60,10 @@ public:
         DirectX::XMFLOAT4 color;
     };
 
-    enum
-    {
-        POOL  = D3DPOOL_DEFAULT,
-        FVF   = D3DFVF_XYZ | D3DFVF_DIFFUSE,
-        USAGE = D3DUSAGE_DYNAMIC | D3DUSAGE_POINTS | D3DUSAGE_WRITEONLY
-    };
+//     static UINT32 constexpr FVF   = D3DFVF_XYZ | D3DFVF_DIFFUSE;
 
-    //! Vertex shader data declaration
-    static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
+//     //! Vertex shader data declaration
+//     static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
 
 private:
 
@@ -88,3 +73,5 @@ private:
     float radius_;                             // Current radius.
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_SPHEREPARTICLE_H)

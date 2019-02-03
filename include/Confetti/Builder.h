@@ -1,25 +1,15 @@
-/** @file *//********************************************************************************************************
-
-                                                      Builder.h
-
-                                            Copyright 2003, John J. Bolton
-    --------------------------------------------------------------------------------------------------------------
-
-    $Header: //depot/Libraries/Confetti/Builder.h#5 $
-
-    $NoKeywords: $
-
-********************************************************************************************************************/
-
 #pragma once
+
+#if !defined(CONFETTI_BUILDER_H)
+#define CONFETTI_BUILDER_H
 
 #include "Configuration.h"
 #include "Environment.h"
 #include <Dxx/Random.h>
 #include <memory>
 
-struct IDirect3DDevice11;
-struct IDirect3DTexture11;
+struct ID3D11Device;
+struct ID3D11Texture2D;
 struct _D3DMATERIAL11;
 namespace Dxx
 {
@@ -51,17 +41,17 @@ public:
     virtual ~Builder();
 
     //! Returns a new particle system build using the supplied configuration
-    std::auto_ptr<ParticleSystem> BuildParticleSystem(Configuration const & configuration,
-                                                      IDirect3DDevice11 *   pD3dDevice,
+    std::unique_ptr<ParticleSystem> BuildParticleSystem(Configuration const & configuration,
+                                                      ID3D11Device *        pD3dDevice,
                                                       Dxx::Camera const *   pCamera);
 
     //! Builds an emitter and returns a reference
     BasicEmitter * BuildEmitter(Configuration::Emitter const & configuration,
-                                IDirect3DDevice11 *            pD3dDevice);
+                                ID3D11Device *                 pD3dDevice);
 
     //! Builds an appearance and returns a reference
     Appearance * BuildAppearance(Configuration::Appearance const & configuration,
-                                 IDirect3DDevice11 *               pD3dDevice,
+                                 ID3D11Device *                    pD3dDevice,
                                  Dxx::Camera const *               pCamera);
 
     //! Builds an emitter volume and returns a reference
@@ -77,7 +67,7 @@ public:
     Environment::ClipPlaneList * BuildClipPlaneList(Configuration::ClipPlaneList const & configuration);
 
     //! Builds the particles for a point emitter
-    std::auto_ptr<PointParticle> Builder::BuildPointParticles(
+    std::unique_ptr<PointParticle> Builder::BuildPointParticles(
         int                                            n,
         Configuration::Emitter::ParticleVector const & configurations,
         Configuration::Emitter const &                 emitterConfiguration,
@@ -86,7 +76,7 @@ public:
         Appearance const &                             appearance);
 
     //! Builds the particles for a streak emitter
-    std::auto_ptr<StreakParticle> Builder::BuildStreakParticles(
+    std::unique_ptr<StreakParticle> Builder::BuildStreakParticles(
         int                                            n,
         Configuration::Emitter::ParticleVector const & configurations,
         Configuration::Emitter const &                 emitterConfiguration,
@@ -95,7 +85,7 @@ public:
         Appearance const &                             appearance);
 
     //! Builds the particles for a textured emitter
-    std::auto_ptr<TexturedParticle> Builder::BuildTexturedParticles(
+    std::unique_ptr<TexturedParticle> Builder::BuildTexturedParticles(
         int                                            n,
         Configuration::Emitter::ParticleVector const & configurations,
         Configuration::Emitter const &                 emitterConfiguration,
@@ -104,7 +94,7 @@ public:
         Appearance const &                             appearance);
 
     //! Builds the particles for a sphere emitter
-    std::auto_ptr<SphereParticle> Builder::BuildSphereParticles(
+    std::unique_ptr<SphereParticle> Builder::BuildSphereParticles(
         int                                            n,
         Configuration::Emitter::ParticleVector const & configurations,
         Configuration::Emitter const &                 emitterConfiguration,
@@ -113,7 +103,7 @@ public:
         Appearance const &                             appearance);
 
 //	//! Builds the particles for an emitter emitter
-//	std::auto_ptr< EmitterParticle > Builder::BuildEmitterParticles(
+//	std::unique_ptr< EmitterParticle > Builder::BuildEmitterParticles(
 //											int n,
 //											Configuration::Emitter::ParticleVector const & configurations,
 //											Configuration::Emitter const & emitterConfiguration,
@@ -143,7 +133,7 @@ public:
     _D3DMATERIAL11 * FindMaterial(std::string const & name);
 
     //! Returns the named texture or 0 if not found
-    IDirect3DTexture11 * FindTexture(std::string const & name);
+    ID3D11Texture2D * FindTexture(std::string const & name);
 
 private:
 
@@ -153,7 +143,7 @@ private:
     using AppearanceMap      = std::map<std::string, Appearance *>;
     using BouncePlaneListMap = std::map<std::string, Environment::BouncePlaneList *>;
     using ClipPlaneListMap   = std::map<std::string, Environment::ClipPlaneList *>;
-    using TextureMap         = std::map<std::string, IDirect3DTexture11 *>;
+    using TextureMap         = std::map<std::string, ID3D11Texture2D *>;
     using MaterialMap        = std::map<std::string, _D3DMATERIAL11 *>;
 
     //! Adds the named emitter to the emitter map and returns a reference to its entry
@@ -178,7 +168,7 @@ private:
     MaterialMap::iterator AddMaterial(std::string const & name, _D3DMATERIAL11 * pMaterial);
 
     //! Adds the named texture to the texture map and returns a reference to its entry
-    TextureMap::iterator AddTexture(std::string const & name, IDirect3DTexture11 * pTexture);
+    TextureMap::iterator AddTexture(std::string const & name, ID3D11Texture2D * pTexture);
 
     EmitterMap emitters_;                      //!< Active emitters
     EmitterVolumeMap emitterVolumes_;          //!< Active emitter volumes
@@ -197,3 +187,5 @@ private:
     Dxx::RandomOrientation oRng_;
 };
 } // namespace Confetti
+
+#endif // !defined(CONFETTI_BUILDER_H)
