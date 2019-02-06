@@ -2,46 +2,48 @@
 
 #include "MyMath/FastMath.h"
 
+#include <random>
+
 namespace Confetti
 {
 //!
-//! @param	seed	Initial seed
+//! @param	rng     Random number generator
 
-EmitterVolume::EmitterVolume(unsigned int seed)
-    : rng_(seed)
+EmitterVolume::EmitterVolume(std::minstd_rand & rng)
+    : rng_(rng)
 {
 }
 
 //!
-//! @param	seed	Initial seed (not used)
+//! @param	rng     Random number generator (not used)
 
-EmitterPoint::EmitterPoint(unsigned int seed)
-    : EmitterVolume(seed)
+EmitterPoint::EmitterPoint(std::minstd_rand & rng)
+    : EmitterVolume(rng)
 {
 }
 
-//! @param	seed	Initial seed.
+//! @param  rng     Random number generator
 //! @param	size	Length of the line segment.
 
-EmitterLine::EmitterLine(unsigned int seed, float size)
-    : EmitterVolume(seed)
+EmitterLine::EmitterLine(std::minstd_rand & rng, float size)
+    : EmitterVolume(rng)
     , size_(size)
 {
 }
 
 DirectX::XMFLOAT3 EmitterLine::next() const
 {
-    float x = rng_(size_) - size_ * 0.5f;
-
+    std::uniform_real_distribution<float> endpoint(-0.5f, 0.5f);
+    float x = size_ * endpoint(rng_);
     return DirectX::XMFLOAT3(x, 0.0f, 0.0f);
 }
 
-//! @param	seed	Initial seed.
+//! @param	rng     Random number generator.
 //! @param	w	    Size of the rectangle along the X axis.
 //! @param	h       Size of the rectangle along the Z axis.
 
-EmitterRectangle::EmitterRectangle(unsigned int seed, float w, float h)
-    : EmitterVolume(seed)
+EmitterRectangle::EmitterRectangle(std::minstd_rand & rng, float w, float h)
+    : EmitterVolume(rng)
     , width_(w)
     , height_(h)
 {
@@ -49,17 +51,17 @@ EmitterRectangle::EmitterRectangle(unsigned int seed, float w, float h)
 
 DirectX::XMFLOAT3 EmitterRectangle::next() const
 {
-    float x = width_  * (rng_(1.0f) - 0.5f);
-    float z = height_ * (rng_(1.0f) - 0.5f);
-
-    return DirectX::XMFLOAT3(x, 0.0f, z);
+    std::uniform_real_distribution<float> endpoint(-0.5f, 0.5f);
+    float x = width_  * endpoint(rng_);
+    float z = height_ * endpoint(rng_);
+    return DirectX::XMFLOAT3(endpoint(rng_) , 0.0f, z);
 }
 
-//! @param	seed	Initial seed.
+//! @param	rng     Random number generator.
 //! @param	radius	Radius of the circle.
 
-EmitterCircle::EmitterCircle(unsigned int seed, float radius)
-    : EmitterVolume(seed)
+EmitterCircle::EmitterCircle(std::minstd_rand & rng, float radius)
+    : EmitterVolume(rng)
     , radius_(radius)
 {
 }
@@ -68,20 +70,20 @@ DirectX::XMFLOAT3 EmitterCircle::next() const
 {
     // Source: http://mathworld.wolfram.com/DiskPointPicking.html
 
-    float a = rng_(float(DirectX::XM_2PI));
-    float r = radius_ * sqrtf(rng_());
-    float       c, s;
+    std::uniform_real_distribution<float> randomFloat(0.0f, 1.0f);
 
+    float a = randomFloat(rng_) * DirectX::XM_2PI;
+    float r = radius_ * sqrt(randomFloat(rng_));
+    float c, s;
     MyMath::fsincos(a, &s, &c);
-
     return DirectX::XMFLOAT3(c * r, s * r, 0.0f);
 }
 
-//! @param	seed	Initial seed.
+//! @param	rng     Random number generator.
 //! @param	radius	radius of the sphere.
 
-EmitterSphere::EmitterSphere(unsigned int seed, float radius)
-    : EmitterVolume(seed)
+EmitterSphere::EmitterSphere(std::minstd_rand & rng, float radius)
+    : EmitterVolume(rng)
     , radius_(radius)
 {
 }
@@ -102,10 +104,11 @@ DirectX::XMFLOAT3 EmitterSphere::next() const
     // sf = sin(f) = sqrt( 1. - cf*cf )
     // v = [ cf * ct, sf, cf * st ]
 
-    float t = rng_(float(-DirectX::XM_PI), float(DirectX::XM_PI));
-    float cf = rng_(-1, 1);
-    float sf = sqrtf(1.0f - cf * cf);
-    float r = radius_ * powf(rng_(), 1.0f / 3.0f);
+    std::uniform_real_distribution<float> randomFloat(-1.0f, 1.0f);
+    float t = randomFloat(rng_) * DirectX::XM_PI;
+    float cf = randomFloat(rng_);
+    float sf = sqrt(1.0f - cf * cf);
+    float r = radius_ * pow((randomFloat(rng_) + 1.0f) * 0.5f, 1.0f / 3.0f);
     float st, ct;
 
     MyMath::fsincos(t, &st, &ct);
@@ -113,30 +116,31 @@ DirectX::XMFLOAT3 EmitterSphere::next() const
     return DirectX::XMFLOAT3(cf * ct * r, sf * r, cf * st * r);
 }
 
-//! @param	seed	Initial seed.
+//! @param	rng     Random number generator.
 //! @param	size	Width, height, and depth of the box.
 
-EmitterBox::EmitterBox(unsigned int seed, DirectX::XMFLOAT3 const & size)
-    : EmitterVolume(seed)
+EmitterBox::EmitterBox(std::minstd_rand & rng, DirectX::XMFLOAT3 const & size)
+    : EmitterVolume(rng)
     , size_(size)
 {
 }
 
 DirectX::XMFLOAT3 EmitterBox::next() const
 {
-    float x = rng_(size_.x) - size_.x * 0.5f;
-    float y = rng_(size_.y) - size_.y * 0.5f;
-    float z = rng_(size_.z) - size_.z * 0.5f;
+    std::uniform_real_distribution<float> randomFloat(-0.5f, 0.5f);
+    float x = randomFloat(rng_) * size_.x;
+    float y = randomFloat(rng_) * size_.y;
+    float z = randomFloat(rng_) * size_.z;
 
     return DirectX::XMFLOAT3(x, y, z);
 }
 
-//! @param	seed	Initial seed.
+//! @param	rng     Random number generator.
 //! @param	radius	Radius of the cylinder.
 //! @param	height	Height of the cylinder.
 
-EmitterCylinder::EmitterCylinder(unsigned int seed, float radius, float height)
-    : EmitterVolume(seed)
+EmitterCylinder::EmitterCylinder(std::minstd_rand & rng, float radius, float height)
+    : EmitterVolume(rng)
     , radius_(radius)
     , height_(height)
 {
@@ -144,22 +148,22 @@ EmitterCylinder::EmitterCylinder(unsigned int seed, float radius, float height)
 
 DirectX::XMFLOAT3 EmitterCylinder::next() const
 {
-    float a = rng_(float(DirectX::XM_2PI));
-    float h = rng_(height_);
-    float r = radius_ * sqrtf(rng_());
-    float       c, s;
-
+    std::uniform_real_distribution<float> randomFloat(0.0f, 1.0f);
+    float a = randomFloat(rng_) * DirectX::XM_2PI;
+    float h = randomFloat(rng_) * height_;
+    float r = radius_ * sqrt(randomFloat(rng_));
+    float c, s;
     MyMath::fsincos(a, &s, &c);
 
     return DirectX::XMFLOAT3(c * r, s * r, h);
 }
 
-//! @param	seed	Initial seed.
+//! @param	rng     Random number generator.
 //! @param	radius	Radius of the cone at the base.
 //! @param	height	Height of the cone.
 
-EmitterCone::EmitterCone(unsigned int seed, float radius, float height)
-    : EmitterVolume(seed)
+EmitterCone::EmitterCone(std::minstd_rand & rng, float radius, float height)
+    : EmitterVolume(rng)
     , radius_(radius)
     , height_(height)
 {
@@ -167,15 +171,15 @@ EmitterCone::EmitterCone(unsigned int seed, float radius, float height)
 
 DirectX::XMFLOAT3 EmitterCone::next() const
 {
-    float a = rng_(float(DirectX::XM_2PI));
-    float       h = rng_();
-    float       r = rng_();
-    float       c, s;
-
+    std::uniform_real_distribution<float> randomFloat(0.0f, 1.0f);
+    float a = randomFloat(rng_) * DirectX::XM_2PI;
+    float h = randomFloat(rng_);
+    float r = randomFloat(rng_);
+    float c, s;
     MyMath::fsincos(a, &s, &c);
 
-    h = powf(h, 1.0f / 3.0f) * height_;
-    r = sqrtf(r) / radius_ * h;
+    h = pow(h, 1.0f / 3.0f) * height_;
+    r = sqrt(r) / radius_ * h;
 
     return DirectX::XMFLOAT3(c * r, s * r, h);
 }

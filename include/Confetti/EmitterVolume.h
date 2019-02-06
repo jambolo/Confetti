@@ -4,8 +4,8 @@
 #define CONFETTI_EMITTERVOLUME_H
 
 #include "Dxx/D3dx.h"
-#include "Misc/Random.h"
 #include <DirectXMath.h>
+#include <random>
 
 namespace Confetti
 {
@@ -19,7 +19,7 @@ class EmitterVolume
 public:
 
     //! Constructor
-    EmitterVolume(unsigned int seed);
+    EmitterVolume(std::minstd_rand & rng);
 
     //! Destructor
     virtual ~EmitterVolume() = default;
@@ -31,8 +31,7 @@ public:
     virtual DirectX::XMFLOAT3 next() const = 0;
 
 protected:
-
-    mutable RandomFloat rng_;      // A random number generator.
+    std::minstd_rand & rng_;      // A random number generator.
 };
 
 //! An EmitterVolume that emits particles from the point <tt>[0,0,0]</tt>.
@@ -42,7 +41,7 @@ class EmitterPoint : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterPoint(unsigned int seed);
+    EmitterPoint(std::minstd_rand & rng);
 
     //! Destructor
     virtual ~EmitterPoint() override = default;
@@ -70,7 +69,7 @@ class EmitterLine : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterLine(unsigned int seed, float size);
+    EmitterLine(std::minstd_rand & rng, float size);
 
     //! Destructor
     virtual ~EmitterLine() override = default;
@@ -102,7 +101,7 @@ class EmitterRectangle : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterRectangle(unsigned int seed, float w, float h);
+    EmitterRectangle(std::minstd_rand & rng, float w, float h);
 
     //! Destructor
     virtual ~EmitterRectangle() override = default;
@@ -134,7 +133,7 @@ class EmitterCircle : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterCircle(unsigned int seed, float radius);
+    EmitterCircle(std::minstd_rand & rng, float radius);
 
     //! Destructor
     virtual ~EmitterCircle() override = default;
@@ -166,7 +165,7 @@ class EmitterSphere : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterSphere(unsigned int seed, float radius);
+    EmitterSphere(std::minstd_rand & rng, float radius);
 
     //! Destructor
     virtual ~EmitterSphere() override = default;
@@ -199,7 +198,7 @@ class EmitterBox : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterBox(unsigned int seed, DirectX::XMFLOAT3 const & size);
+    EmitterBox(std::minstd_rand & rng, DirectX::XMFLOAT3 const & size);
 
     //! Destructor
     virtual ~EmitterBox() override = default;
@@ -232,7 +231,7 @@ class EmitterCylinder : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterCylinder(unsigned int seed, float radius, float height);
+    EmitterCylinder(std::minstd_rand & rng, float radius, float height);
 
     //! Destructor
     virtual ~EmitterCylinder() override = default;
@@ -266,7 +265,7 @@ class EmitterCone : public EmitterVolume
 public:
 
     //! Constructor
-    EmitterCone(unsigned int seed, float radius, float height);
+    EmitterCone(std::minstd_rand & rng, float radius, float height);
 
     //! Destructor
     virtual ~EmitterCone() override = default;

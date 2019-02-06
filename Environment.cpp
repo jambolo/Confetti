@@ -1,17 +1,17 @@
 #include "Environment.h"
 
-#include "Misc/Random.h"
+#include "Dxx/Random.h"
 #include "MyMath/Constants.h"
 #include "MyMath/FastMath.h"
 
 #include <d3d11.h>
 #include <DirectXMath.h>
+
+#include <random>
 using namespace DirectX;
 
 namespace Confetti
 {
-RandomFloat Environment::rng_(-1);
-
 Environment::Environment(DirectX::XMFLOAT3 const & gravity /* = { 0.0f, 0.0f, 0.0f }*/,
                          DirectX::XMFLOAT3 const & windVelocity /* = { 0.0f, 0.0f, 0.0f }*/,
                          float                     airFriction /* = 0.0f*/,
@@ -26,8 +26,8 @@ Environment::Environment(DirectX::XMFLOAT3 const & gravity /* = { 0.0f, 0.0f, 0.
     , clipPlanes_(pCPL)
     , gust_({ 0.0f, 0.0f, 0.0f })
     , currentWindVelocity_(windVelocity)
+    , rng_(std::random_device()())
 {
-    rng_.setState((uint32_t)reinterpret_cast<uintptr_t>(this));   // Reinitialize the RNG to a random starting point
 }
 
 //!
@@ -35,19 +35,15 @@ Environment::Environment(DirectX::XMFLOAT3 const & gravity /* = { 0.0f, 0.0f, 0.
 
 void Environment::Update(float dt)
 {
-    DirectX::XMVECTOR currentWindVelocity_simd(XMLoadFloat3(&windVelocity_);
+    DirectX::XMVECTOR currentWindVelocity_simd(XMLoadFloat3(&windVelocity_));
 
     // If a gustiness value is specified, then randomly adjust the wind velocity
     DirectX::XMVECTOR gustiness_simd(XMLoadFloat3(&gustiness_));
-    if (!XMVector3InBounds(gustiness_simd, DirectX::XMVectorZero())
+    if (!XMVector3InBounds(gustiness_simd, DirectX::XMVectorZero()))
     {
-        gust_.x += rng_(DirectX::XM_2PI) * dt;
-        gust_.y += rng_(DirectX::XM_2PI) * dt;
-
-        float cx, sx, cy, sy;
-        MyMath::fsincos(gust_.x, &sx, &cx);
-        MyMath::fsincos(gust_.y, &sy, &cy);
-        currentWindVelocity_simd += gustiness_simd * FXMVECTOR(cx * sy, cy, sx * sy);
+        Dxx::RandomDirection gust;
+        DirectX::XMVECTOR gustDirection_simd = DirectX::XMLoadFloat3(&gust(rng_));
+        currentWindVelocity_simd += gustDirection_simd * gustiness_simd * dt;
 
         DirectX::XMStoreFloat3(&currentWindVelocity_, currentWindVelocity_simd);
     }

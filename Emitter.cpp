@@ -7,6 +7,7 @@
 #include "resource.h"
 
 #include "Wx/Wx.h"
+#include "Dxx/Camera.h"
 
 #include <d3d11.h>
 #include <D3DCompiler.h>
@@ -614,7 +615,7 @@ void StreakEmitter::initialize()
 
     {
         ID3D11Buffer * pErrorMsgs;
-        hr = D3DXCreateEffectFromFile(pD3dDevice_, _T("../res/StreakParticle.fxo"), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
+        hr = D3DXCreateEffectFromFile(pD3dDevice_, L"../res/StreakParticle.fxo", NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
 //  hr = D3DXCreateEffectFromFile( pD3dDevice_, _T( "res/StreakParticle.fxo" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs );
 //  hr = D3DXCreateEffectFromResource( pD3dDevice_, NULL, _T( "IDR_STREAKEFFECT" ), NULL, NULL, 0, NULL, &pEffect_,
 // &pErrorMsgs );
@@ -732,15 +733,15 @@ void StreakEmitter::draw() const
                     StreakParticle::VBEntry * pVBEntry = &paVB[count];          // Convenience
 
                     pVBEntry->v[0].position = pParticle->GetPosition();
-                    pVBEntry->v[0].color    = D3DCOLOR_COLORVALUE(pParticle->GetColor().r,
-                                                                  pParticle->GetColor().g,
-                                                                  pParticle->GetColor().b,
-                                                                  pParticle->GetColor().a);
+                    pVBEntry->v[0].color    = D3DCOLOR_COLORVALUE(pParticle->GetColor().x,
+                                                                  pParticle->GetColor().y,
+                                                                  pParticle->GetColor().z,
+                                                                  pParticle->GetColor().w);
 
                     pVBEntry->v[1].position = pParticle->GetTailPosition();
-                    pVBEntry->v[1].color    = D3DCOLOR_COLORVALUE(pParticle->GetColor().r,
-                                                                  pParticle->GetColor().g,
-                                                                  pParticle->GetColor().b,
+                    pVBEntry->v[1].color    = D3DCOLOR_COLORVALUE(pParticle->GetColor().x,
+                                                                  pParticle->GetColor().y,
+                                                                  pParticle->GetColor().z,
                                                                   0.0f);
 
                     ++count;

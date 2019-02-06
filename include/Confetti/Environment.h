@@ -4,9 +4,9 @@
 #define CONFETTI_ENVIRONMENT_H
 
 #include "Dxx/D3dx.h"
-#include "Misc/Random.h"
 #include <DirectXMath.h>
 #include <vector>
+#include <random>
 
 namespace Confetti
 {
@@ -112,7 +112,7 @@ private:
     BouncePlaneList const * bouncePlanes_;  // A list of planes that the particles bounce against.
     ClipPlaneList const * clipPlanes_;      // A list of planes that clip the particles.
 
-    static RandomFloat rng_;                // The RNG for environments
+    std::minstd_rand rng_;                // The RNG for environments
 };
 } // namespace Confetti
 
