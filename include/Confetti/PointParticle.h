@@ -14,7 +14,7 @@ namespace Confetti
 class BasicEmitter;
 
 //! A point Particle scaled by distance.
-//
+//!
 //! @ingroup	Particles
 //!
 

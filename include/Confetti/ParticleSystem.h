@@ -15,7 +15,7 @@ class EmitterVolume;
 class Environment;
 
 //! The particle system
-//
+//!
 //! This class updates and draws particles associated with a set of emitters using a set of appearances
 //! and environments.
 
@@ -23,10 +23,10 @@ class ParticleSystem
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     ParticleSystem(ID3D11Device * pD3dDevice);
 
-    //! Destructor
+    //! Destructor.
     ~ParticleSystem();
 
     //! Registers/unregisters an emitter (Unregister returns true if the emitter was found)

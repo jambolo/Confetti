@@ -18,10 +18,10 @@ class EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterVolume(std::minstd_rand & rng);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterVolume() = default;
 
     //! Returns a value used to specify a particle's point of emission.
@@ -40,10 +40,10 @@ class EmitterPoint : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterPoint(std::minstd_rand & rng);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterPoint() override = default;
 
     //! @name Overrides EmitterVolume
@@ -68,10 +68,10 @@ class EmitterLine : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterLine(std::minstd_rand & rng, float size);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterLine() override = default;
 
     //! @name Overrides EmitterVolume
@@ -100,10 +100,10 @@ class EmitterRectangle : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterRectangle(std::minstd_rand & rng, float w, float h);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterRectangle() override = default;
 
     //! @name Overrides EmitterVolume
@@ -132,10 +132,10 @@ class EmitterCircle : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterCircle(std::minstd_rand & rng, float radius);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterCircle() override = default;
 
     //! @name Overrides EmitterVolume
@@ -164,10 +164,10 @@ class EmitterSphere : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterSphere(std::minstd_rand & rng, float radius);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterSphere() override = default;
 
     //! @name Overrides EmitterVolume
@@ -197,10 +197,10 @@ class EmitterBox : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterBox(std::minstd_rand & rng, DirectX::XMFLOAT3 const & size);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterBox() override = default;
 
     //! @name Overrides EmitterVolume
@@ -230,10 +230,10 @@ class EmitterCylinder : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterCylinder(std::minstd_rand & rng, float radius, float height);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterCylinder() override = default;
 
     //! @name Overrides EmitterVolume
@@ -264,10 +264,10 @@ class EmitterCone : public EmitterVolume
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     EmitterCone(std::minstd_rand & rng, float radius, float height);
 
-    //! Destructor
+    //! Destructor.
     virtual ~EmitterCone() override = default;
 
     //! @name Overrides EmitterVolume

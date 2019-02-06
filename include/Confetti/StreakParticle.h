@@ -13,7 +13,7 @@ namespace Confetti
 class BasicEmitter;
 
 //! A line-shaped Particle whose length and direction depend on its velocity.
-//
+//!
 //! @ingroup	Particles
 //!
 
@@ -21,10 +21,10 @@ class StreakParticle : public Particle
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     StreakParticle() = default;
 
-    //! Constructor
+    //! Constructor.
     StreakParticle(BasicEmitter const *      pEmitter,
                    float                     lifetime,
                    float                     age,

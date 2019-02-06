@@ -11,7 +11,7 @@ namespace Dxx { class Camera; }
 namespace Confetti
 {
 //! %Appearance characteristics shared by multiple particles.
-//
+//!
 //! @ingroup	Controls
 //!
 //! @note	Some characteristics are not used by all particle types and actual usage of each characteristic is up
@@ -21,7 +21,7 @@ class Appearance
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     explicit Appearance(Dxx::Camera const * pCamera,
                         DirectX::XMFLOAT4 const & colorRate = { 0.0f, 0.0f, 0.0f, 0.0f },
                         float radiusRate      = 0.0f,
@@ -29,7 +29,7 @@ public:
                         ID3D11Texture2D *         pTexture = nullptr,
                         float size = 1.0f);
 
-    // Destructor
+    //! Destructor.
     virtual ~Appearance();
 
     // Copy constructor

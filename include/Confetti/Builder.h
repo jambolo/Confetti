@@ -38,7 +38,7 @@ public:
     //! Constructor.
     Builder(std::minstd_rand & rng);
 
-    //! Destructor
+    //! Destructor.
     virtual ~Builder();
 
     //! Returns a new particle system build using the supplied configuration

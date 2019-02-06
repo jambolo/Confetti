@@ -13,7 +13,7 @@ struct ID3D11Device;
 namespace Confetti
 {
 //! A sphere-shaped lit Particle with a radius.
-//
+//!
 //! @ingroup	Particles
 //!
 
@@ -21,10 +21,10 @@ class SphereParticle : public Particle
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     SphereParticle() = default;
 
-    //! Constructor
+    //! Constructor.
     SphereParticle(BasicEmitter const *      pEmitter,
                    float                     lifetime,
                    float                     age,
@@ -33,7 +33,7 @@ public:
                    DirectX::XMFLOAT4 const & color,
                    float                     radius);
 
-    // Destructor
+    //! Destructor.
     virtual ~SphereParticle() override = default;
 
     //! @name Overrides Particle

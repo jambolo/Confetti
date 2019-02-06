@@ -125,10 +125,10 @@ public:
         std::vector<BouncePlane> bouncePlanes_;
     };
 
-    //! Constructor
+    //! Constructor.
     Configuration() = default;
 
-    // Destructor
+    //! Destructor.
     virtual ~Configuration() = default;
 
     using EmitterMap         = std::map<std::string, Emitter>;          //!< A map of Emitters
@@ -154,13 +154,13 @@ class XmlConfiguration : public Configuration
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     XmlConfiguration(char const * sFilename = nullptr);
 
-    //! Constructor
+    //! Constructor.
     XmlConfiguration(IXMLDOMDocument2 * pDoc);
 
-    // Destructor
+    //! Destructor.
     virtual ~XmlConfiguration() override = default;
 
     //! Loads a configuration from an XML file. Returns true if successful.
@@ -236,10 +236,10 @@ class JsonConfiguration : public Configuration
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     JsonConfiguration(nlohmann::json json);
 
-    // Destructor
+    //! Destructor.
     virtual ~JsonConfiguration() override;
 
     //! Saves the configuration to a JSON object

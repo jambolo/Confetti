@@ -72,8 +72,8 @@ void TexturedParticle::Initialize(float                     lifetime,
     rotation_ = rotation;
 }
 
-//
-// @param	dt	The amount of time that has passed since the last update
+//!
+//! @param	dt	The amount of time that has passed since the last update
 
 bool TexturedParticle::Update(float dt)
 {

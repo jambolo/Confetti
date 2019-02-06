@@ -33,7 +33,7 @@ class BasicEmitter
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     BasicEmitter(ID3D11Device *        pD3dDevice,
                  Particle *            paParticles,
                  int                   size,
@@ -43,7 +43,7 @@ public:
                  int                   n,
                  bool                  sorted);
 
-    // Destructor
+    //! Destructor.
     virtual ~BasicEmitter();
 
     //! Returns a pointer to the array of particles.
@@ -144,7 +144,7 @@ private:
 //@{
 
 //! An Emitter that emits PointParticles
-//
+//!
 //! @ingroup	Emitters
 //!
 
@@ -152,7 +152,7 @@ class PointEmitter : public BasicEmitter
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     PointEmitter(ID3D11Device *        pD3dDevice,
                  EmitterVolume const * pVol,
                  Environment const *   pEnv,
@@ -160,7 +160,7 @@ public:
                  int                   n,
                  bool                  sorted);
 
-    //! Constructor
+    //! Constructor.
     PointEmitter(ID3D11Device *                 pD3dDevice,
                  std::unique_ptr<PointParticle> qaParticles,
                  EmitterVolume const *          pVol,
@@ -201,7 +201,7 @@ public:
 };
 
 //! An Emitter that emits StreakParticles
-//
+//!
 //! @ingroup	Emitters
 //!
 
@@ -209,7 +209,7 @@ class StreakEmitter : public BasicEmitter
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     StreakEmitter(ID3D11Device *        pD3dDevice,
                   EmitterVolume const * pVol,
                   Environment const *   pEnv,
@@ -217,7 +217,7 @@ public:
                   int                   n,
                   bool                  sorted);
 
-    //! Constructor
+    //! Constructor.
     StreakEmitter(ID3D11Device *                  pD3dDevice,
                   std::unique_ptr<StreakParticle> qaParticles,
                   EmitterVolume const *           pVol,
@@ -258,7 +258,7 @@ public:
 };
 
 //! An Emitter that emits TexturedParticles
-//
+//!
 //! @ingroup	Emitters
 //!
 
@@ -266,7 +266,7 @@ class TexturedEmitter : public BasicEmitter
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     TexturedEmitter(ID3D11Device *        pD3dDevice,
                     EmitterVolume const * pVol,
                     Environment const *   pEnv,
@@ -274,7 +274,7 @@ public:
                     int                   n,
                     bool                  sorted);
 
-    //! Constructor
+    //! Constructor.
     TexturedEmitter(ID3D11Device *                    pD3dDevice,
                     std::unique_ptr<TexturedParticle> qaParticles,
                     EmitterVolume const *             pVol,
@@ -319,7 +319,7 @@ private:
 };
 
 //! An Emitter that emits SphereParticles
-//
+//!
 //! @ingroup	Emitters
 //!
 
@@ -327,7 +327,7 @@ class SphereEmitter : public BasicEmitter
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     SphereEmitter(ID3D11Device *        pD3dDevice,
                   EmitterVolume const * pVol,
                   Environment const *   pEnv,
@@ -335,7 +335,7 @@ public:
                   int                   n,
                   bool                  sorted);
 
-    //! Constructor
+    //! Constructor.
     SphereEmitter(ID3D11Device *                  pD3dDevice,
                   std::unique_ptr<SphereParticle> qaParticles,
                   EmitterVolume const *           pVol,

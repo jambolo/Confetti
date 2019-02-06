@@ -12,7 +12,7 @@ struct ID3D11Device;
 namespace Confetti
 {
 //! A square camera-facing Particle with a texture, radius, and 2D rotation.
-//
+//!
 //! @ingroup	Particles
 //!
 
@@ -20,10 +20,10 @@ class TexturedParticle : public Particle
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     TexturedParticle() = default;
 
-    //! Constructor
+    //! Constructor.
     TexturedParticle(BasicEmitter const *      pEmitter,
                      float                     lifetime,
                      float                     age,
@@ -33,7 +33,7 @@ public:
                      float                     radius,
                      float                     rotation);
 
-    // Destructor
+    //! Destructor.
     virtual ~TexturedParticle() override = default;
 
     //! Initializes a particle constructed with the default constructor

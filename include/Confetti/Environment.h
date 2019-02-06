@@ -11,7 +11,7 @@
 namespace Confetti
 {
 //! An external (to any particle or emitter) set of factors that control a particle's position and velocity.
-//
+//!
 //! @ingroup	Controls
 //!
 
@@ -30,7 +30,7 @@ public:
         {
         }
 
-        //! Constructor
+        //! Constructor.
         BouncePlane(DirectX::XMFLOAT4 const & plane, float dampening)
             : plane_(plane)
             , dampening_(dampening)
@@ -49,7 +49,7 @@ public:
     //! A list of ClipPlanes.
     using ClipPlaneList = std::vector<ClipPlane>;
 
-    //! Constructor
+    //! Constructor.
     explicit Environment(DirectX::XMFLOAT3 const & gravity      = { 0.0f, 0.0f, 0.0f },
                          DirectX::XMFLOAT3 const & windVelocity = { 0.0f, 0.0f, 0.0f },
                          float airFriction = 0.0f,
@@ -57,7 +57,7 @@ public:
                          BouncePlaneList const *   pBPL      = nullptr,
                          ClipPlaneList const *     pCPL      = nullptr);
 
-    // Destructor
+    //! Destructor.
     virtual ~Environment() = default;
 
     //! Sets/returns gravity.

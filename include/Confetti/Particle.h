@@ -12,7 +12,7 @@ namespace Confetti
 class BasicEmitter;
 
 //! A particle base class.
-//
+//!
 //! @ingroup	Particles
 //!
 //! A Particle is a point with a lifetime, age, position, and velocity. It has no size, shape, orientation, color,
@@ -24,10 +24,10 @@ class Particle
 {
 public:
 
-    //! Constructor
+    //! Constructor.
     Particle() = default;
 
-    //! Constructor
+    //! Constructor.
     Particle(BasicEmitter const *      pEmitter,
              float                     lifetime,
              float                     age,
@@ -35,14 +35,14 @@ public:
              DirectX::XMFLOAT3 const & velocity,
              DirectX::XMFLOAT4 const & color);
 
-    // Destructor
+    //! Destructor.
     virtual ~Particle() = default;
 
     //! Updates the particle. Returns true if the particle was reborn.
     virtual bool Update(float dt);
 
     //! Draws the particle.
-    //
+    //!
     //!
     //! @note	This method must be overridden.
     virtual void Draw(ID3D11Device * pD3dDevice) const = 0;
