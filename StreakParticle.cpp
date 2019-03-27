@@ -67,7 +67,7 @@ bool StreakParticle::Update(float dt)
     return reborn;
 }
 
-void StreakParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
+void StreakParticle::Draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do here because all drawing is done by the emitter. This function should not be called
     assert(false);

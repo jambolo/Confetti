@@ -12,8 +12,6 @@
 
 #include <algorithm>
 
-using namespace DirectX;
-
 // Vertex buffer size
 static int const VERTEX_BUFFER_SIZE = 1024 * 1024;
 
@@ -51,7 +49,7 @@ namespace Confetti
 //!
 //! @warning paParticles must have been allocated with new[].
 
-BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device> device,
                            Particle *                   paParticles,
                            int                          size,
                            EmitterVolume const *        pVol,
@@ -70,7 +68,7 @@ BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
     , velocity_({ 0.0f, 0.0f, 0.0f })
     , pVB_(nullptr)
 {
-    pD3dDevice->AddRef();
+    device->AddRef();
 
     // Check caps bits for certain features
     {
@@ -93,7 +91,7 @@ BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
         0                           // UINT        StructureByteStride;
     };
 
-    HRESULT hr = pD3dDevice->CreateBuffer(&desc, nullptr, &pVB_);
+    HRESULT hr = device->CreateBuffer(&desc, nullptr, &pVB_);
     assert_succeeded(hr);
 }
 
@@ -147,13 +145,13 @@ void BasicEmitter::update(glm::vec3 const & position, glm::vec3 const & velocity
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device> device,
                            EmitterVolume const *        pVol,
                            Environment const *          pEnv,
                            Appearance const *           pApp,
                            int                          n,
                            bool                         sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    new PointParticle[n],
                    sizeof(PointParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -172,14 +170,14 @@ PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   pD3dDevice,
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
                            std::unique_ptr<PointParticle> qaParticles,
                            EmitterVolume const *          pVol,
                            Environment const *            pEnv,
                            Appearance const *             pApp,
                            int                            n,
                            bool                           sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    qaParticles.release(),
                    sizeof(PointParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -526,13 +524,13 @@ void PointEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device> device,
                              EmitterVolume const *        pVol,
                              Environment const *          pEnv,
                              Appearance const *           pApp,
                              int                          n,
                              bool                         sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    new StreakParticle[n],
                    sizeof(StreakParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -552,14 +550,14 @@ StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>    device,
                              std::unique_ptr<StreakParticle> qaParticles,
                              EmitterVolume const *           pVol,
                              Environment const *             pEnv,
                              Appearance const *              pApp,
                              int                             n,
                              bool                            sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    qaParticles.release(),
                    sizeof(StreakParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -611,7 +609,7 @@ void StreakEmitter::initialize()
     // Load the effects file
 
     {
-        ID3D11Buffer * pErrorMsgs;
+        std::shared_ptr<Vkx::LocalBuffer> pErrorMsgs;
         hr = D3DXCreateEffectFromFile(pD3dDevice_, L"../res/StreakParticle.fxo", NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
 //  hr = D3DXCreateEffectFromFile( pD3dDevice_, _T( "res/StreakParticle.fxo" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs );
 //  hr = D3DXCreateEffectFromResource( pD3dDevice_, NULL, _T( "IDR_STREAKEFFECT" ), NULL, NULL, 0, NULL, &pEffect_,
@@ -778,13 +776,13 @@ void StreakEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device> device,
                                  EmitterVolume const *        pVol,
                                  Environment const *          pEnv,
                                  Appearance const *           pApp,
                                  int                          n,
                                  bool                         sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    new TexturedParticle[n],
                    sizeof(TexturedParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -803,14 +801,14 @@ TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>      pD3dDevice,
+TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>      device,
                                  std::unique_ptr<TexturedParticle> qaParticles,
                                  EmitterVolume const *             pVol,
                                  Environment const *               pEnv,
                                  Appearance const *                pApp,
                                  int                               n,
                                  bool                              sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    qaParticles.release(),
                    sizeof(TexturedParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -863,7 +861,7 @@ void TexturedEmitter::initialize()
     // Load the effects file
 
     {
-        ID3D11Buffer * pErrorMsgs;
+        std::shared_ptr<Vkx::LocalBuffer> pErrorMsgs;
         hr =
             D3DXCreateEffectFromFile(pD3dDevice_, _T("../res/TexturedParticle.fxo"), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs);
 //  hr = D3DXCreateEffectFromFile( pD3dDevice_, _T( "res/TexturedParticle.fxo" ), NULL, NULL, 0, NULL, &pEffect_, &pErrorMsgs
@@ -1135,13 +1133,13 @@ void TexturedEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device> device,
                              EmitterVolume const *        pVol,
                              Environment const *          pEnv,
                              Appearance const *           pApp,
                              int                          n,
                              bool                         sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    new SphereParticle[n],
                    sizeof(SphereParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)
@@ -1160,14 +1158,14 @@ SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
+SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>    device,
                              std::unique_ptr<SphereParticle> qaParticles,
                              EmitterVolume const *           pVol,
                              Environment const *             pEnv,
                              Appearance const *              pApp,
                              int                             n,
                              bool                            sorted)
-    : BasicEmitter(pD3dDevice,
+    : BasicEmitter(device,
                    qaParticles.release(),
                    sizeof(SphereParticle::VBEntry),
                    pVol, pEnv, pApp, n, sorted)

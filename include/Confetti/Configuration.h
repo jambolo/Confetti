@@ -4,6 +4,7 @@
 #define CONFETTI_CONFIGURATION_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <string>
@@ -57,7 +58,7 @@ public:
         float radius_;
         bool sorted_;
         glm::vec3 position_;
-        glm::vec4 orientation_;
+        glm::quat orientation_;
         glm::vec3 velocity_;
         ParticleVector particleVector_;
     };
@@ -84,7 +85,7 @@ public:
         glm::vec3 gravity_;
         glm::vec3 windVelocity_;
         glm::vec3 gustiness_;
-        float friction_;
+        float airFriction_;
         std::string bounce_;
         std::string clip_;
     };

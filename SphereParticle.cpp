@@ -73,7 +73,7 @@ bool SphereParticle::Update(float dt)
     return reborn;
 }
 
-void SphereParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
+void SphereParticle::Draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

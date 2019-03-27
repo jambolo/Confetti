@@ -4,7 +4,7 @@
 #define CONFETTI_BUILDER_H
 
 #include <Confetti/Configuration.h>
-// #include <Confetti/Environment.h>
+#include <Confetti/Environment.h>
 #include <memory>
 #include <random>
 #include <Vkx/Random.h>

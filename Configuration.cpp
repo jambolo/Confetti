@@ -3,8 +3,10 @@
 #include <Misc/Exceptions.h>
 #include <Msxmlx/Msxmlx.h>
 #include <Vkx/Vkx.h>
+#include <Wx/Wx.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -111,9 +113,9 @@ glm::vec4 GetRgbaSubElement(IXMLDOMElement * pElement,
     }
 }
 
-glm::vec4 GetQuatSubElement(IXMLDOMElement *  pElement,
+glm::quat GetQuatSubElement(IXMLDOMElement *  pElement,
                             char const *      sName,
-                            glm::vec4 const & defaultQuat = Vkx::QuaternionIdentity())
+                            glm::quat const & defaultQuat = glm::quat())
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -130,7 +132,7 @@ glm::vec4 GetQuatSubElement(IXMLDOMElement *  pElement,
         //        </xsd:all>
         //    </xsd:complexType>
 
-        glm::vec4 q;
+        glm::quat q;
 
         q.x = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultQuat.x);
         q.y = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultQuat.y);
@@ -145,9 +147,34 @@ glm::vec4 GetQuatSubElement(IXMLDOMElement *  pElement,
     }
 }
 
+glm::vec4 GetPackedColorSubElement(IXMLDOMElement * pElement,
+                                   char const *     sName,
+                                   uint32_t         defaultRgba = 0xffffffff)
+{
+    uint32_t rgba = Msxmlx::GetHexSubElement(pElement, sName, defaultRgba);
+
+    glm::vec4 color;
+    for (int i = 3; i >= 0; --i)
+    {
+        color[i] = float(rgba & 0xff) / 255.0f;
+        rgba   >>= 8;
+    }
+
+    return color;
+}
+
 #if defined(_DEBUG)
 
 std::ostream & operator <<(std::ostream & s, glm::vec4 const & q)
+{
+    s << q.x << ','
+      << q.y << ','
+      << q.z << ','
+      << q.w;
+
+    return s;
+}
+std::ostream & operator <<(std::ostream & s, glm::quat const & q)
 {
     s << q.x << ','
       << q.y << ','
@@ -452,7 +479,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
         environment.gravity_      = GetVectorSubElement(pElement, "Gravity");
         environment.windVelocity_ = GetVectorSubElement(pElement, "WindVelocity");
         environment.gustiness_    = GetVectorSubElement(pElement, "Gustiness");
-        environment.friction_     = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
+        environment.airFriction_  = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
         environment.bounce_       = Msxmlx::GetStringSubElement(pElement, "Bounce");
         environment.clip_         = Msxmlx::GetStringSubElement(pElement, "Clip");
 
@@ -462,7 +489,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
             msg << "Environment: " << environment.name_ << "( "
                 << "[" << environment.gravity_ << "], "
                 << "[" << environment.windVelocity_ << "], "
-                << environment.friction_ << ", "
+                << environment.airFriction_ << ", "
                 << "[" << environment.gustiness_ << "], "
                 << "\"" << environment.bounce_ << "\", "
                 << "\"" << environment.clip_ << "\" )"
@@ -630,12 +657,9 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
         emitter.spread_      = Msxmlx::GetFloatSubElement(pElement, "Spread");
         emitter.minSpeed_    = Msxmlx::GetFloatSubElement(pElement, "MinSpeed");
         emitter.maxSpeed_    = Msxmlx::GetFloatSubElement(pElement, "MaxSpeed");
-        DirectX::XMStoreFloat4(&emitter.color_,
-                               DirectX::PackedVector::XMLoadColor(
-                                   &DirectX::PackedVector::XMCOLOR(
-                                       Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff))));
-        emitter.radius_ = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.0f);
-        emitter.sorted_ = Msxmlx::GetBoolSubElement(pElement, "Sorted");
+        emitter.color_       = GetPackedColorSubElement(pElement, "Color", 0xffffffff);
+        emitter.radius_      = Msxmlx::GetFloatSubElement(pElement, "Radius", 1.0f);
+        emitter.sorted_      = Msxmlx::GetBoolSubElement(pElement, "Sorted");
 
 #if defined(_DEBUG)
         {
@@ -964,9 +988,9 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //            *pVelocity        = GetVectorSubElement(    pElement, "Velocity",    *pVelocity );
 //            *pLifetime        = Msxmlx::GetFloatSubElement(  pElement, "Lifetime",    *pLifetime );
 //            *pAge            = Msxmlx::GetFloatSubElement(  pElement, "Age",            *pAge );
-//            DirectX::XMStoreFloat4(pColor,
-//                DirectX::PackedVector::XMLoadColor(
-//                    &DirectX::PackedVector::XMCOLOR(
+//             XMStoreFloat4(pColor,
+//                 PackedVector::XMLoadColor(
+//                    & PackedVector::XMCOLOR(
 //                        Msxmlx::GetHexSubElement(pElement, "Color", 0xffffffff))));
 //            *pRadius        = Msxmlx::GetFloatSubElement(  pElement, "Radius",        *pRadius );
 //            *pRotation        = Msxmlx::GetFloatSubElement(  pElement, "Rotation",    *pRotation );

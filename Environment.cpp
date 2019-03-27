@@ -26,7 +26,7 @@ Environment::Environment(glm::vec3 const &       gravity /*= { 0.0f, 0.0f, 0.0f 
                          ClipPlaneList const &   cpl /*= ClipPlaneList()*/)
     : gravity_(gravity)
     , windVelocity_(windVelocity)
-    , friction_(friction)
+    , airFriction_(friction)
     , gustiness_(gustiness)
     , bouncePlanes_(bpl)
     , clipPlanes_(cpl)
@@ -46,15 +46,15 @@ void Environment::update(float dt)
         currentWindVelocity_ += gustDirection_(rng_) * (gustiness_ * dt);
 
     // If friction value is specified, then compute the terminal velocity and some intermediate values.
-    if (friction_ != 0.0f)
+    if (airFriction_ != 0.0f)
     {
         glm::vec3 terminalVelocity;
         glm::vec3 terminalDistance;
-        terminalVelocity  = currentWindVelocity_ + gravity_ * friction_;
+        terminalVelocity  = currentWindVelocity_ + gravity_ * airFriction_;
         terminalDistance  = terminalVelocity * dt;
         terminalVelocity_ = terminalVelocity;
         terminalDistance_ = terminalDistance;
-        ect1_ = 1.0f - expf(-friction_ * dt);
+        ect1_ = 1.0f - expf(-airFriction_ * dt);
     }
     else
     {

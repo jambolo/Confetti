@@ -6,7 +6,10 @@
 #include <Confetti/Particle.h>
 #include <glm/glm.hpp>
 
-struct ID3D11Device;
+namespace Vkx
+{
+    class Device;
+}
 
 namespace Confetti
 {
@@ -47,7 +50,7 @@ public:
     //! @name Overrides Particle
     //@{
     virtual bool Update(float dt) override;
-    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const override;
+    virtual void Draw(std::shared_ptr<Vkx::Device> device) const override;
     //@}
 
     //! Returns the particle's current radius.

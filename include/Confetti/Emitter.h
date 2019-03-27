@@ -11,11 +11,10 @@
 #include <memory>
 #include <Misc/Assertx.h>
 
-struct ID3D11Device;
-struct ID3D11Buffer;
-struct ID3D11Buffer;
-struct ID3DX11Effect;
-struct IDirect3DVertexDeclaration11;
+namespace Vkx
+{
+    class LocalBuffer;
+}
 
 namespace Confetti
 {
@@ -34,7 +33,7 @@ class BasicEmitter
 public:
 
     //! Constructor.
-    BasicEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+    BasicEmitter(std::shared_ptr<Vkx::Device> device,
                  Particle *                   paParticles,
                  int                          size,
                  EmitterVolume const *        pVol,
@@ -110,7 +109,7 @@ protected:
     // D3D Stuff
 
     std::shared_ptr<Vkx::Device> pD3dDevice_;                         //!< D3D device
-    ID3D11Buffer * pVB_;                                //!< Vertex buffer for particles
+    std::shared_ptr<Vkx::LocalBuffer> pVB_;                                //!< Vertex buffer for particles
     ID3DBlob * pEffect_;                                //!< The effect for rendering this emitter's particles
     IDirect3DVertexDeclaration11 * pVertexDeclaration_; //!< The vertex buffer format
     bool alphaTestAvailable_;                           //!< true if the device supports alpha test
@@ -153,7 +152,7 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    PointEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+    PointEmitter(std::shared_ptr<Vkx::Device> device,
                  EmitterVolume const *        pVol,
                  Environment const *          pEnv,
                  Appearance const *           pApp,
@@ -161,7 +160,7 @@ public:
                  bool                         sorted);
 
     //! Constructor.
-    PointEmitter(std::shared_ptr<Vkx::Device>   pD3dDevice,
+    PointEmitter(std::shared_ptr<Vkx::Device>   device,
                  std::unique_ptr<PointParticle> qaParticles,
                  EmitterVolume const *          pVol,
                  Environment const *            pEnv,
@@ -210,7 +209,7 @@ class StreakEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    StreakEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+    StreakEmitter(std::shared_ptr<Vkx::Device> device,
                   EmitterVolume const *        pVol,
                   Environment const *          pEnv,
                   Appearance const *           pApp,
@@ -218,7 +217,7 @@ public:
                   bool                         sorted);
 
     //! Constructor.
-    StreakEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
+    StreakEmitter(std::shared_ptr<Vkx::Device>    device,
                   std::unique_ptr<StreakParticle> qaParticles,
                   EmitterVolume const *           pVol,
                   Environment const *             pEnv,
@@ -267,7 +266,7 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    TexturedEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+    TexturedEmitter(std::shared_ptr<Vkx::Device> device,
                     EmitterVolume const *        pVol,
                     Environment const *          pEnv,
                     Appearance const *           pApp,
@@ -275,7 +274,7 @@ public:
                     bool                         sorted);
 
     //! Constructor.
-    TexturedEmitter(std::shared_ptr<Vkx::Device>      pD3dDevice,
+    TexturedEmitter(std::shared_ptr<Vkx::Device>      device,
                     std::unique_ptr<TexturedParticle> qaParticles,
                     EmitterVolume const *             pVol,
                     Environment const *               pEnv,
@@ -315,7 +314,7 @@ public:
 
 private:
 
-    ID3D11Buffer * pIB_;                      // Index buffer for particles
+    std::shared_ptr<Vkx::LocalBuffer> pIB_;                      // Index buffer for particles
 };
 
 //! An Emitter that emits SphereParticles
@@ -328,7 +327,7 @@ class SphereEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    SphereEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+    SphereEmitter(std::shared_ptr<Vkx::Device> device,
                   EmitterVolume const *        pVol,
                   Environment const *          pEnv,
                   Appearance const *           pApp,
@@ -336,7 +335,7 @@ public:
                   bool                         sorted);
 
     //! Constructor.
-    SphereEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
+    SphereEmitter(std::shared_ptr<Vkx::Device>    device,
                   std::unique_ptr<SphereParticle> qaParticles,
                   EmitterVolume const *           pVol,
                   Environment const *             pEnv,

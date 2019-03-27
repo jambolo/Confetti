@@ -98,7 +98,7 @@ bool TexturedParticle::Update(float dt)
     return reborn;
 }
 
-void TexturedParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
+void TexturedParticle::Draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

@@ -26,7 +26,7 @@
 //! @defgroup	Controls		Common Appearance and Behavior
 //! Classes used to control the appearance and behavior of particles.
 
-//! DirectX-based %Particle System
+//! Vulkan-based %Particle System.
 
 namespace Confetti
 {

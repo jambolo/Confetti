@@ -68,10 +68,10 @@ public:
     glm::vec3 gravity() const { return gravity_; }
 
     //! Sets air friction
-    void setAirFriction(float airFriction) { friction_ = airFriction; }
+    void setAirFriction(float airFriction) { airFriction_ = airFriction; }
 
     //! Returns air friction
-    float airFriction() const { return friction_; }
+    float airFriction() const { return airFriction_; }
 
     //! Sets wind velocity
     void setWindVelocity(glm::vec3 const & wind) { windVelocity_ = wind; }
@@ -106,14 +106,14 @@ public:
     //! Returns the distance traveled by a particle at terminal velocity during the last update.
     glm::vec3 terminalDistance() const { return terminalDistance_; }
 
-    //! Returns the value 1.0f - exp( -friction_ * dt ) calculated during the last update.
+    //! Returns the value 1.0f - exp( -airFriction_ * dt ) calculated during the last update.
     float ect1() const { return ect1_; }
 
 private:
 
     glm::vec3 gravity_;                     // Gravity.
     glm::vec3 windVelocity_;                // Constant wind velocity component of the current wind velocity.
-    float friction_;                        // Friction factor.
+    float airFriction_;                        // Friction factor.
     float gustiness_;                       // Gustiness factor.
     BouncePlaneList bouncePlanes_;          // A list of planes that the particles bounce against.
     ClipPlaneList clipPlanes_;              // A list of planes that clip the particles.
@@ -123,7 +123,7 @@ private:
     glm::vec3 currentWindVelocity_;         // Current wind velocity.
     glm::vec3 terminalVelocity_;            // Terminal velocity.
     glm::vec3 terminalDistance_;            // Movement of a particle traveling at terminal velocity.
-    float ect1_;                            // The value 1.0f - exp( -friction_ * dt ) calculated during the last update.
+    float ect1_;                            // The value 1.0f - exp( -airFriction_ * dt ) calculated during the last update.
 };
 } // namespace Confetti
 

@@ -49,7 +49,7 @@ bool PointParticle::Update(float dt)
     return Particle::Update(dt);
 }
 
-void PointParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
+void PointParticle::Draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do. The particles are drawn by the emitter. This function should not be called.
     assert(false);

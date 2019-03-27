@@ -19,8 +19,6 @@
 
 #include <random>
 
-using namespace DirectX;
-
 namespace Confetti
 {
 Builder::Builder(std::minstd_rand & rng)
@@ -394,7 +392,7 @@ std::vector<SphereParticle> Builder::buildSphereParticles(
 //	return std::vector< EmitterParticle >( particles );
 // }
 
-BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuration, std::shared_ptr<Vkx::Device> pD3dDevice)
+BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuration, std::shared_ptr<Vkx::Device> device)
 {
     // Prevent duplicate entries
 
@@ -441,7 +439,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
                                                                      *pEnvironment,
                                                                      *pAppearance);
 
-        pEmitter = new PointEmitter(pD3dDevice,
+        pEmitter = new PointEmitter(device,
                                     std::move(qaParticles),
                                     pVolume,
                                     pEnvironment,
@@ -458,7 +456,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
                                                                        *pEnvironment,
                                                                        *pAppearance);
 
-        pEmitter = new StreakEmitter(pD3dDevice,
+        pEmitter = new StreakEmitter(device,
                                      std::move(qaParticles),
                                      pVolume,
                                      pEnvironment,
@@ -475,7 +473,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
                                                                            *pEnvironment,
                                                                            *pAppearance);
 
-        pEmitter = new TexturedEmitter(pD3dDevice,
+        pEmitter = new TexturedEmitter(device,
                                        std::move(qaParticles),
                                        pVolume,
                                        pEnvironment,
@@ -492,7 +490,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
                                                                        *pEnvironment,
                                                                        *pAppearance);
 
-        pEmitter = new SphereEmitter(pD3dDevice,
+        pEmitter = new SphereEmitter(device,
                                      std::move(qaParticles),
                                      pVolume,
                                      pEnvironment,
@@ -509,7 +507,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
 //																		         *pEnvironment,
 //																		         *pAppearance );
 //
-//		pEmitter = new EmitterEmitter( pD3dDevice,
+//		pEmitter = new EmitterEmitter( device,
 //                                   std::move(qaParticles),
 //									 pVolume,
 //									 pEnvironment,
@@ -532,7 +530,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
 }
 
 Appearance * Builder::buildAppearance(Configuration::Appearance const & configuration,
-                                      std::shared_ptr<Vkx::Device>      pD3dDevice,
+                                      std::shared_ptr<Vkx::Device>      device,
                                       ID3D11DeviceContext *             pD3dContext,
                                       Vkx::Camera const *               pCamera)
 {
@@ -567,7 +565,7 @@ Appearance * Builder::buildAppearance(Configuration::Appearance const & configur
             // Not working for now
             assert(false);
 //            HRESULT hr;
-//            hr = D3DXCreateTextureFromFile(pD3dDevice, configuration.texture_.c_str(), &pTexture);
+//            hr = D3DXCreateTextureFromFile(device, configuration.texture_.c_str(), &pTexture);
 //            assert_succeeded(hr);
 
             addTexture(configuration.texture_, pTexture);
@@ -686,7 +684,7 @@ Environment * Builder::buildEnvironment(Configuration::Environment const & confi
     //		glm::vec4	gravity_;
     //		glm::vec4	windVelocity_;
     //		glm::vec4	gustiness_;
-    //		float		friction_;
+    //		float		airFriction_;
     //		std::string	bounce_;
     //		std::string	clip_;
     //	};
@@ -696,7 +694,7 @@ Environment * Builder::buildEnvironment(Configuration::Environment const & confi
 
     Environment * pEnvironment = new Environment(configuration.gravity_,
                                                  configuration.windVelocity_,
-                                                 configuration.friction_,
+                                                 configuration.airFriction_,
                                                  configuration.gustiness_,
                                                  pBouncePlaneList, pClipPlaneList);
     addEnvironment(configuration.name_, pEnvironment);

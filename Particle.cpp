@@ -4,11 +4,8 @@
 #include "Emitter.h"
 #include "Environment.h"
 
-#include <glm/glm.h>
-
-#include <d3d11.h>
+#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
-using namespace DirectX;
 
 namespace Confetti
 {
@@ -91,17 +88,17 @@ bool Particle::Update(float dt)
         reborn = false;
     }
 
-    glm::vec4 velocity(DirectX::XMLoadFloat3(&velocity_));
-    glm::vec4 position(DirectX::XMLoadFloat3(&position_));
+    glm::vec3 velocity = velocity_;
+    glm::vec3 position = position_;
 
     // If (re)born, then reset to initial values and adjust dt
 
     if (reborn)
     {
-        glm::vec4 emitterVelocity(DirectX::XMLoadFloat3(&pEmitter_->currentVelocity()));
-        glm::vec4 emitterPosition(DirectX::XMLoadFloat3(&pEmitter_->currentPosition()));
-        glm::vec4 initialVelocity(DirectX::XMLoadFloat3(&initialVelocity_));
-        glm::vec4 initialPosition(DirectX::XMLoadFloat3(&initialPosition_));
+        glm::vec3 emitterVelocity = pEmitter_->currentVelocity();
+        glm::vec3 emitterPosition = pEmitter_->currentPosition();
+        glm::vec3 initialVelocity = initialVelocity_;
+        glm::vec3 initialPosition = initialPosition_;
 
         velocity = emitterVelocity + initialVelocity;
         position = emitterPosition + initialPosition;
@@ -113,16 +110,16 @@ bool Particle::Update(float dt)
     Appearance const *  pA = pEmitter_->appearance();
 
     // Update velocity and position
-    glm::vec4 dv;
-    glm::vec4 ds;
-    float     c = pE->GetAirFriction();
-    glm::vec4 g(DirectX::XMLoadFloat3(&pE->GetGravity()));
+    glm::vec3 dv;
+    glm::vec3 ds;
+    float     c = pE->airFriction();
+    glm::vec3 g = pE->gravity();
 
     if (c != 0.0f)
     {
-        glm::vec4 terminalVelocity(DirectX::XMLoadFloat3(&pE->GetTerminalVelocity()));
-        glm::vec4 terminalDistance(DirectX::XMLoadFloat3(&pE->GetTerminalDistance()));
-        float     ect1 = pE->GetEct1();
+        glm::vec3 terminalVelocity = pE->terminalVelocity();
+        glm::vec3 terminalDistance = pE->terminalDistance();
+        float     ect1 = pE->ect1();
 
         dv = (terminalVelocity - velocity) * ect1;
         ds = terminalDistance - dv / c;
@@ -137,13 +134,13 @@ bool Particle::Update(float dt)
     position += ds;
 
     // Check for collision with clip planes
-    Environment::ClipPlaneList const * pClipPlanes = pE->GetClipPlanes();
-    if (pClipPlanes)
+    Environment::ClipPlaneList clipPlanes = pE->clipPlanes();
+    if (clipPlanes)
     {
-        for (auto const & plane : *pClipPlanes)
+        for (auto const & plane : clipPlanes)
         {
-            glm::vec4 plane(DirectX::XMLoadFloat4(&plane));
-            if (XMVector3Less(XMPlaneDotCoord(plane, position), DirectX::XMVectorZero()))
+            glm::vec4 plane = plane;
+            if (glm::dot(plane, glm::vec4(position.x, position.y, position.z, 0.0f)) < 0.0f)
             {
                 age_ -= lifetime_;
                 return reborn;
@@ -152,13 +149,13 @@ bool Particle::Update(float dt)
     }
 
     // Check for collision with bounce planes
-    Environment::BouncePlaneList const * pBouncePlanes = pE->GetBouncePlanes();
+    Environment::BouncePlaneList const * pBouncePlanes = pE->bouncePlanes();
     if (pBouncePlanes)
     {
         for (auto const & plane : *pBouncePlanes)
         {
-            glm::vec4 plane(DirectX::XMLoadFloat4(&plane.plane_));
-            if (XMVector3Less(XMPlaneDotCoord(plane, position), DirectX::XMVectorZero()))
+            glm::vec4 plane(XMLoadFloat4(&plane.plane_));
+            if (XMVector3Less(XMPlaneDotCoord(plane, position),  XMVectorZero()))
             {
                 float f = 1.0f + plane.dampening_;
                 velocity -= plane * (f * XMPlaneDotNormal(plane, velocity));
@@ -168,19 +165,19 @@ bool Particle::Update(float dt)
     }
 
     // Update color
-    glm::vec4 color(DirectX::XMLoadFloat4(&color_));
-    glm::vec4 colorRate(DirectX::XMLoadFloat4(&pA->colorRate()));
+    glm::vec4 color = color_;
+    glm::vec4 colorRate(XMLoadFloat4(&pA->colorRate()));
     color += colorRate * dt;
-    color  = DirectX::XMVectorClamp(color, DirectX::XMVectorZero(), DirectX::XMVectorSplatOne());
+    color  =  XMVectorClamp(color,  XMVectorZero(),  XMVectorSplatOne());
 
-    DirectX::velocity_ = velocity;
-    DirectX::position_ = position;
-    DirectX::color_    = color;
+    velocity_ = velocity;
+    position_ = position;
+    color_    = color;
 
     return reborn;
 }
 
-// glm::vec3 Particle::GetColor() const
+// glm::vec3 Particle::Color() const
 // {
 //	float	r	= glm::limit( 0., initialColor_.R_ + colorDelta_.R_ * age_, 1. );
 //	float	g	= glm::limit( 0., initialColor_.G_ + colorDelta_.G_ * age_, 1. );
@@ -191,13 +188,13 @@ bool Particle::Update(float dt)
 // }
 //
 //
-// glm::vec3 Particle::GetPosition() const
+// glm::vec3 Particle::Position() const
 // {
-//	Environment const &	e	= *pEmitter_->GetEnvironment();
+//	Environment const &	e	= *pEmitter_->Environment();
 //
-//	if ( glm::IsCloseToZero( e.GetAirFriction() ) )
+//	if ( glm::IsCloseToZero( e.AirFriction() ) )
 //	{
-//		glm::vec3	position	= e.GetGravity();
+//		glm::vec3	position	= e.Gravity();
 //
 //		position *= ( 0.5f * age_ );
 //		position += absoluteInitialVelocity_;
@@ -208,7 +205,7 @@ bool Particle::Update(float dt)
 //
 ////		return absoluteInitialPosition_
 ////			   + ( absoluteInitialVelocity_
-////				   + e.GetGravity() * ( 0.5f * age_ )
+////				   + e.Gravity() * ( 0.5f * age_ )
 ////				 ) * age_;
 //	}
 //	else
@@ -234,12 +231,12 @@ bool Particle::Update(float dt)
 //		//
 //		//		s = s0 + vT * t - ( vT - v0 ) * ( 1 - e**( -c * t ) ) / c
 //		//
-//		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== age_,
-//		// g <== e.GetGravity(), v0 <== absoluteInitialVelocity_,
+//		// c <== e.AirFriction(), w <== e.WindVelocity(), t <== age_,
+//		// g <== e.Gravity(), v0 <== absoluteInitialVelocity_,
 //		// s0 <== absoluteInitialPosition_
 //		//
 //
-//		double	ect1c	= ( 1. - exp( -e.GetAirFriction() * age_ ) ) / e.GetAirFriction();
+//		double	ect1c	= ( 1. - exp( -e.AirFriction() * age_ ) ) / e.AirFriction();
 //
 //		return absoluteInitialPosition_
 //			   + terminalVelocity_ * age_
@@ -249,13 +246,13 @@ bool Particle::Update(float dt)
 // }
 //
 //
-// glm::vec3 Particle::GetVelocity() const
+// glm::vec3 Particle::Velocity() const
 // {
-//	Environment const &	e	= *pEmitter_->GetEnvironment();
+//	Environment const &	e	= *pEmitter_->Environment();
 //
-//	if ( glm::IsCloseToZero( e.GetAirFriction() ) )
+//	if ( glm::IsCloseToZero( e.AirFriction() ) )
 //	{
-//		return absoluteInitialVelocity_ + e.GetGravity() * age_;
+//		return absoluteInitialVelocity_ + e.Gravity() * age_;
 //	}
 //	else
 //	{
@@ -274,10 +271,10 @@ bool Particle::Update(float dt)
 //		//
 //		//		v = vT - ( vT - v0 ) * e**( -c * t )
 //		//
-//		// c <== e.GetAirFriction(), w <== e.GetWindVelocity(), t <== age_,
-//		// g <== e.GetGravity(), v0 <== absoluteInitialVelocity_,
+//		// c <== e.AirFriction(), w <== e.WindVelocity(), t <== age_,
+//		// g <== e.Gravity(), v0 <== absoluteInitialVelocity_,
 //
-//		float		ect		= exp( -e.GetAirFriction() * age_ );
+//		float		ect		= exp( -e.AirFriction() * age_ );
 //
 //		return terminalVelocity_ - ( terminalVelocity_ - absoluteInitialVelocity_ ) * ect;
 //	}

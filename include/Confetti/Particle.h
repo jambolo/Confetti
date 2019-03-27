@@ -3,9 +3,10 @@
 #if !defined(CONFETTI_PARTICLE_H)
 #define CONFETTI_PARTICLE_H
 
-#include <directxmath.h>
-
-struct ID3D11Device;
+namespace Vkx
+{
+    class Device;
+}
 
 namespace Confetti
 {
@@ -45,7 +46,7 @@ public:
     //!
     //!
     //! @note	This method must be overridden.
-    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const = 0;
+    virtual void Draw(std::shared_ptr<Vkx::Device> device) const = 0;
 
     //! Binds to an emitter.
     void Bind(BasicEmitter * pEmitter) { pEmitter_ = pEmitter; }
