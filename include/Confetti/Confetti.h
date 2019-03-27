@@ -3,17 +3,17 @@
 #if !defined(CONFETTI_CONFETTI_H)
 #define CONFETTI_CONFETTI_H
 
-#include "Appearance.h"
-#include "Builder.h"
-#include "Configuration.h"
-#include "Emitter.h"
-#include "EmitterVolume.h"
-#include "Environment.h"
-#include "Particle.h"
-#include "ParticleSystem.h"
-#include "SphereParticle.h"
-#include "StreakParticle.h"
-#include "TexturedParticle.h"
+#include <Confetti/Appearance.h>
+#include <Confetti/Builder.h>
+#include <Confetti/Configuration.h>
+#include <Confetti/Emitter.h>
+#include <Confetti/EmitterVolume.h>
+#include <Confetti/Environment.h>
+#include <Confetti/Particle.h>
+#include <Confetti/ParticleSystem.h>
+#include <Confetti/SphereParticle.h>
+#include <Confetti/StreakParticle.h>
+#include <Confetti/TexturedParticle.h>
 
 // Group definitions for doxygen
 

@@ -6,125 +6,117 @@
 #include "EmitterVolume.h"
 #include "Environment.h"
 
-#include "Wx/Wx.h"
+#include <Vkx/Device.h>
 
-#include <d3d11.h>
+#include <algorithm>
+
+template <class List, typename T>
+bool removeFromList(List & list, T * value)
+{
+    List::iterator new_end = std::remove_if(list.begin(),
+                                            list.end(),
+                                            [this, emitter] (std::shared_ptr<T> & entry) {
+                                                return entry.get() == value;
+                                            });
+    bool found = new_end != list.end();
+    if (found)
+        list.erase(new_end, list.end());
+
+    return found;
+}
 
 namespace Confetti
 {
-ParticleSystem::ParticleSystem(ID3D11Device * pD3dDevice)
-    : pD3dDevice_(pD3dDevice)
+//! @param  device  Device to draw the particle system on
+
+ParticleSystem::ParticleSystem(std::shared_ptr<Vkx::Device> device)
+    : device_(device)
 {
-    pD3dDevice_->AddRef();
 }
 
-ParticleSystem::~ParticleSystem()
+//! @param	emitter	The emitter to register.
+
+void ParticleSystem::add(std::shared_ptr<BasicEmitter> emitter)
 {
-    Wx::SafeRelease(pD3dDevice_);
+    emitters_.push_back(emitter);
 }
 
-//! @param	pEmitter	The Emitter to register.
+//! @param	appearance		The appearance to register.
+
+void ParticleSystem::add(std::shared_ptr<Appearance> appearance)
+{
+    appearances_.push_back(appearance);
+}
+
+//! @param	environment	The environment to register.
+
+void ParticleSystem::add(std::shared_ptr<Environment> environment)
+{
+    environments_.push_back(environment);
+}
+
+//! @param	emitter	The emitter to unregister.
 //!
-//! @note	The particle system does not "own" the Emitter.
+//! @return     false, if the emitter was not registered
 
-void ParticleSystem::Register(BasicEmitter * pEmitter)
+bool ParticleSystem::remove(BasicEmitter * emitter)
 {
-    emitters_.push_back(pEmitter);
+    return removeFromList(emitters_, emitter);
 }
 
+//! @param	appearance		The appearance to unregister.
 //!
-//! @param	pEmitter	The Emitter to unregister.
+//! @return     false, if the appearance was not registered
 
-bool ParticleSystem::Unregister(BasicEmitter * pEmitter)
+bool ParticleSystem::remove(Appearance * appearance)
 {
-    EmitterList::iterator const i = std::find(emitters_.begin(), emitters_.end(), pEmitter);
-
-    if (i != emitters_.end())
-        emitters_.erase(i);
-
-    return i != emitters_.end();
+    return removeFromList(appearances_, appearance);
 }
 
-//! @param	pAppearance		The Appearance to register.
+//! @param	environment	The environment to unregister.
 //!
-//! @note	The particle system does not "own" the Appearance.
+//! @return     false, if the appearance was not registered
 
-void ParticleSystem::Register(Appearance * pAppearance)
+bool ParticleSystem::remove(Environment * environment)
 {
-    appearances_.push_back(pAppearance);
+    return removeFromList(environments_, environment);
 }
 
-//!
-//! @param	pAppearance		The Appearance to unregister.
+//! @param	dt		Amount of time (seconds) that has passed since the last update.
 
-bool ParticleSystem::Unregister(Appearance * pAppearance)
-{
-    AppearanceList::iterator const i = std::find(appearances_.begin(), appearances_.end(), pAppearance);
-
-    if (i != appearances_.end())
-        appearances_.erase(i);
-
-    return i != appearances_.end();
-}
-
-//! @param	pEnvironment	The Environment to register.
-//!
-//! @note	The particle system does not "own" the Environment.
-
-void ParticleSystem::Register(Environment * pEnvironment)
-{
-    environments_.push_back(pEnvironment);
-}
-
-//!
-//! @param	pEnvironment	The Environment to unregister.
-
-bool ParticleSystem::Unregister(Environment * pEnvironment)
-{
-    EnvironmentList::iterator const i = std::find(environments_.begin(), environments_.end(), pEnvironment);
-
-    if (i != environments_.end())
-        environments_.erase(i);
-
-    return i != environments_.end();
-}
-
-//!
-//! @param	dt		Amount of time that has passed since the last update.
-
-void ParticleSystem::Update(float dt)
+void ParticleSystem::update(float dt)
 {
     // Update all the appearances
 
-    for (Appearance * pAppearance : appearances_)
+    for (std::shared_ptr<Appearance> appearance : appearances_)
     {
-        pAppearance->update(dt);
+        appearance->update(dt);
     }
 
     // Update all the environments
 
-    for (Environment * pEnvironment : environments_)
+    for (auto const & environment : environments_)
     {
-        pEnvironment->Update(dt);
+        environment->update(dt);
     }
 
     // Update all the emitters
 
-    for (BasicEmitter * pEmitter : emitters_)
+    for (auto const & emitter : emitters_)
     {
-        if (pEmitter && pEmitter->enabled())
-            pEmitter->update(dt);
+        if (emitter->enabled())
+            emitter->update(dt);
     }
 }
 
-void ParticleSystem::Draw() const
+void ParticleSystem::draw() const
 {
     // For each emitter, draw all its particles
 
-    for (BasicEmitter * pEmitter : emitters_)
+    for (auto const & emitter : emitters_)
     {
-        if (pEmitter && pEmitter->enabled())
-            pEmitter->draw();
+        if (emitter->enabled())
+            emitter->draw();
     }
 }
 } // namespace Confetti

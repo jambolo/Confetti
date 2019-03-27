@@ -1,7 +1,5 @@
 #include "EmitterVolume.h"
 
-#include "MyMath/FastMath.h"
-
 #include <random>
 
 namespace Confetti
@@ -31,11 +29,11 @@ EmitterLine::EmitterLine(std::minstd_rand & rng, float size)
 {
 }
 
-DirectX::XMFLOAT3 EmitterLine::next() const
+glm::vec3 EmitterLine::next() const
 {
     std::uniform_real_distribution<float> endpoint(-0.5f, 0.5f);
     float x = size_ * endpoint(rng_);
-    return DirectX::XMFLOAT3(x, 0.0f, 0.0f);
+    return glm::vec3(x, 0.0f, 0.0f);
 }
 
 //! @param	rng     Random number generator.
@@ -49,12 +47,12 @@ EmitterRectangle::EmitterRectangle(std::minstd_rand & rng, float w, float h)
 {
 }
 
-DirectX::XMFLOAT3 EmitterRectangle::next() const
+glm::vec3 EmitterRectangle::next() const
 {
     std::uniform_real_distribution<float> endpoint(-0.5f, 0.5f);
     float x = width_  * endpoint(rng_);
     float z = height_ * endpoint(rng_);
-    return DirectX::XMFLOAT3(endpoint(rng_) , 0.0f, z);
+    return glm::vec3(endpoint(rng_), 0.0f, z);
 }
 
 //! @param	rng     Random number generator.
@@ -66,17 +64,17 @@ EmitterCircle::EmitterCircle(std::minstd_rand & rng, float radius)
 {
 }
 
-DirectX::XMFLOAT3 EmitterCircle::next() const
+glm::vec3 EmitterCircle::next() const
 {
     // Source: http://mathworld.wolfram.com/DiskPointPicking.html
 
     std::uniform_real_distribution<float> randomFloat(0.0f, 1.0f);
 
-    float a = randomFloat(rng_) * DirectX::XM_2PI;
+    float a = randomFloat(rng_) * glm::two_pi<float>();
     float r = radius_ * sqrt(randomFloat(rng_));
     float c, s;
-    MyMath::fsincos(a, &s, &c);
-    return DirectX::XMFLOAT3(c * r, s * r, 0.0f);
+    glm::fsincos(a, &s, &c);
+    return glm::vec3(c * r, s * r, 0.0f);
 }
 
 //! @param	rng     Random number generator.
@@ -88,7 +86,7 @@ EmitterSphere::EmitterSphere(std::minstd_rand & rng, float radius)
 {
 }
 
-DirectX::XMFLOAT3 EmitterSphere::next() const
+glm::vec3 EmitterSphere::next() const
 {
     // Source: http://mathworld.wolfram.com/SpherePointPicking.html
     //
@@ -105,34 +103,34 @@ DirectX::XMFLOAT3 EmitterSphere::next() const
     // v = [ cf * ct, sf, cf * st ]
 
     std::uniform_real_distribution<float> randomFloat(-1.0f, 1.0f);
-    float t = randomFloat(rng_) * DirectX::XM_PI;
+    float t = randomFloat(rng_) * glm::pi();
     float cf = randomFloat(rng_);
     float sf = sqrt(1.0f - cf * cf);
     float r = radius_ * pow((randomFloat(rng_) + 1.0f) * 0.5f, 1.0f / 3.0f);
     float st, ct;
 
-    MyMath::fsincos(t, &st, &ct);
+    glm::fsincos(t, &st, &ct);
 
-    return DirectX::XMFLOAT3(cf * ct * r, sf * r, cf * st * r);
+    return glm::vec3(cf * ct * r, sf * r, cf * st * r);
 }
 
 //! @param	rng     Random number generator.
 //! @param	size	Width, height, and depth of the box.
 
-EmitterBox::EmitterBox(std::minstd_rand & rng, DirectX::XMFLOAT3 const & size)
+EmitterBox::EmitterBox(std::minstd_rand & rng, glm::vec3 const & size)
     : EmitterVolume(rng)
     , size_(size)
 {
 }
 
-DirectX::XMFLOAT3 EmitterBox::next() const
+glm::vec3 EmitterBox::next() const
 {
     std::uniform_real_distribution<float> randomFloat(-0.5f, 0.5f);
     float x = randomFloat(rng_) * size_.x;
     float y = randomFloat(rng_) * size_.y;
     float z = randomFloat(rng_) * size_.z;
 
-    return DirectX::XMFLOAT3(x, y, z);
+    return glm::vec3(x, y, z);
 }
 
 //! @param	rng     Random number generator.
@@ -146,16 +144,16 @@ EmitterCylinder::EmitterCylinder(std::minstd_rand & rng, float radius, float hei
 {
 }
 
-DirectX::XMFLOAT3 EmitterCylinder::next() const
+glm::vec3 EmitterCylinder::next() const
 {
     std::uniform_real_distribution<float> randomFloat(0.0f, 1.0f);
-    float a = randomFloat(rng_) * DirectX::XM_2PI;
+    float a = randomFloat(rng_) * glm::two_pi<float>();
     float h = randomFloat(rng_) * height_;
     float r = radius_ * sqrt(randomFloat(rng_));
     float c, s;
-    MyMath::fsincos(a, &s, &c);
+    glm::fsincos(a, &s, &c);
 
-    return DirectX::XMFLOAT3(c * r, s * r, h);
+    return glm::vec3(c * r, s * r, h);
 }
 
 //! @param	rng     Random number generator.
@@ -169,18 +167,18 @@ EmitterCone::EmitterCone(std::minstd_rand & rng, float radius, float height)
 {
 }
 
-DirectX::XMFLOAT3 EmitterCone::next() const
+glm::vec3 EmitterCone::next() const
 {
     std::uniform_real_distribution<float> randomFloat(0.0f, 1.0f);
-    float a = randomFloat(rng_) * DirectX::XM_2PI;
+    float a = randomFloat(rng_) * glm::two_pi<float>();
     float h = randomFloat(rng_);
     float r = randomFloat(rng_);
     float c, s;
-    MyMath::fsincos(a, &s, &c);
+    glm::fsincos(a, &s, &c);
 
     h = pow(h, 1.0f / 3.0f) * height_;
     r = sqrt(r) / radius_ * h;
 
-    return DirectX::XMFLOAT3(c * r, s * r, h);
+    return glm::vec3(c * r, s * r, h);
 }
 } // namespace Confetti

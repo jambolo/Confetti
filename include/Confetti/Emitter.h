@@ -3,13 +3,13 @@
 #if !defined(CONFETTI_EMITTER_H)
 #define CONFETTI_EMITTER_H
 
-#include "Misc/Assertx.h"
-#include "PointParticle.h"
-#include "SphereParticle.h"
-#include "StreakParticle.h"
-#include "TexturedParticle.h"
-#include <DirectXMath.h>
+#include <Confetti/PointParticle.h>
+#include <Confetti/SphereParticle.h>
+#include <Confetti/StreakParticle.h>
+#include <Confetti/TexturedParticle.h>
+#include <glm/glm.hpp>
 #include <memory>
+#include <Misc/Assertx.h>
 
 struct ID3D11Device;
 struct ID3D11Buffer;
@@ -34,14 +34,14 @@ class BasicEmitter
 public:
 
     //! Constructor.
-    BasicEmitter(ID3D11Device *        pD3dDevice,
-                 Particle *            paParticles,
-                 int                   size,
-                 EmitterVolume const * pVol,
-                 Environment const *   pEnv,
-                 Appearance const *    pApp,
-                 int                   n,
-                 bool                  sorted);
+    BasicEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                 Particle *                   paParticles,
+                 int                          size,
+                 EmitterVolume const *        pVol,
+                 Environment const *          pEnv,
+                 Appearance const *           pApp,
+                 int                          n,
+                 bool                         sorted);
 
     //! Destructor.
     virtual ~BasicEmitter();
@@ -65,10 +65,10 @@ public:
     int size() const { return numParticles_; }
 
     //! Returns the current position.
-    DirectX::XMFLOAT3 const & currentPosition() const { return position_; }
+    glm::vec3 const & currentPosition() const { return position_; }
 
     //! Returns the current velocity.
-    DirectX::XMFLOAT3 const & currentVelocity() const { return velocity_; }
+    glm::vec3 const & currentVelocity() const { return velocity_; }
 
     //! Returns true if the emitter is enabled.
     bool enabled() const { return enabled_; }
@@ -80,10 +80,10 @@ public:
     bool enable(bool enable = true);
 
     //! Sets the emitter's position and velocity
-    void update(DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 const & velocity);
+    void update(glm::vec3 const & position, glm::vec3 const & velocity);
 
     //! Updates the emitter and its particles.
-    void update(float dt, DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 const & velocity);
+    void update(float dt, glm::vec3 const & position, glm::vec3 const & velocity);
 
     //! Updates the emitter's particles.
     //!
@@ -109,7 +109,7 @@ protected:
 
     // D3D Stuff
 
-    ID3D11Device * pD3dDevice_;                         //!< D3D device
+    std::shared_ptr<Vkx::Device> pD3dDevice_;                         //!< D3D device
     ID3D11Buffer * pVB_;                                //!< Vertex buffer for particles
     ID3DBlob * pEffect_;                                //!< The effect for rendering this emitter's particles
     IDirect3DVertexDeclaration11 * pVertexDeclaration_; //!< The vertex buffer format
@@ -135,8 +135,8 @@ private:
     // Emitter state
 
     bool enabled_;                  // Enabled or not
-    DirectX::XMFLOAT3 position_;    // Current position
-    DirectX::XMFLOAT3 velocity_;    // Current velocity
+    glm::vec3 position_;    // Current position
+    glm::vec3 velocity_;    // Current velocity
 };
 
 //! @name Basic Emitters
@@ -153,15 +153,15 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    PointEmitter(ID3D11Device *        pD3dDevice,
-                 EmitterVolume const * pVol,
-                 Environment const *   pEnv,
-                 Appearance const *    pApp,
-                 int                   n,
-                 bool                  sorted);
+    PointEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                 EmitterVolume const *        pVol,
+                 Environment const *          pEnv,
+                 Appearance const *           pApp,
+                 int                          n,
+                 bool                         sorted);
 
     //! Constructor.
-    PointEmitter(ID3D11Device *                 pD3dDevice,
+    PointEmitter(std::shared_ptr<Vkx::Device>   pD3dDevice,
                  std::unique_ptr<PointParticle> qaParticles,
                  EmitterVolume const *          pVol,
                  Environment const *            pEnv,
@@ -210,15 +210,15 @@ class StreakEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    StreakEmitter(ID3D11Device *        pD3dDevice,
-                  EmitterVolume const * pVol,
-                  Environment const *   pEnv,
-                  Appearance const *    pApp,
-                  int                   n,
-                  bool                  sorted);
+    StreakEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                  EmitterVolume const *        pVol,
+                  Environment const *          pEnv,
+                  Appearance const *           pApp,
+                  int                          n,
+                  bool                         sorted);
 
     //! Constructor.
-    StreakEmitter(ID3D11Device *                  pD3dDevice,
+    StreakEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
                   std::unique_ptr<StreakParticle> qaParticles,
                   EmitterVolume const *           pVol,
                   Environment const *             pEnv,
@@ -267,15 +267,15 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    TexturedEmitter(ID3D11Device *        pD3dDevice,
-                    EmitterVolume const * pVol,
-                    Environment const *   pEnv,
-                    Appearance const *    pApp,
-                    int                   n,
-                    bool                  sorted);
+    TexturedEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                    EmitterVolume const *        pVol,
+                    Environment const *          pEnv,
+                    Appearance const *           pApp,
+                    int                          n,
+                    bool                         sorted);
 
     //! Constructor.
-    TexturedEmitter(ID3D11Device *                    pD3dDevice,
+    TexturedEmitter(std::shared_ptr<Vkx::Device>      pD3dDevice,
                     std::unique_ptr<TexturedParticle> qaParticles,
                     EmitterVolume const *             pVol,
                     Environment const *               pEnv,
@@ -328,15 +328,15 @@ class SphereEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    SphereEmitter(ID3D11Device *        pD3dDevice,
-                  EmitterVolume const * pVol,
-                  Environment const *   pEnv,
-                  Appearance const *    pApp,
-                  int                   n,
-                  bool                  sorted);
+    SphereEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                  EmitterVolume const *        pVol,
+                  Environment const *          pEnv,
+                  Appearance const *           pApp,
+                  int                          n,
+                  bool                         sorted);
 
     //! Constructor.
-    SphereEmitter(ID3D11Device *                  pD3dDevice,
+    SphereEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
                   std::unique_ptr<SphereParticle> qaParticles,
                   EmitterVolume const *           pVol,
                   Environment const *             pEnv,

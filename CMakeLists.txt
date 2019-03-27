@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 3.10)
 project(Confetti CXX)
 
+find_package(glm REQUIRED)
+find_package(Vulkan REQUIRED)
+
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 set(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY "" CACHE PATH "Doxygen output directory (empty to disable)")
 
@@ -63,12 +66,13 @@ source_group(Sources FILE ${SOURCES})
 add_library(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
 target_link_libraries(${PROJECT_NAME}
-    Dxx
+    Vkx
+    Vulkan::Vulkan
+    Wx
     Misc
     Msxmlx
-    MyMath
     nlohmann_json::nlohmann_json
-    Wx
+    glm
 )
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
@@ -82,11 +86,10 @@ target_compile_definitions(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
-add_subdirectory(Dxx)
 add_subdirectory(json)
 add_subdirectory(Msxmlx)
-add_subdirectory(MyMath)
 add_subdirectory(Misc)
+add_subdirectory(Vkx)
 add_subdirectory(Wx)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

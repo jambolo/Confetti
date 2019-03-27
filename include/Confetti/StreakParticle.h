@@ -3,8 +3,8 @@
 #if !defined(CONFETTI_STREAKPARTICLE_H)
 #define CONFETTI_STREAKPARTICLE_H
 
-#include "Particle.h"
-#include <DirectXMath.h>
+#include <Confetti/Particle.h>
+#include <glm/glm.hpp>
 
 struct ID3D11Device;
 
@@ -25,31 +25,31 @@ public:
     StreakParticle() = default;
 
     //! Constructor.
-    StreakParticle(BasicEmitter const *      pEmitter,
-                   float                     lifetime,
-                   float                     age,
-                   DirectX::XMFLOAT3 const & position,
-                   DirectX::XMFLOAT3 const & velocity,
-                   DirectX::XMFLOAT4 const & color);
+    StreakParticle(BasicEmitter const * pEmitter,
+                   float                lifetime,
+                   float                age,
+                   glm::vec3 const &    position,
+                   glm::vec3 const &    velocity,
+                   glm::vec4 const &    color);
 
     //! Destructor.
     virtual ~StreakParticle() override = default;
 
     //! Initializes a particle constructed with the default constructor
-    void Initialize(float                     lifetime,
-                    float                     age,
-                    DirectX::XMFLOAT3 const & position,
-                    DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT4 const & color);
+    void Initialize(float             lifetime,
+                    float             age,
+                    glm::vec3 const & position,
+                    glm::vec3 const & velocity,
+                    glm::vec4 const & color);
 
     //! @name Overrides Particle
     //@{
     virtual bool Update(float dt) override;
-    virtual void Draw(ID3D11Device * pD3dDevice) const override;
+    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const override;
     //@}
 
     //! Returns the position of the particle's tail.
-    DirectX::XMFLOAT3 const & GetTailPosition() const { return tail_; }
+    glm::vec3 const & GetTailPosition() const { return tail_; }
 
     //! Vertex buffer info
     struct VBEntry
@@ -57,14 +57,14 @@ public:
         static int const NUM_VERTICES = 2;          //!< Number of vertices in the particle
         struct Vertex
         {
-            DirectX::XMFLOAT3 position;
-            DirectX::XMFLOAT3 color;
+            glm::vec3 position;
+            glm::vec3 color;
         };
 
         Vertex v[NUM_VERTICES];
     };
 
-// 
+//
 //     //! Vertex shader data declaration
 //     static D3DVERTEXELEMENT11 const aVSDataDeclarationInfo_[];
 
@@ -72,7 +72,7 @@ private:
 
     // Appearance data
 
-    DirectX::XMFLOAT3 tail_;                         //!< Location of the tail
+    glm::vec3 tail_;                         //!< Location of the tail
 };
 } // namespace Confetti
 

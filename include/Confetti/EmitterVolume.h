@@ -3,9 +3,9 @@
 #if !defined(CONFETTI_EMITTERVOLUME_H)
 #define CONFETTI_EMITTERVOLUME_H
 
-#include "Dxx/D3dx.h"
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 #include <random>
+#include <Vkx/Vkx.h>
 
 namespace Confetti
 {
@@ -28,7 +28,7 @@ public:
     //!
     //!
     //! @note	This method must be overridden.
-    virtual DirectX::XMFLOAT3 next() const = 0;
+    virtual glm::vec3 next() const = 0;
 
 protected:
     std::minstd_rand & rng_;      // A random number generator.
@@ -48,7 +48,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override { return { 0.0f, 0.0f, 0.0f }; }
+    glm::vec3 next() const override { return { 0.0f, 0.0f, 0.0f }; }
     //@}
 };
 
@@ -76,7 +76,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:
@@ -108,7 +108,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:
@@ -140,7 +140,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:
@@ -172,7 +172,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:
@@ -198,19 +198,19 @@ class EmitterBox : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterBox(std::minstd_rand & rng, DirectX::XMFLOAT3 const & size);
+    EmitterBox(std::minstd_rand & rng, glm::vec3 const & size);
 
     //! Destructor.
     virtual ~EmitterBox() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:
 
-    DirectX::XMFLOAT3 size_;     // The width, height, and depth of the box.
+    glm::vec3 size_;     // The width, height, and depth of the box.
 };
 
 //! An EmitterVolume that emits particles from the interior of a cylinder.
@@ -238,7 +238,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:
@@ -272,7 +272,7 @@ public:
 
     //! @name Overrides EmitterVolume
     //@{
-    DirectX::XMFLOAT3 next() const override;
+    glm::vec3 next() const override;
     //@}
 
 private:

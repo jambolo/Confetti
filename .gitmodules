@@ -19,3 +19,6 @@
 [submodule "Msxmlx"]
 	path = Msxmlx
 	url = https://github.com/jambolo/Msxmlx.git
+[submodule "Vkx"]
+	path = Vkx
+	url = https://github.com/jambolo/Vkx.git

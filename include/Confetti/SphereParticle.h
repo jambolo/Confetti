@@ -3,10 +3,8 @@
 #if !defined(CONFETTI_SPHEREPARTICLE_H)
 #define CONFETTI_SPHEREPARTICLE_H
 
-#include "Particle.h"
-#include <d3d11.h>
-#include <DirectXMath.h>
-using namespace DirectX;
+#include <Confetti/Particle.h>
+#include <glm/glm.hpp>
 
 struct ID3D11Device;
 
@@ -25,28 +23,28 @@ public:
     SphereParticle() = default;
 
     //! Constructor.
-    SphereParticle(BasicEmitter const *      pEmitter,
-                   float                     lifetime,
-                   float                     age,
-                   DirectX::XMFLOAT3 const & position,
-                   DirectX::XMFLOAT3 const & velocity,
-                   DirectX::XMFLOAT4 const & color,
-                   float                     radius);
+    SphereParticle(BasicEmitter const * pEmitter,
+                   float                lifetime,
+                   float                age,
+                   glm::vec3 const &    position,
+                   glm::vec3 const &    velocity,
+                   glm::vec4 const &    color,
+                   float                radius);
 
     //! Destructor.
     virtual ~SphereParticle() override = default;
 
     //! @name Overrides Particle
     //@{
-    void Initialize(float                     lifetime,
-                    float                     age,
-                    DirectX::XMFLOAT3 const & position,
-                    DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT4 const & color,
-                    float                     radius);
+    void Initialize(float             lifetime,
+                    float             age,
+                    glm::vec3 const & position,
+                    glm::vec3 const & velocity,
+                    glm::vec4 const & color,
+                    float             radius);
 
     virtual bool Update(float dt) override;
-    virtual void Draw(ID3D11Device * pD3dDevice) const override;
+    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const override;
     //!@}
 
     //! Returns the particle's radius.
@@ -56,8 +54,8 @@ public:
 
     struct VBEntry
     {
-        DirectX::XMFLOAT4 position;
-        DirectX::XMFLOAT4 color;
+        glm::vec4 position;
+        glm::vec4 color;
     };
 
 //     static UINT32 constexpr FVF   = D3DFVF_XYZ | D3DFVF_DIFFUSE;

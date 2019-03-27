@@ -2,16 +2,13 @@
 
 #include "Appearance.h"
 #include "Particle.h"
+#include "resource.h"
 #include "StreakParticle.h"
 #include "TexturedParticle.h"
-#include "resource.h"
 
-#include "Wx/Wx.h"
-#include "Dxx/Camera.h"
+#include <Vkx/Camera.h>
 
-#include <d3d11.h>
-#include <D3DCompiler.h>
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 
 #include <algorithm>
 
@@ -24,23 +21,23 @@ static int const VERTEX_BUFFER_SIZE = 1024 * 1024;
 class ParticleSorter
 {
 public:
-    ParticleSorter(DirectX::XMFLOAT3 const & cameraPosition)
+    ParticleSorter(glm::vec3 const & cameraPosition)
         : cameraPosition_(cameraPosition)
     {
     }
 
     bool operator ()(Confetti::Particle const & a, Confetti::Particle const & b)
     {
-        DirectX::XMVECTOR positionA_simd(XMLoadFloat3(&a.GetPosition()));
-        DirectX::XMVECTOR positionB_simd(XMLoadFloat3(&b.GetPosition()));
-        DirectX::XMVECTOR cameraPosition_simd(XMLoadFloat3(&cameraPosition_));
+        glm::vec4 positionA(XMLoadFloat3(&a.GetPosition()));
+        glm::vec4 positionB(XMLoadFloat3(&b.GetPosition()));
+        glm::vec4 cameraPosition = cameraPosition_;
 
-        DirectX::XMVECTOR da = positionA_simd - cameraPosition_simd;
-        DirectX::XMVECTOR db = positionB_simd - cameraPosition_simd;
+        glm::vec4 da = positionA - cameraPosition;
+        glm::vec4 db = positionB - cameraPosition;
         return XMVector3Greater(XMVector3LengthSq(da), XMVector3LengthSq(db));
     }
 
-    DirectX::XMFLOAT3 cameraPosition_;
+    glm::vec3 cameraPosition_;
 };
 
 namespace Confetti
@@ -54,14 +51,14 @@ namespace Confetti
 //!
 //! @warning paParticles must have been allocated with new[].
 
-BasicEmitter::BasicEmitter(ID3D11Device * pD3dDevice,
-                           Particle * paParticles,
-                           int size,
-                           EmitterVolume const * pVol,
-                           Environment const * pEnv,
-                           Appearance const * pApp,
-                           int n,
-                           bool sorted)
+BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                           Particle *                   paParticles,
+                           int                          size,
+                           EmitterVolume const *        pVol,
+                           Environment const *          pEnv,
+                           Appearance const *           pApp,
+                           int                          n,
+                           bool                         sorted)
     : paParticles_(paParticles)
     , pEmitterVolume_(pVol)
     , pEnvironment_(pEnv)
@@ -78,9 +75,9 @@ BasicEmitter::BasicEmitter(ID3D11Device * pD3dDevice,
     // Check caps bits for certain features
     {
 //         D3DCAPS9 caps;
-// 
+//
 //         pD3dDevice_->GetDeviceCaps(&caps);
-// 
+//
 //         alphaTestAvailable_ = ((caps.AlphaCmpCaps & D3DPCMPCAPS_GREATEREQUAL) != 0);
 //         maxPrimitives_      = caps.MaxPrimitiveCount;
 //         maxVertexIndex_     = caps.MaxVertexIndex;
@@ -110,7 +107,7 @@ BasicEmitter::~BasicEmitter()
 //! @param position The new position of the emitter.
 //! @param velocity The new velocity of the emitter.
 
-void BasicEmitter::update(float dt, DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 const & velocity)
+void BasicEmitter::update(float dt, glm::vec3 const & position, glm::vec3 const & velocity)
 {
     // Update the emitter's position and velocity
 
@@ -134,7 +131,7 @@ bool BasicEmitter::enable(bool enable /*= true*/)
 //! @param position The new position of the emitter.
 //! @param velocity The new velocity of the emitter.
 
-void BasicEmitter::update(DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 const & velocity)
+void BasicEmitter::update(glm::vec3 const & position, glm::vec3 const & velocity)
 {
     position_ = position;
     velocity_ = velocity;
@@ -150,12 +147,12 @@ void BasicEmitter::update(DirectX::XMFLOAT3 const & position, DirectX::XMFLOAT3 
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-PointEmitter::PointEmitter(ID3D11Device *        pD3dDevice,
-                           EmitterVolume const * pVol,
-                           Environment const *   pEnv,
-                           Appearance const *    pApp,
-                           int                   n,
-                           bool                  sorted)
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                           EmitterVolume const *        pVol,
+                           Environment const *          pEnv,
+                           Appearance const *           pApp,
+                           int                          n,
+                           bool                         sorted)
     : BasicEmitter(pD3dDevice,
                    new PointParticle[n],
                    sizeof(PointParticle::VBEntry),
@@ -175,13 +172,13 @@ PointEmitter::PointEmitter(ID3D11Device *        pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-PointEmitter::PointEmitter(ID3D11Device *               pD3dDevice,
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   pD3dDevice,
                            std::unique_ptr<PointParticle> qaParticles,
-                           EmitterVolume const *        pVol,
-                           Environment const *          pEnv,
-                           Appearance const *           pApp,
-                           int                          n,
-                           bool                         sorted)
+                           EmitterVolume const *          pVol,
+                           Environment const *            pEnv,
+                           Appearance const *             pApp,
+                           int                            n,
+                           bool                           sorted)
     : BasicEmitter(pD3dDevice,
                    qaParticles.release(),
                    sizeof(PointParticle::VBEntry),
@@ -297,7 +294,7 @@ void PointEmitter::initialize()
             L"        PixelShader = compile ps_2_0 PS();                            "
             L"    }                                                                 "
             L"}                                                                     "
-            ;
+        ;
 
 #if defined(_DEBUG)
         static UINT constexpr D3DCOMPILE_FLAGS = D3DCOMPILE_DEBUG |
@@ -312,21 +309,21 @@ void PointEmitter::initialize()
 
         ID3DBlob * pErrorMsgs = nullptr;
         hr = D3DCompile(shaderSource,
-            sizeof(shaderSource)-1,
-            (LPCSTR)L"PointEmitter",
-            NULL,
-            NULL,
-            (LPCSTR)"T0",
-            (LPCSTR)"fx_2_0",
-            D3DCOMPILE_FLAGS,
-            0,
-            &pEffect_,
-            &pErrorMsgs);
+                        sizeof(shaderSource) - 1,
+                        (LPCSTR)L"PointEmitter",
+                        NULL,
+                        NULL,
+                        (LPCSTR)"T0",
+                        (LPCSTR)"fx_2_0",
+                        D3DCOMPILE_FLAGS,
+                        0,
+                        &pEffect_,
+                        &pErrorMsgs);
         if (FAILED(hr) && pErrorMsgs && pErrorMsgs->GetBufferPointer())
         {
 #if defined(_DEBUG)
             OutputDebugString((char *)pErrorMsgs->GetBufferPointer());
-#endif // defined( _DEBUG )
+#endif          // defined( _DEBUG )
         }
         assert_succeeded(hr);
         Wx::SafeRelease(pErrorMsgs);
@@ -334,10 +331,10 @@ void PointEmitter::initialize()
 //         D3DXHANDLE hTechnique;
 //         hr = pEffect_->FindNextValidTechnique(NULL, &hTechnique);
 //         assert_succeeded(hr);
-// 
+//
 //         pEffect_->SetTechnique(hTechnique);
-     }
- 
+    }
+
 //     hr = pD3dDevice_->CreateVertexDeclaration(PointParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
 //     assert_succeeded(hr);
 }
@@ -385,39 +382,39 @@ void PointEmitter::draw() const
     // when the nearer particle is transparent. If the particles are sorted back-to-front, then this problem does
     // not occur and writing to the Z-buffer is enabled so that particles do not have to treated as a special case.
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
     assert_succeeded(hr);
 
 #if defined(LOOSELY_SORTED)
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
 #else   // defined( LOOSELY_SORTED )
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, sorted() ? TRUE : FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, sorted() ? TRUE : FALSE);
 #endif  // defined( LOOSELY_SORTED )
     assert_succeeded(hr);
 
     // No lighting
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
     assert_succeeded(hr);
 
     // Enable antialiasing so points less than a pixel in size are still drawn (but faded).
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
     assert_succeeded(hr);
 
 // // Set point size
 //
 // float size = GetAppearance()->size();
-// hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE, *(DWORD*)&size );
+// hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE, *(DWORD*)&size );
 // assert_succeeded( hr );
 //
 // float minSize = 0.5f;
-// hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE_MIN, *(DWORD*)&minSize );
+// hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE_MIN, *(DWORD*)&minSize );
 // assert_succeeded( hr );
 //
 // // Enable point scaling
 //
-// hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALEENABLE, TRUE );
+// hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALEENABLE, TRUE );
 // assert_succeeded( hr );
 //
 // // Set point scale factors
@@ -425,29 +422,29 @@ void PointEmitter::draw() const
 // float a = 0.0f;
 // float b = 0.0f;
 // float c = 1.0f; // FIXME: This should be tan( a/2 ) ** 2
-// hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_A, *(DWORD*)&a );
+// hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_A, *(DWORD*)&a );
 // assert_succeeded( hr );
-// hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_B, *(DWORD*)&b );
+// hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_B, *(DWORD*)&b );
 // assert_succeeded( hr );
-// hr = Dxx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_C, *(DWORD*)&c );
+// hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSCALE_C, *(DWORD*)&c );
 // assert_succeeded( hr );
 
     // Turn on alphablending
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     assert_succeeded(hr);
 
     // Set effect variables
 
-// DirectX::XMFLOAT4X4 view   = pAppearance->camera()->GetViewMatrix();
-// DirectX::XMFLOAT4X4 projection  = pAppearance->camera()->GetProjectionMatrix();
-// DirectX::XMFLOAT4X4 viewProjection = pAppearance->camera()->GetViewProjectionMatrix();
+// glm::mat4x4 view   = pAppearance->camera()->GetViewMatrix();
+// glm::mat4x4 projection  = pAppearance->camera()->GetProjectionMatrix();
+// glm::mat4x4 viewProjection = pAppearance->camera()->GetViewProjectionMatrix();
 // pEffect_->SetMatrix( "ViewMatrix", &view );
 // pEffect_->SetMatrix( "ProjectionMatrix", &projection );
 // pEffect_->SetMatrix( "ViewProjectionMatrix", &view );
@@ -470,7 +467,7 @@ void PointEmitter::draw() const
         int count = 0;                      // Number of particles to be rendered this block
 
         {
-            Dxx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
+            Vkx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
 
             PointParticle::VBEntry * paVB        = (PointParticle::VBEntry *)lock.GetLockedBuffer();
             PointParticle const *    paParticles = particles();
@@ -529,12 +526,12 @@ void PointEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-StreakEmitter::StreakEmitter(ID3D11Device *        pD3dDevice,
-                             EmitterVolume const * pVol,
-                             Environment const *   pEnv,
-                             Appearance const *    pApp,
-                             int                   n,
-                             bool                  sorted)
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                             EmitterVolume const *        pVol,
+                             Environment const *          pEnv,
+                             Appearance const *           pApp,
+                             int                          n,
+                             bool                         sorted)
     : BasicEmitter(pD3dDevice,
                    new StreakParticle[n],
                    sizeof(StreakParticle::VBEntry),
@@ -555,13 +552,13 @@ StreakEmitter::StreakEmitter(ID3D11Device *        pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-StreakEmitter::StreakEmitter(ID3D11Device *                pD3dDevice,
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
                              std::unique_ptr<StreakParticle> qaParticles,
-                             EmitterVolume const *         pVol,
-                             Environment const *           pEnv,
-                             Appearance const *            pApp,
-                             int                           n,
-                             bool                          sorted)
+                             EmitterVolume const *           pVol,
+                             Environment const *             pEnv,
+                             Appearance const *              pApp,
+                             int                             n,
+                             bool                            sorted)
     : BasicEmitter(pD3dDevice,
                    qaParticles.release(),
                    sizeof(StreakParticle::VBEntry),
@@ -661,40 +658,40 @@ void StreakEmitter::draw() const
     // when the nearer particle is transparent. If the particles are sorted back-to-front, then this problem does
     // not occur and writing to the Z-buffer is enabled so that particles do not have to treated as a special case.
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
     assert_succeeded(hr);
 
 #if defined(LOOSELY_SORTED)
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
 #else   // defined( LOOSELY_SORTED )
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, sorted() ? TRUE : FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, sorted() ? TRUE : FALSE);
 #endif  // defined( LOOSELY_SORTED )
     assert_succeeded(hr);
 
     // No lighting
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
     assert_succeeded(hr);
 
     // Enable line antialiasing.
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ANTIALIASEDLINEENABLE, TRUE);
     assert_succeeded(hr);
 
     // Turn on alphablending
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     assert_succeeded(hr);
 
     // Set effect variables
 
-    DirectX::XMFLOAT4X4 const & viewProjection = pAppearance->camera()->viewProjectionMatrix();
+    glm::mat4x4 const & viewProjection = pAppearance->camera()->viewProjectionMatrix();
     pEffect_->SetMatrix("ViewProjectionMatrix", &viewProjection);
 
     // Set up vertex data
@@ -717,7 +714,7 @@ void StreakEmitter::draw() const
         int count = 0;
 
         {
-            Dxx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
+            Vkx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
 
             StreakParticle::VBEntry * paVB        = (StreakParticle::VBEntry *)lock.GetLockedBuffer();
             StreakParticle const *    paParticles = particles();
@@ -781,12 +778,12 @@ void StreakEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-TexturedEmitter::TexturedEmitter(ID3D11Device *        pD3dDevice,
-                                 EmitterVolume const * pVol,
-                                 Environment const *   pEnv,
-                                 Appearance const *    pApp,
-                                 int                   n,
-                                 bool                  sorted)
+TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                                 EmitterVolume const *        pVol,
+                                 Environment const *          pEnv,
+                                 Appearance const *           pApp,
+                                 int                          n,
+                                 bool                         sorted)
     : BasicEmitter(pD3dDevice,
                    new TexturedParticle[n],
                    sizeof(TexturedParticle::VBEntry),
@@ -806,13 +803,13 @@ TexturedEmitter::TexturedEmitter(ID3D11Device *        pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-TexturedEmitter::TexturedEmitter(ID3D11Device *                  pD3dDevice,
+TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>      pD3dDevice,
                                  std::unique_ptr<TexturedParticle> qaParticles,
-                                 EmitterVolume const *           pVol,
-                                 Environment const *             pEnv,
-                                 Appearance const *              pApp,
-                                 int                             n,
-                                 bool                            sorted)
+                                 EmitterVolume const *             pVol,
+                                 Environment const *               pEnv,
+                                 Appearance const *                pApp,
+                                 int                               n,
+                                 bool                              sorted)
     : BasicEmitter(pD3dDevice,
                    qaParticles.release(),
                    sizeof(TexturedParticle::VBEntry),
@@ -853,7 +850,7 @@ void TexturedEmitter::initialize()
         nIndexes = maxPrimitives_ * 3;
 
     // Create the index buffer
-    D3D11_BUFFER_DESC desc;
+    D3D11_BUFFER_DESC      desc;
     D3D11_SUBRESOURCE_DATA data;
 
     hr = pD3dDevice_->CreateBuffer(&desc, &data, &pIB_);
@@ -927,8 +924,8 @@ void TexturedEmitter::draw() const
 {
     HRESULT hr;
 
-    Appearance const *   pAppearance = appearance();
-    ID3D11Texture2D * pTexture    = pAppearance->texture();
+    Appearance const * pAppearance         = appearance();
+    std::shared_ptr<Vkx::Texture> pTexture = pAppearance->texture();
     int nParticles = size();                         // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
@@ -939,35 +936,35 @@ void TexturedEmitter::draw() const
     // when the nearer particle is transparent. If the particles are sorted back-to-front, then this problem does
     // not occur and writing to the Z-buffer is enabled so that particles do not have to treated as a special case.
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZENABLE, TRUE);
     assert_succeeded(hr);
 
 #if defined(LOOSELY_SORTED)
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, FALSE);
 #else   // defined( LOOSELY_SORTED )
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, sorted() ? TRUE : FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ZWRITEENABLE, sorted() ? TRUE : FALSE);
 #endif  // defined( LOOSELY_SORTED )
     assert_succeeded(hr);
 
     // No back-face culling
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_CULLMODE, D3DCULL_NONE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_CULLMODE, D3DCULL_NONE);
     assert_succeeded(hr);
 
     // No lighting
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_LIGHTING, FALSE);
     assert_succeeded(hr);
 
     // Turn on alphablending
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_ALPHABLENDENABLE, TRUE);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     assert_succeeded(hr);
 
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     assert_succeeded(hr);
 
     // Enable alpha testing (skips pixels with less than a certain alpha). This helps with unsorted particles since
@@ -983,19 +980,19 @@ void TexturedEmitter::draw() const
     }
 
     // ???
-    hr = Dxx::SetRenderState(pD3dDevice_, D3DRS_DITHERENABLE, TRUE);
+    hr = Vkx::SetRenderState(pD3dDevice_, D3DRS_DITHERENABLE, TRUE);
     assert_succeeded(hr);
 
     // Set effect variables
 
-    DirectX::XMFLOAT4X4 viewProjection = pAppearance->camera()->viewProjectionMatrix();
+    glm::mat4x4 viewProjection = pAppearance->camera()->viewProjectionMatrix();
 
     pEffect_->SetMatrix("g_viewProjection", &viewProjection);
     pEffect_->SetTexture("g_texture", pTexture);
 
     // Get the camera's (and thus particles') X and Y axes
 
-    DirectX::XMFLOAT4X4 cameraOrientation = pAppearance->camera()->frame().GetOrientationMatrix();
+    glm::mat4x4 cameraOrientation = pAppearance->camera()->frame().GetOrientationMatrix();
     pEffect_->SetMatrix("g_cameraOrientation", &cameraOrientation);
 
     // Set up vertex data
@@ -1026,8 +1023,8 @@ void TexturedEmitter::draw() const
         unsigned __int16 baseIndex = 0;         //
 
         {
-            Dxx::VertexBufferLock vbLock(pVB_, 0, particlesPerGroup * sizeof(TexturedParticle::VBEntry), D3DLOCK_DISCARD);
-            Dxx::IndexBufferLock  ibLock(pIB_, 0, particlesPerGroup * 6 * sizeof(__int16), D3DLOCK_DISCARD);
+            Vkx::VertexBufferLock vbLock(pVB_, 0, particlesPerGroup * sizeof(TexturedParticle::VBEntry), D3DLOCK_DISCARD);
+            Vkx::IndexBufferLock  ibLock(pIB_, 0, particlesPerGroup * 6 * sizeof(__int16), D3DLOCK_DISCARD);
 
             TexturedParticle::VBEntry * paVB        = (TexturedParticle::VBEntry *)vbLock.GetLockedBuffer();
             unsigned __int16 *          pIB         = (unsigned __int16 *)ibLock.GetLockedBuffer();
@@ -1045,13 +1042,13 @@ void TexturedEmitter::draw() const
                 {
                     TexturedParticle::VBEntry * pVBEntry = &paVB[count];        // Convenience
 
-                    float radius = pParticle->GetRadius();
-                    DirectX::XMFLOAT4 position = pParticle->GetPosition();
-                    float rotation          = pParticle->GetRotation();
-                    DirectX::XMFLOAT4 color = D3DCOLOR_COLORVALUE(pParticle->GetColor().r,
-                                                                  pParticle->GetColor().g,
-                                                                  pParticle->GetColor().b,
-                                                                  pParticle->GetColor().a);
+                    float     radius   = pParticle->GetRadius();
+                    glm::vec4 position = pParticle->GetPosition();
+                    float     rotation = pParticle->GetRotation();
+                    glm::vec4 color    = D3DCOLOR_COLORVALUE(pParticle->GetColor().r,
+                                                             pParticle->GetColor().g,
+                                                             pParticle->GetColor().b,
+                                                             pParticle->GetColor().a);
 
                     /****************************************************************************************************/
 
@@ -1138,12 +1135,12 @@ void TexturedEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-SphereEmitter::SphereEmitter(ID3D11Device *        pD3dDevice,
-                             EmitterVolume const * pVol,
-                             Environment const *   pEnv,
-                             Appearance const *    pApp,
-                             int                   n,
-                             bool                  sorted)
+SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device> pD3dDevice,
+                             EmitterVolume const *        pVol,
+                             Environment const *          pEnv,
+                             Appearance const *           pApp,
+                             int                          n,
+                             bool                         sorted)
     : BasicEmitter(pD3dDevice,
                    new SphereParticle[n],
                    sizeof(SphereParticle::VBEntry),
@@ -1163,13 +1160,13 @@ SphereEmitter::SphereEmitter(ID3D11Device *        pD3dDevice,
 //!
 //! @warning paParticles must have been allocated with new[].
 
-SphereEmitter::SphereEmitter(ID3D11Device *                pD3dDevice,
+SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>    pD3dDevice,
                              std::unique_ptr<SphereParticle> qaParticles,
-                             EmitterVolume const *         pVol,
-                             Environment const *           pEnv,
-                             Appearance const *            pApp,
-                             int                           n,
-                             bool                          sorted)
+                             EmitterVolume const *           pVol,
+                             Environment const *             pEnv,
+                             Appearance const *              pApp,
+                             int                             n,
+                             bool                            sorted)
     : BasicEmitter(pD3dDevice,
                    qaParticles.release(),
                    sizeof(SphereParticle::VBEntry),

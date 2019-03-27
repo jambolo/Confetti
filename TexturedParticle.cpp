@@ -5,7 +5,7 @@
 #include "Environment.h"
 
 #include <d3d11.h>
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 using namespace DirectX;
 
 namespace Confetti
@@ -31,14 +31,14 @@ D3DVERTEXELEMENT11 const TexturedParticle::aVSDataDeclarationInfo_[] =
 //! @param	radius			Radius at birth.
 //! @param	rotation		Rotation at birth.
 
-TexturedParticle::TexturedParticle(BasicEmitter const *      pEmitter,
-                                   float                     lifetime,
-                                   float                     age,
-                                   DirectX::XMFLOAT3 const & position,
-                                   DirectX::XMFLOAT3 const & velocity,
-                                   DirectX::XMFLOAT4 const & color,
-                                   float                     radius,
-                                   float                     rotation /* = 0.0f*/)
+TexturedParticle::TexturedParticle(BasicEmitter const * pEmitter,
+                                   float                lifetime,
+                                   float                age,
+                                   glm::vec3 const &    position,
+                                   glm::vec3 const &    velocity,
+                                   glm::vec4 const &    color,
+                                   float                radius,
+                                   float                rotation /* = 0.0f*/)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
     , initialRadius_(radius)
     , radius_(radius)
@@ -55,13 +55,13 @@ TexturedParticle::TexturedParticle(BasicEmitter const *      pEmitter,
 //! @param	radius			Radius at birth.
 //! @param	rotation		Rotation at birth.
 
-void TexturedParticle::Initialize(float                     lifetime,
-                                  float                     age,
-                                  DirectX::XMFLOAT3 const & position,
-                                  DirectX::XMFLOAT3 const & velocity,
-                                  DirectX::XMFLOAT4 const & color,
-                                  float                     radius,
-                                  float                     rotation)
+void TexturedParticle::Initialize(float             lifetime,
+                                  float             age,
+                                  glm::vec3 const & position,
+                                  glm::vec3 const & velocity,
+                                  glm::vec4 const & color,
+                                  float             radius,
+                                  float             rotation)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
 
@@ -98,7 +98,7 @@ bool TexturedParticle::Update(float dt)
     return reborn;
 }
 
-void TexturedParticle::Draw(ID3D11Device * pD3dDevice) const
+void TexturedParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

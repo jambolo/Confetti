@@ -5,7 +5,7 @@
 #include "Environment.h"
 
 #include <d3d11.h>
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 using namespace DirectX;
 
 namespace Confetti
@@ -18,13 +18,13 @@ namespace Confetti
 //! @param	velocity		Velocity at birth.
 //! @param	radius			Radius at birth.
 
-SphereParticle::SphereParticle(BasicEmitter const *      pEmitter,
-                               float                     lifetime,
-                               float                     age,
-                               DirectX::XMFLOAT3 const & position,
-                               DirectX::XMFLOAT3 const & velocity,
-                               DirectX::XMFLOAT4 const & color,
-                               float                     radius)
+SphereParticle::SphereParticle(BasicEmitter const * pEmitter,
+                               float                lifetime,
+                               float                age,
+                               glm::vec3 const &    position,
+                               glm::vec3 const &    velocity,
+                               glm::vec4 const &    color,
+                               float                radius)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
     , initialRadius_(radius)
 {
@@ -37,12 +37,12 @@ SphereParticle::SphereParticle(BasicEmitter const *      pEmitter,
 //! @param	velocity		Velocity at birth.
 //! @param	radius			Radius at birth.
 
-void SphereParticle::Initialize(float                     lifetime,
-                                float                     age,
-                                DirectX::XMFLOAT3 const & position,
-                                DirectX::XMFLOAT3 const & velocity,
-                                DirectX::XMFLOAT4 const & color,
-                                float                     radius)
+void SphereParticle::Initialize(float             lifetime,
+                                float             age,
+                                glm::vec3 const & position,
+                                glm::vec3 const & velocity,
+                                glm::vec4 const & color,
+                                float             radius)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
 
@@ -73,7 +73,7 @@ bool SphereParticle::Update(float dt)
     return reborn;
 }
 
-void SphereParticle::Draw(ID3D11Device * pD3dDevice) const
+void SphereParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

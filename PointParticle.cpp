@@ -4,7 +4,7 @@
 #include "Emitter.h"
 
 #include <d3d11.h>
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 using namespace DirectX;
 
 namespace Confetti
@@ -25,21 +25,21 @@ D3DVERTEXELEMENT11 const PointParticle::aVSDataDeclarationInfo_[] =
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth.
 
-PointParticle::PointParticle(BasicEmitter const *      pEmitter,
-                             float                     lifetime,
-                             float                     age,
-                             DirectX::XMFLOAT3 const & position,
-                             DirectX::XMFLOAT3 const & velocity,
-                             DirectX::XMFLOAT4 const & color)
+PointParticle::PointParticle(BasicEmitter const * pEmitter,
+                             float                lifetime,
+                             float                age,
+                             glm::vec3 const &    position,
+                             glm::vec3 const &    velocity,
+                             glm::vec4 const &    color)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
 {
 }
 
-void PointParticle::Initialize(float                     lifetime,
-                               float                     age,
-                               DirectX::XMFLOAT3 const & position,
-                               DirectX::XMFLOAT3 const & velocity,
-                               DirectX::XMFLOAT4 const & color)
+void PointParticle::Initialize(float             lifetime,
+                               float             age,
+                               glm::vec3 const & position,
+                               glm::vec3 const & velocity,
+                               glm::vec4 const & color)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
 }
@@ -49,7 +49,7 @@ bool PointParticle::Update(float dt)
     return Particle::Update(dt);
 }
 
-void PointParticle::Draw(ID3D11Device * pD3dDevice) const
+void PointParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
 {
     // Nothing to do. The particles are drawn by the emitter. This function should not be called.
     assert(false);

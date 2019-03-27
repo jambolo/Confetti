@@ -21,12 +21,12 @@ D3DVERTEXELEMENT11 const StreakParticle::aVSDataDeclarationInfo_[] =
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth.
 
-StreakParticle::StreakParticle(BasicEmitter const *      pEmitter,
-                               float                     lifetime,
-                               float                     age,
-                               DirectX::XMFLOAT3 const & position,
-                               DirectX::XMFLOAT3 const & velocity,
-                               DirectX::XMFLOAT4 const & color)
+StreakParticle::StreakParticle(BasicEmitter const * pEmitter,
+                               float                lifetime,
+                               float                age,
+                               glm::vec3 const &    position,
+                               glm::vec3 const &    velocity,
+                               glm::vec4 const &    color)
     : Particle(pEmitter, lifetime, age, position, velocity, color)
 {
 }
@@ -37,11 +37,11 @@ StreakParticle::StreakParticle(BasicEmitter const *      pEmitter,
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth.
 
-void StreakParticle::Initialize(float                     lifetime,
-                                float                     age,
-                                DirectX::XMFLOAT3 const & position,
-                                DirectX::XMFLOAT3 const & velocity,
-                                DirectX::XMFLOAT4 const & color)
+void StreakParticle::Initialize(float             lifetime,
+                                float             age,
+                                glm::vec3 const & position,
+                                glm::vec3 const & velocity,
+                                glm::vec4 const & color)
 {
     Particle::Initialize(lifetime, age, position, velocity, color);
 }
@@ -57,17 +57,17 @@ bool StreakParticle::Update(float dt)
 
     // Update the location of the tail
 
-    DirectX::XMVECTOR position_simd(XMLoadFloat3(&position_));
-    DirectX::XMVECTOR velocity_simd(XMLoadFloat3(&velocity_));
+    glm::vec4 position = position_;
+    glm::vec4 velocity = velocity_;
 
-    DirectX::XMVECTOR tail_simd;
-    tail_simd = position_simd - velocity_simd * dt;
+    glm::vec4 tail;
+    tail = position - velocity * dt;
 
-    XMStoreFloat3(&tail_, tail_simd);
+    tail_ = tail;
     return reborn;
 }
 
-void StreakParticle::Draw(ID3D11Device * pD3dDevice) const
+void StreakParticle::Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const
 {
     // Nothing to do here because all drawing is done by the emitter. This function should not be called
     assert(false);

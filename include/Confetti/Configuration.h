@@ -3,7 +3,7 @@
 #if !defined(CONFETTI_CONFIGURATION_H)
 #define CONFETTI_CONFIGURATION_H
 
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <string>
@@ -28,12 +28,12 @@ public:
 
         float lifetime_;
         float age_;
-        DirectX::XMFLOAT3 position_;
-        DirectX::XMFLOAT3 velocity_;
-        DirectX::XMFLOAT4 color_;
+        glm::vec3 position_;
+        glm::vec3 velocity_;
+        glm::vec4 color_;
         float radius_;
         float rotation_;
-        DirectX::XMFLOAT4 orientation_;
+        glm::vec4 orientation_;
     };
 
     //! Emitter configuration
@@ -53,12 +53,12 @@ public:
         int count_;
         float lifetime_;
         float spread_;
-        DirectX::XMFLOAT4 color_;
+        glm::vec4 color_;
         float radius_;
         bool sorted_;
-        DirectX::XMFLOAT3 position_;
-        DirectX::XMFLOAT4 orientation_;
-        DirectX::XMFLOAT3 velocity_;
+        glm::vec3 position_;
+        glm::vec4 orientation_;
+        glm::vec3 velocity_;
         ParticleVector particleVector_;
     };
 
@@ -81,10 +81,10 @@ public:
     {
 public:
         std::string name_;
-        DirectX::XMFLOAT3 gravity_;
-        DirectX::XMFLOAT3 windVelocity_;
-        DirectX::XMFLOAT3 gustiness_;
-        float airFriction_;
+        glm::vec3 gravity_;
+        glm::vec3 windVelocity_;
+        glm::vec3 gustiness_;
+        float friction_;
         std::string bounce_;
         std::string clip_;
     };
@@ -94,7 +94,7 @@ public:
     {
 public:
         std::string name_;
-        DirectX::XMFLOAT4 colorChange_;
+        glm::vec4 colorChange_;
         float radiusChange_;
         float radialVelocity_;
         std::string texture_;
@@ -105,7 +105,7 @@ public:
     class BouncePlane
     {
 public:
-        DirectX::XMFLOAT4 plane_;
+        glm::vec4 plane_;
         float dampening_;
     };
 
@@ -114,7 +114,7 @@ public:
     {
 public:
         std::string name_;
-        std::vector<DirectX::XMFLOAT4> clipPlanes_;
+        std::vector<glm::vec4> clipPlanes_;
     };
 
     //! Bounce plane list configuration
@@ -227,8 +227,8 @@ private:
 //                                     uint32_t *    pColor,
 //                                     float *       pRadius,
 //                                     float *       pOrientation,
-//                                     DirectX::XMFLOAT4 * pVelocity,
-//                                     DirectX::XMFLOAT4 * pPosition);
+//                                     glm::vec4 * pVelocity,
+//                                     glm::vec4 * pPosition);
 };
 
 //! A configuration loaded from JSON

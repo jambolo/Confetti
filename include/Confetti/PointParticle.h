@@ -3,10 +3,9 @@
 #if !defined(CONFETTI_POINTPARTICLE_H)
 #define CONFETTI_POINTPARTICLE_H
 
-#include "Particle.h"
+#include <Confetti/Particle.h>
 
-#include <d3d11.h>
-#include <DirectXMath.h>
+#include <glm/glm.hpp>
 struct ID3D11Device;
 
 namespace Confetti
@@ -26,27 +25,27 @@ public:
     PointParticle() = default;
 
     //! Constructor.
-    PointParticle(BasicEmitter const *      pEmitter,
-                  float                     lifetime,
-                  float                     age,
-                  DirectX::XMFLOAT3 const & position,
-                  DirectX::XMFLOAT3 const & velocity,
-                  DirectX::XMFLOAT4 const & color);
+    PointParticle(BasicEmitter const * pEmitter,
+                  float                lifetime,
+                  float                age,
+                  glm::vec3 const &    position,
+                  glm::vec3 const &    velocity,
+                  glm::vec4 const &    color);
 
     //! Destructor.
     virtual ~PointParticle() override = default;
 
     //! Initializes a particle constructed with the default constructor
-    void Initialize(float                     lifetime,
-                    float                     age,
-                    DirectX::XMFLOAT3 const & position,
-                    DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT4 const & color);
+    void Initialize(float             lifetime,
+                    float             age,
+                    glm::vec3 const & position,
+                    glm::vec3 const & velocity,
+                    glm::vec4 const & color);
 
     //! @name Overrides Particle
     //@{
     virtual bool Update(float dt) override;
-    virtual void Draw(ID3D11Device * pD3dDevice) const override;
+    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const override;
     //@}
 
     //! Vertex buffer info.
@@ -55,8 +54,8 @@ public:
         static int const NUM_VERTICES = 1;
         struct Vertex
         {
-            DirectX::XMFLOAT3 position;
-            DirectX::XMFLOAT3 color;
+            glm::vec3 position;
+            glm::vec3 color;
         };
 
         Vertex v[NUM_VERTICES];

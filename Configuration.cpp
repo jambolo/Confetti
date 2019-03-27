@@ -1,26 +1,19 @@
 #include "Configuration.h"
 
-#include "Dxx/D3dx.h"
-#include "Misc/Exceptions.h"
-#include "Msxmlx/Msxmlx.h"
-#include "Wx/Wx.h"
+#include <Misc/Exceptions.h>
+#include <Msxmlx/Msxmlx.h>
+#include <Vkx/Vkx.h>
 
-#include <atlbase.h>
-#include <d3d11.h>
-// #include <DirectXColors.h>
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
+#include <glm/glm.hpp>
 
 #include <iomanip>
 #include <sstream>
 
-using namespace DirectX;
-
 namespace
 {
-DirectX::XMFLOAT3 GetVectorSubElement(IXMLDOMElement * pElement,
-                                      char const * sName,
-                                      DirectX::XMFLOAT3 const & defaultVec = { 0.0f, 0.0f, 0.0f })
+glm::vec3 GetVectorSubElement(IXMLDOMElement * pElement,
+                              char const * sName,
+                              glm::vec3 const & defaultVec = { 0.0f, 0.0f, 0.0f })
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -36,7 +29,7 @@ DirectX::XMFLOAT3 GetVectorSubElement(IXMLDOMElement * pElement,
         //        </xsd:all>
         //    </xsd:complexType>
 
-        DirectX::XMFLOAT3 v;
+        glm::vec3 v;
 
         v.x = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultVec.x);
         v.y = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultVec.y);
@@ -50,9 +43,9 @@ DirectX::XMFLOAT3 GetVectorSubElement(IXMLDOMElement * pElement,
     }
 }
 
-DirectX::XMFLOAT4 GetPlaneSubElement(IXMLDOMElement * pElement,
-                                     char const * sName,
-                                     DirectX::XMFLOAT4 const & defaultPlane = { 0.0f, 1.0f, 0.0f, 0.0f })
+glm::vec4 GetPlaneSubElement(IXMLDOMElement * pElement,
+                             char const * sName,
+                             glm::vec4 const & defaultPlane = { 0.0f, 1.0f, 0.0f, 0.0f })
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -69,7 +62,7 @@ DirectX::XMFLOAT4 GetPlaneSubElement(IXMLDOMElement * pElement,
         //        </xsd:all>
         //    </xsd:complexType>
 
-        DirectX::XMFLOAT4 plane;
+        glm::vec4 plane;
 
         plane.x = Msxmlx::GetFloatSubElement(pSubElement, "A", defaultPlane.x);
         plane.y = Msxmlx::GetFloatSubElement(pSubElement, "B", defaultPlane.y);
@@ -84,9 +77,9 @@ DirectX::XMFLOAT4 GetPlaneSubElement(IXMLDOMElement * pElement,
     }
 }
 
-DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement * pElement,
-                                    char const * sName,
-                                    DirectX::XMFLOAT4 const & defaultRgba = { 0.0f, 0.0f, 0.0f, 0.0f })
+glm::vec4 GetRgbaSubElement(IXMLDOMElement * pElement,
+                            char const * sName,
+                            glm::vec4 const & defaultRgba = { 0.0f, 0.0f, 0.0f, 0.0f })
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -103,7 +96,7 @@ DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement * pElement,
         //        </xsd:all>
         //    </xsd:complexType>
 
-        DirectX::XMFLOAT4 rgba;
+        glm::vec4 rgba;
 
         rgba.x = Msxmlx::GetFloatSubElement(pSubElement, "R", defaultRgba.x);
         rgba.y = Msxmlx::GetFloatSubElement(pSubElement, "G", defaultRgba.y);
@@ -118,9 +111,9 @@ DirectX::XMFLOAT4 GetRgbaSubElement(IXMLDOMElement * pElement,
     }
 }
 
-DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
-                                    char const *              sName,
-                                    DirectX::XMFLOAT4 const & defaultQuat = Dxx::QuaternionIdentity())
+glm::vec4 GetQuatSubElement(IXMLDOMElement *  pElement,
+                            char const *      sName,
+                            glm::vec4 const & defaultQuat = Vkx::QuaternionIdentity())
 {
     HRESULT hr;
     CComPtr<IXMLDOMElement> pSubElement;
@@ -137,7 +130,7 @@ DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
         //        </xsd:all>
         //    </xsd:complexType>
 
-        DirectX::XMFLOAT4 q;
+        glm::vec4 q;
 
         q.x = Msxmlx::GetFloatSubElement(pSubElement, "X", defaultQuat.x);
         q.y = Msxmlx::GetFloatSubElement(pSubElement, "Y", defaultQuat.y);
@@ -154,7 +147,7 @@ DirectX::XMFLOAT4 GetQuatSubElement(IXMLDOMElement *          pElement,
 
 #if defined(_DEBUG)
 
-std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT4 const & q)
+std::ostream & operator <<(std::ostream & s, glm::vec4 const & q)
 {
     s << q.x << ','
       << q.y << ','
@@ -164,7 +157,7 @@ std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT4 const & q)
     return s;
 }
 
-std::ostream & operator <<(std::ostream & s, DirectX::XMFLOAT3 const & v)
+std::ostream & operator <<(std::ostream & s, glm::vec3 const & v)
 {
     s << v.x << ','
       << v.y << ','
@@ -404,7 +397,7 @@ bool XmlConfiguration::ProcessClipPlane(IXMLDOMElement * pElement, uintptr_t con
     //        </xsd:all>
     //    </xsd:complexType>
 
-    DirectX::XMFLOAT4 clipPlane;
+    glm::vec4 clipPlane;
 
     clipPlane.x = Msxmlx::GetFloatSubElement(pElement, "A");
     clipPlane.y = Msxmlx::GetFloatSubElement(pElement, "B");
@@ -459,7 +452,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
         environment.gravity_      = GetVectorSubElement(pElement, "Gravity");
         environment.windVelocity_ = GetVectorSubElement(pElement, "WindVelocity");
         environment.gustiness_    = GetVectorSubElement(pElement, "Gustiness");
-        environment.airFriction_  = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
+        environment.friction_     = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
         environment.bounce_       = Msxmlx::GetStringSubElement(pElement, "Bounce");
         environment.clip_         = Msxmlx::GetStringSubElement(pElement, "Clip");
 
@@ -469,7 +462,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
             msg << "Environment: " << environment.name_ << "( "
                 << "[" << environment.gravity_ << "], "
                 << "[" << environment.windVelocity_ << "], "
-                << environment.airFriction_ << ", "
+                << environment.friction_ << ", "
                 << "[" << environment.gustiness_ << "], "
                 << "\"" << environment.bounce_ << "\", "
                 << "\"" << environment.clip_ << "\" )"
@@ -730,8 +723,8 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //                                                                          0xff000000;
 //        float        radius        = 1.0f;
 //        float        orientation    = 0.0f;
-//        DirectX::XMFLOAT4    position    = pEmitter->GetEmitterVolume()->Next();
-//        DirectX::XMFLOAT4    velocity;
+//        glm::vec4    position    = pEmitter->GetEmitterVolume()->Next();
+//        glm::vec4    velocity;
 //
 //        {
 //            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
@@ -754,7 +747,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //
 //        // Initialize the particle
 //
-//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//        glm::vec4    rgba    = glm::vec4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -786,8 +779,8 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //                                                                          0xff000000;
 //        float        radius        = 1.0f;
 //        float        orientation    = 0.0f;
-//        DirectX::XMFLOAT4        position    = pEmitter->GetEmitterVolume()->Next();
-//        DirectX::XMFLOAT4        velocity;
+//        glm::vec4        position    = pEmitter->GetEmitterVolume()->Next();
+//        glm::vec4        velocity;
 //
 //        {
 //            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
@@ -810,7 +803,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //
 //        // Initialize the particle
 //
-//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//        glm::vec4    rgba    = glm::vec4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -842,10 +835,10 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //                                                                          0xff000000;
 //        float        radius        = 1.0f;
 //        float        orientation    = 0.0f;
-//        DirectX::XMFLOAT4    position    = pEmitter->GetEmitterVolume()->Next();
+//        glm::vec4    position    = pEmitter->GetEmitterVolume()->Next();
 //        std::swap( position.y, position.z );
 //
-//        DirectX::XMFLOAT4    velocity;
+//        glm::vec4    velocity;
 //
 //        {
 //            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
@@ -868,7 +861,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //
 //        // Initialize the particle
 //
-//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//        glm::vec4    rgba    = glm::vec4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -900,8 +893,8 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //                                                                          0xff000000;
 //        float        radius        = 1.0f;
 //        float        orientation    = 0.0f;
-//        DirectX::XMFLOAT4        position    = pEmitter->GetEmitterVolume()->Next();
-//        DirectX::XMFLOAT4        velocity;
+//        glm::vec4        position    = pEmitter->GetEmitterVolume()->Next();
+//        glm::vec4        velocity;
 //
 //        {
 //            List3 const    v    = rdir.Get( spread ) * rng.Get( minSpeed, maxSpeed );
@@ -924,7 +917,7 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //
 //        // Initialize the particle
 //
-//        DirectX::XMFLOAT4    rgba    = DirectX::XMFLOAT4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
+//        glm::vec4    rgba    = glm::vec4( float( color & 0x000000ffU ) / float( 0x000000ffU ),
 //                                         float( color & 0x0000ff00U ) / float( 0x0000ff00U ),
 //                                         float( color & 0x00ff0000U ) / float( 0x00ff0000U ),
 //                                         float( color & 0xff000000U ) / float( 0xff000000U ) );
@@ -936,8 +929,8 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 // void XmlConfiguration::ProcessParticle( IXMLDOMNode *        pNode,
 //                                          float *            pLifetime,
 //                                          float *            pAge,
-//                                          DirectX::XMFLOAT4 *        pVelocity,
-//                                          DirectX::XMFLOAT4 *        pPosition,
+//                                          glm::vec4 *        pVelocity,
+//                                          glm::vec4 *        pPosition,
 //                                          uint32_t *            pColor,
 //                                          float *            pRadius,
 //                                          float *            pRotation,

@@ -3,9 +3,8 @@
 #if !defined(CONFETTI_TEXTUREDPARTICLE_H)
 #define CONFETTI_TEXTUREDPARTICLE_H
 
-#include "Particle.h"
-#include <d3d11.h>
-#include <DirectXMath.h>
+#include <Confetti/Particle.h>
+#include <glm/glm.hpp>
 
 struct ID3D11Device;
 
@@ -24,31 +23,31 @@ public:
     TexturedParticle() = default;
 
     //! Constructor.
-    TexturedParticle(BasicEmitter const *      pEmitter,
-                     float                     lifetime,
-                     float                     age,
-                     DirectX::XMFLOAT3 const & position,
-                     DirectX::XMFLOAT3 const & velocity,
-                     DirectX::XMFLOAT4 const & color,
-                     float                     radius,
-                     float                     rotation);
+    TexturedParticle(BasicEmitter const * pEmitter,
+                     float                lifetime,
+                     float                age,
+                     glm::vec3 const &    position,
+                     glm::vec3 const &    velocity,
+                     glm::vec4 const &    color,
+                     float                radius,
+                     float                rotation);
 
     //! Destructor.
     virtual ~TexturedParticle() override = default;
 
     //! Initializes a particle constructed with the default constructor
-    void Initialize(float                     lifetime,
-                    float                     age,
-                    DirectX::XMFLOAT3 const & position,
-                    DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT4 const & color,
-                    float                     radius,
-                    float                     rotation = 0);
+    void Initialize(float             lifetime,
+                    float             age,
+                    glm::vec3 const & position,
+                    glm::vec3 const & velocity,
+                    glm::vec4 const & color,
+                    float             radius,
+                    float             rotation = 0);
 
     //! @name Overrides Particle
     //@{
     virtual bool Update(float dt) override;
-    virtual void Draw(ID3D11Device * pD3dDevice) const override;
+    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const override;
     //@}
 
     //! Returns the particle's current radius.
@@ -65,8 +64,8 @@ public:
         //! Vertex buffer entry
         struct Vertex
         {
-            DirectX::XMFLOAT3 position; //!< Particle (not vertex!) position
-            DirectX::XMFLOAT3 color;    //!< Color
+            glm::vec3 position; //!< Particle (not vertex!) position
+            glm::vec3 color;    //!< Color
             FLOAT u, v;                 //!< Texture position
             FLOAT radius;               //!< Radius of the particle
             FLOAT rotation;             //!< Amount of rotation of the particle

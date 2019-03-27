@@ -5,7 +5,7 @@
 
 #include <vector>
 
-struct ID3D11Device;
+namespace Vkx { class Device; }
 
 namespace Confetti
 {
@@ -14,50 +14,47 @@ class Appearance;
 class EmitterVolume;
 class Environment;
 
-//! The particle system
+//! The particle system.
 //!
-//! This class updates and draws particles associated with a set of emitters using a set of appearances
-//! and environments.
+//! This class updates and draws particles associated with a set of emitters using a set of appearances and environments.
 
 class ParticleSystem
 {
 public:
 
     //! Constructor.
-    ParticleSystem(ID3D11Device * pD3dDevice);
+    ParticleSystem(std::shared_ptr<Vkx::Device> device);
 
-    //! Destructor.
-    ~ParticleSystem();
+    //@{
+    //! Registers a component.
+    void add(std::shared_ptr<BasicEmitter> pemitter);
+    void add(std::shared_ptr<Appearance> appearance);
+    void add(std::shared_ptr<Environment> environment);
+    //@}
 
-    //! Registers/unregisters an emitter (Unregister returns true if the emitter was found)
-    void Register(BasicEmitter * pEmitter);
-    bool Unregister(BasicEmitter * pEmitter);
+    //@{
+    //! Unregisters a component.
+    bool remove(BasicEmitter * emitter);
+    bool remove(Appearance * appearance);
+    bool remove(Environment * environment);
+    //@}
 
-    //! Registers/unregisters an appearance (Unregister returns true if the appearance was found)
-    void Register(Appearance * pAppearance);
-    bool Unregister(Appearance * pAppearance);
+    //! Updates the system.
+    void update(float dt);
 
-    //! Registers/unregisters an environment (Unregister returns true if the environment was found)
-    void Register(Environment * pEnvironment);
-    bool Unregister(Environment * pEnvironment);
-
-    //! Updates the system
-    void Update(float dt);
-
-    //! Draws all particles for all the emitters
-    void Draw() const;
+    //! Draws all particles for all the emitters.
+    void draw() const;
 
 private:
 
-    using EmitterList     = std::vector<BasicEmitter *>;
-    using EnvironmentList = std::vector<Environment *>;
-    using AppearanceList  = std::vector<Appearance *>;
+    using EmitterList     = std::vector<std::shared_ptr<BasicEmitter>>;
+    using EnvironmentList = std::vector<std::shared_ptr<Environment>>;
+    using AppearanceList  = std::vector<std::shared_ptr<Appearance>>;
 
-    ID3D11Device * pD3dDevice_;
-
-    EmitterList emitters_;                                     // Active emitters
-    EnvironmentList environments_;                             // Active environments
-    AppearanceList appearances_;                               // Active appearances
+    std::shared_ptr<Vkx::Device> device_;
+    EmitterList emitters_;                  // Active emitters
+    EnvironmentList environments_;          // Active environments
+    AppearanceList appearances_;            // Active appearances
 };
 } // namespace Confetti
 

@@ -28,12 +28,12 @@ public:
     Particle() = default;
 
     //! Constructor.
-    Particle(BasicEmitter const *      pEmitter,
-             float                     lifetime,
-             float                     age,
-             DirectX::XMFLOAT3 const & position,
-             DirectX::XMFLOAT3 const & velocity,
-             DirectX::XMFLOAT4 const & color);
+    Particle(BasicEmitter const * pEmitter,
+             float                lifetime,
+             float                age,
+             glm::vec3 const &    position,
+             glm::vec3 const &    velocity,
+             glm::vec4 const &    color);
 
     //! Destructor.
     virtual ~Particle() = default;
@@ -45,7 +45,7 @@ public:
     //!
     //!
     //! @note	This method must be overridden.
-    virtual void Draw(ID3D11Device * pD3dDevice) const = 0;
+    virtual void Draw(std::shared_ptr<Vkx::Device> pD3dDevice) const = 0;
 
     //! Binds to an emitter.
     void Bind(BasicEmitter * pEmitter) { pEmitter_ = pEmitter; }
@@ -54,22 +54,22 @@ public:
     float GetAge() const { return age_; }
 
     //! Returns the particle's current position.
-    DirectX::XMFLOAT3 GetPosition() const { return position_; }
+    glm::vec3 GetPosition() const { return position_; }
 
     //! Returns the particle's current velocity.
-    DirectX::XMFLOAT3 GetVelocity() const { return velocity_; }
+    glm::vec3 GetVelocity() const { return velocity_; }
 
     //! Returns the particle's current velocity.
-    DirectX::XMFLOAT4 GetColor() const { return color_; }
+    glm::vec4 GetColor() const { return color_; }
 
 protected:
 
     //! Initializes after using the default constructor.
-    void Initialize(float                     lifetime,
-                    float                     age,
-                    DirectX::XMFLOAT3 const & position,
-                    DirectX::XMFLOAT3 const & velocity,
-                    DirectX::XMFLOAT4 const & color);
+    void Initialize(float             lifetime,
+                    float             age,
+                    glm::vec3 const & position,
+                    glm::vec3 const & velocity,
+                    glm::vec4 const & color);
 
     BasicEmitter const * pEmitter_;            //!< This particle's emitter
 
@@ -80,16 +80,16 @@ protected:
 
     // Motion data
 
-    DirectX::XMFLOAT3 initialPosition_; //!< Position at birth relative to emitter
-    DirectX::XMFLOAT3 initialVelocity_; //!< Velocity at birth relative to emitter
+    glm::vec3 initialPosition_; //!< Position at birth relative to emitter
+    glm::vec3 initialVelocity_; //!< Velocity at birth relative to emitter
 
-    DirectX::XMFLOAT3 position_;        //!< Current position
-    DirectX::XMFLOAT3 velocity_;        //!< Current velocity
+    glm::vec3 position_;        //!< Current position
+    glm::vec3 velocity_;        //!< Current velocity
 
     // Appearance data
 
-    DirectX::XMFLOAT4 initialColor_;    //!< Color at birth
-    DirectX::XMFLOAT4 color_;           //!< Current color
+    glm::vec4 initialColor_;    //!< Color at birth
+    glm::vec4 color_;           //!< Current color
 };
 } // namespace Confetti
 
