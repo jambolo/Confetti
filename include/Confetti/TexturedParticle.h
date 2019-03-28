@@ -69,9 +69,9 @@ public:
         {
             glm::vec3 position; //!< Particle (not vertex!) position
             glm::vec3 color;    //!< Color
-            FLOAT u, v;                 //!< Texture position
-            FLOAT radius;               //!< Radius of the particle
-            FLOAT rotation;             //!< Amount of rotation of the particle
+            float u, v;                 //!< Texture position
+            float radius;               //!< Radius of the particle
+            float rotation;             //!< Amount of rotation of the particle
         };
 
         Vertex v[NUM_VERTICES]; //!< Vertex buffer entries

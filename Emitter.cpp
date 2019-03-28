@@ -40,65 +40,53 @@ public:
 
 namespace Confetti
 {
-//! @param paParticles  Array of particles (the emitter assumes ownership).
-//! @param pVol   Emitter volume.
-//! @param pEnv   Environment applied to all particles.
-//! @param pApp   Appearance shared by all particles.
+//! @param particles  Array of particles (the emitter assumes ownership).
+//! @param volume   Emitter volume.
+//! @param environment   Environment applied to all particles.
+//! @param appearance   Appearance shared by all particles.
 //! @param n    Number of particles in the array.
 //! @param spread   Emission angle (actual meaning is specific to the type of emitter).
 //!
-//! @warning paParticles must have been allocated with new[].
+//! @warning particles must have been allocated with new[].
 
-BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device> device,
-                           Particle *                   paParticles,
-                           int                          size,
-                           EmitterVolume const *        pVol,
-                           Environment const *          pEnv,
-                           Appearance const *           pApp,
-                           int                          n,
-                           bool                         sorted)
-    : paParticles_(paParticles)
-    , pEmitterVolume_(pVol)
-    , pEnvironment_(pEnv)
-    , pAppearance_(pApp)
-    , numParticles_(n)
+BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device>   device,
+                           int                            size,
+                           std::shared_ptr<EmitterVolume> volume,
+                           std::shared_ptr<Environment>   environment,
+                           std::shared_ptr<Appearance>    appearance,
+                           bool                           sorted)
+    : volume_(volume)
+    , environment_(environment)
+    , appearance_(appearance)
     , sorted_(sorted)
     , enabled_(true)
     , position_({ 0.0f, 0.0f, 0.0f })
     , velocity_({ 0.0f, 0.0f, 0.0f })
     , pVB_(nullptr)
 {
-    device->AddRef();
-
-    // Check caps bits for certain features
-    {
-//         D3DCAPS9 caps;
+//     // Check caps bits for certain features
+//     {
+// //         D3DCAPS9 caps;
+// //
+// //         pD3dDevice_->GetDeviceCaps(&caps);
+// //
+// //         alphaTestAvailable_ = ((caps.AlphaCmpCaps & D3DPCMPCAPS_GREATEREQUAL) != 0);
+// //         maxPrimitives_      = caps.MaxPrimitiveCount;
+// //         maxVertexIndex_     = caps.MaxVertexIndex;
+//     }
 //
-//         pD3dDevice_->GetDeviceCaps(&caps);
+//     D3D11_BUFFER_DESC desc =
+//     {
+//         (UINT)(n * size),           // UINT        ByteWidth;
+//         D3D11_USAGE_DYNAMIC,        // D3D11_USAGE Usage;
+//         D3D11_BIND_VERTEX_BUFFER,   // UINT        BindFlags;
+//         D3D11_CPU_ACCESS_WRITE,     // UINT        CPUAccessFlags;
+//         0,                          // UINT        MiscFlags;
+//         0                           // UINT        StructureByteStride;
+//     };
 //
-//         alphaTestAvailable_ = ((caps.AlphaCmpCaps & D3DPCMPCAPS_GREATEREQUAL) != 0);
-//         maxPrimitives_      = caps.MaxPrimitiveCount;
-//         maxVertexIndex_     = caps.MaxVertexIndex;
-    }
-
-    D3D11_BUFFER_DESC desc =
-    {
-        (UINT)(n * size),           // UINT        ByteWidth;
-        D3D11_USAGE_DYNAMIC,        // D3D11_USAGE Usage;
-        D3D11_BIND_VERTEX_BUFFER,   // UINT        BindFlags;
-        D3D11_CPU_ACCESS_WRITE,     // UINT        CPUAccessFlags;
-        0,                          // UINT        MiscFlags;
-        0                           // UINT        StructureByteStride;
-    };
-
-    HRESULT hr = device->CreateBuffer(&desc, nullptr, &pVB_);
-    assert_succeeded(hr);
-}
-
-BasicEmitter::~BasicEmitter()
-{
-    Wx::SafeRelease(pVB_);
-    Wx::SafeRelease(pD3dDevice_);
+//     HRESULT hr = device->CreateBuffer(&desc, nullptr, &pVB_);
+//     assert_succeeded(hr);
 }
 
 //! @param dt Amount of time elapsed since the last update
@@ -138,49 +126,41 @@ void BasicEmitter::update(glm::vec3 const & position, glm::vec3 const & velocity
 /********************************************************************************************************************/
 /*                                   P O I N T   P A R T I C L E   E M I T T E R                                    */
 /********************************************************************************************************************/
-//! @param pVol Emitter volume.
-//! @param pEnv Environment.
-//! @param pApp Appearance.
+//! @param volume Emitter volume.
+//! @param environment Environment.
+//! @param appearance Appearance.
 //! @param n  Number of particles to create.
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device> device,
-                           EmitterVolume const *        pVol,
-                           Environment const *          pEnv,
-                           Appearance const *           pApp,
-                           int                          n,
-                           bool                         sorted)
-    : BasicEmitter(device,
-                   new PointParticle[n],
-                   sizeof(PointParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
+                           int                            n,
+                           std::shared_ptr<EmitterVolume> volume,
+                           std::shared_ptr<Environment>   environment,
+                           std::shared_ptr<Appearance>    appearance,
+                           bool                           sorted)
+    : BasicEmitter(device, sizeof(PointParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(n)
 {
-    if (!particles())
-        throw std::bad_alloc();
-
     initialize();
 }
 
-//! @param paParticles  Particle array (the emitter assumes ownership).
-//! @param pVol   Emitter volume.
-//! @param pEnv   Environment applied to all particles.
-//! @param pApp   Appearance shared by all particles.
+//! @param particles  Particle array (the emitter assumes ownership).
+//! @param volume   Emitter volume.
+//! @param environment   Environment applied to all particles.
+//! @param appearance   Appearance shared by all particles.
 //! @param n    Number of particles to create.
 //!
-//! @warning paParticles must have been allocated with new[].
+//! @warning particles must have been allocated with new[].
 
 PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
-                           std::unique_ptr<PointParticle> qaParticles,
-                           EmitterVolume const *          pVol,
-                           Environment const *            pEnv,
-                           Appearance const *             pApp,
-                           int                            n,
+                           std::vector<PointParticle>     particles,
+                           std::shared_ptr<EmitterVolume> volume,
+                           std::shared_ptr<Environment>   environment,
+                           std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
-    : BasicEmitter(device,
-                   qaParticles.release(),
-                   sizeof(PointParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+    : BasicEmitter(device, sizeof(PointParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(particles)
 {
     initialize();
 }
@@ -188,7 +168,6 @@ PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
 PointEmitter::~PointEmitter()
 {
     uninitialize();
-    delete[] particles();
 }
 
 void PointEmitter::initialize()
@@ -197,11 +176,9 @@ void PointEmitter::initialize()
 
     // Point the particles' emitter value here
 
-    PointParticle * const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (auto & p : particles_)
     {
-        paParticles[i].Bind(this);
+        p.Bind(this);
     }
 
     // Load the shader
@@ -339,8 +316,6 @@ void PointEmitter::initialize()
 
 void PointEmitter::uninitialize()
 {
-    Wx::SafeRelease(pEffect_);
-    Wx::SafeRelease(pVertexDeclaration_);
 }
 
 //!
@@ -348,19 +323,17 @@ void PointEmitter::uninitialize()
 
 void PointEmitter::update(float dt)
 {
-    PointParticle * const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Update(dt);
+        particles_[i].Update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
 
     if (sorted())
     {
-        std::sort(&paParticles[0],
-                  &paParticles[size()],
+        std::sort(particles_.begin(),
+                  particles_.end(),
                   ParticleSorter(appearance()->camera()->position()));
     }
 }
@@ -369,8 +342,8 @@ void PointEmitter::draw() const
 {
     HRESULT hr;
 
-    Appearance const * pAppearance = appearance();
-    int nParticles = size();                     // Number of particles contained in this emitter
+    std::shared_ptr<Appearance> appearanceearance = appearance();
+    int nParticles = particles_.size();                     // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
     // obscured by previously rendered objects will not be drawn because the Z-test is enabled. If Z-write is
@@ -402,7 +375,7 @@ void PointEmitter::draw() const
 
 // // Set point size
 //
-// float size = GetAppearance()->size();
+// float size = GetAppearance()->particles_.size();
 // hr = Vkx::SetRenderState( pD3dDevice_, D3DRS_POINTSIZE, *(DWORD*)&size );
 // assert_succeeded( hr );
 //
@@ -446,7 +419,7 @@ void PointEmitter::draw() const
 // pEffect_->SetMatrix( "ViewMatrix", &view );
 // pEffect_->SetMatrix( "ProjectionMatrix", &projection );
 // pEffect_->SetMatrix( "ViewProjectionMatrix", &view );
-    pEffect_->SetFloat("Size", appearance()->size());
+    pEffect_->SetFloat("Size", appearance()->particles_.size());
 
     // Set up vertex data
 
@@ -467,12 +440,12 @@ void PointEmitter::draw() const
         {
             Vkx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
 
-            PointParticle::VBEntry * paVB        = (PointParticle::VBEntry *)lock.GetLockedBuffer();
-            PointParticle const *    paParticles = particles();
+            PointParticle::VBEntry * paVB      = (PointParticle::VBEntry *)lock.GetLockedBuffer();
+            PointParticle const *    particles = particles();
 
             while (i < nParticles && count < particlesPerGroup)
             {
-                PointParticle const * pParticle = &paParticles[i];      // Convenience
+                PointParticle const * pParticle = &particles_[i];      // Convenience
 
                 // Draw only particles that have been born
 
@@ -516,51 +489,44 @@ void PointEmitter::draw() const
 /*                                  S T R E A K   P A R T I C L E   E M I T T E R                                   */
 /********************************************************************************************************************/
 
-//! @param pVol Emitter volume.
-//! @param pEnv Environment.
-//! @param pApp Appearance.
+//! @param volume Emitter volume.
+//! @param environment Environment.
+//! @param appearance Appearance.
 //! @param n  Number of particles to create.
 //! @param sorted If true, then the particles will be sorted back to front
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device> device,
-                             EmitterVolume const *        pVol,
-                             Environment const *          pEnv,
-                             Appearance const *           pApp,
-                             int                          n,
-                             bool                         sorted)
-    : BasicEmitter(device,
-                   new StreakParticle[n],
-                   sizeof(StreakParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
-{
-    if (!particles())
-        throw std::bad_alloc();
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>   device,
+                             int                            n,
+                             std::shared_ptr<EmitterVolume> volume,
+                             std::shared_ptr<Environment>   environment,
+                             std::shared_ptr<Appearance>    appearance,
+                             bool                           sorted)
+    : BasicEmitter(device, sizeof(StreakParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(n)
 
+{
     initialize();
 }
 
-//! @param paParticles  Particle array (the emitter assumes ownership).
-//! @param pVol   Emitter volume.
-//! @param pEnv   Environment applied to all particles.
-//! @param pApp   Appearance shared by all particles.
+//! @param particles  Particle array (the emitter assumes ownership).
+//! @param volume   Emitter volume.
+//! @param environment   Environment applied to all particles.
+//! @param appearance   Appearance shared by all particles.
 //! @param n    Number of particles to create.
 //! @param sorted If true, then the particles will be sorted back to front
 //!
-//! @warning paParticles must have been allocated with new[].
+//! @warning particles must have been allocated with new[].
 
-StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>    device,
-                             std::unique_ptr<StreakParticle> qaParticles,
-                             EmitterVolume const *           pVol,
-                             Environment const *             pEnv,
-                             Appearance const *              pApp,
-                             int                             n,
-                             bool                            sorted)
-    : BasicEmitter(device,
-                   qaParticles.release(),
-                   sizeof(StreakParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>   device,
+                             std::vector<StreakParticle>    particles,
+                             std::shared_ptr<EmitterVolume> volume,
+                             std::shared_ptr<Environment>   environment,
+                             std::shared_ptr<Appearance>    appearance,
+                             bool                           sorted)
+    : BasicEmitter(device, sizeof(StreakParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(particles)
 {
     initialize();
 }
@@ -568,7 +534,6 @@ StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>    device,
 StreakEmitter::~StreakEmitter()
 {
     uninitialize();
-    delete[] particles();
 }
 
 //!
@@ -576,19 +541,17 @@ StreakEmitter::~StreakEmitter()
 
 void StreakEmitter::update(float dt)
 {
-    StreakParticle *    const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Update(dt);
+        particles_[i].Update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
 
     if (sorted())
     {
-        std::sort(&paParticles[0],
-                  &paParticles[size()],
+        std::sort(particles_.begin(),
+                  particles_.end(),
                   ParticleSorter(appearance()->camera()->position()));
     }
 }
@@ -599,11 +562,9 @@ void StreakEmitter::initialize()
 
     // Point the particles' emitter value here
 
-    StreakParticle *    const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Bind(this);
+        particles_[i].Bind(this);
     }
 
     // Load the effects file
@@ -645,8 +606,8 @@ void StreakEmitter::draw() const
 {
     HRESULT hr;
 
-    Appearance const * pAppearance = appearance();
-    int nParticles = size();                     // Number of particles contained in this emitter
+    std::shared_ptr<Appearance> appearanceearance = appearance();
+    int nParticles = particles_.size();                     // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
     // obscured by previously rendered objects will not be drawn because the Z-test is enabled. If Z-write is
@@ -714,12 +675,12 @@ void StreakEmitter::draw() const
         {
             Vkx::VertexBufferLock lock(pVB_, 0, particlesPerGroup * sizeof(StreakParticle::VBEntry), D3DLOCK_DISCARD);
 
-            StreakParticle::VBEntry * paVB        = (StreakParticle::VBEntry *)lock.GetLockedBuffer();
-            StreakParticle const *    paParticles = particles();
+            StreakParticle::VBEntry * paVB      = (StreakParticle::VBEntry *)lock.GetLockedBuffer();
+            StreakParticle const *    particles = particles();
 
             while (i < nParticles && count < particlesPerGroup)
             {
-                StreakParticle const * const pParticle = &paParticles[i];       // Convenience
+                StreakParticle const * const pParticle = &particles_[i];       // Convenience
 
                 // Draw only particles that have been born
 
@@ -766,52 +727,44 @@ void StreakEmitter::draw() const
 }
 
 /********************************************************************************************************************/
-/*         T E X T U R E D   P A R T I C L E   E M I T T E R                               */
+/*                                  T E X T U R E D   P A R T I C L E   E M I T T E R                               */
 /********************************************************************************************************************/
 
-//! @param pVol Emitter volume.
-//! @param pEnv Environment.
-//! @param pApp Appearance.
+//! @param volume Emitter volume.
+//! @param environment Environment.
+//! @param appearance Appearance.
 //! @param n  Number of particles to create.
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device> device,
-                                 EmitterVolume const *        pVol,
-                                 Environment const *          pEnv,
-                                 Appearance const *           pApp,
-                                 int                          n,
-                                 bool                         sorted)
-    : BasicEmitter(device,
-                   new TexturedParticle[n],
-                   sizeof(TexturedParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
+                                 int                            n,
+                                 std::shared_ptr<EmitterVolume> volume,
+                                 std::shared_ptr<Environment>   environment,
+                                 std::shared_ptr<Appearance>    appearance,
+                                 bool                           sorted)
+    : BasicEmitter(device, sizeof(TexturedParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(n)
 {
-    if (!particles())
-        throw std::bad_alloc();
-
     initialize();
 }
 
-//! @param paParticles  Particle array (the emitter assumes ownership).
-//! @param pVol   Emitter volume.
-//! @param pEnv   Environment applied to all particles.
-//! @param pApp   Appearance shared by all particles.
+//! @param particles  Particle array (the emitter assumes ownership).
+//! @param volume   Emitter volume.
+//! @param environment   Environment applied to all particles.
+//! @param appearance   Appearance shared by all particles.
 //! @param n    Number of particles to create.
 //!
-//! @warning paParticles must have been allocated with new[].
+//! @warning particles must have been allocated with new[].
 
-TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>      device,
-                                 std::unique_ptr<TexturedParticle> qaParticles,
-                                 EmitterVolume const *             pVol,
-                                 Environment const *               pEnv,
-                                 Appearance const *                pApp,
-                                 int                               n,
-                                 bool                              sorted)
-    : BasicEmitter(device,
-                   qaParticles.release(),
-                   sizeof(TexturedParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
+                                 std::vector<TexturedParticle>  particles,
+                                 std::shared_ptr<EmitterVolume> volume,
+                                 std::shared_ptr<Environment>   environment,
+                                 std::shared_ptr<Appearance>    appearance,
+                                 bool                           sorted)
+    : BasicEmitter(device, sizeof(TexturedParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(particles)
 {
     initialize();
 }
@@ -819,7 +772,6 @@ TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>      device,
 TexturedEmitter::~TexturedEmitter()
 {
     uninitialize();
-    delete[] particles();
 }
 
 void TexturedEmitter::initialize()
@@ -827,12 +779,9 @@ void TexturedEmitter::initialize()
     HRESULT hr;
 
     // Point the particles' emitter value here
-
-    TexturedParticle *  const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Bind(this);
+        particles_[i].Bind(this);
     }
 
     // Figure out the maximum necessary size of the index buffer. It is the minimum of the following:
@@ -841,7 +790,7 @@ void TexturedEmitter::initialize()
     // 2. Max number of particles that the vertex buffer holds times 6. (6 indexes per particle)
     // 3. The limit specified by the hardware caps.
 
-    int nIndexes = size() * 6;
+    int nIndexes = particles_.size() * 6;
     if (nIndexes > VERTEX_BUFFER_SIZE / sizeof(TexturedParticle::VBEntry) * 6)
         nIndexes = VERTEX_BUFFER_SIZE / sizeof(TexturedParticle::VBEntry) * 6;
     if (nIndexes > maxPrimitives_ * 3)
@@ -901,19 +850,19 @@ void TexturedEmitter::uninitialize()
 
 void TexturedEmitter::update(float dt)
 {
-    TexturedParticle *  const paParticles = particles();
+    TexturedParticle *  const particles = particles();
 
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Update(dt);
+        particles_[i].Update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
 
     if (sorted())
     {
-        std::sort(&paParticles[0],
-                  &paParticles[size()],
+        std::sort(particles_.begin(),
+                  particles_.end(),
                   ParticleSorter(appearance()->camera()->position()));
     }
 }
@@ -922,9 +871,9 @@ void TexturedEmitter::draw() const
 {
     HRESULT hr;
 
-    Appearance const * pAppearance         = appearance();
-    std::shared_ptr<Vkx::Texture> pTexture = pAppearance->texture();
-    int nParticles = size();                         // Number of particles contained in this emitter
+    std::shared_ptr<Appearance>   appearanceearance = appearance();
+    std::shared_ptr<Vkx::Texture> pTexture          = pAppearance->texture();
+    int nParticles = particles_.size();                         // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
     // obscured by previously rendered objects will not be drawn because the Z-test is enabled. If Z-write is
@@ -1024,15 +973,15 @@ void TexturedEmitter::draw() const
             Vkx::VertexBufferLock vbLock(pVB_, 0, particlesPerGroup * sizeof(TexturedParticle::VBEntry), D3DLOCK_DISCARD);
             Vkx::IndexBufferLock  ibLock(pIB_, 0, particlesPerGroup * 6 * sizeof(__int16), D3DLOCK_DISCARD);
 
-            TexturedParticle::VBEntry * paVB        = (TexturedParticle::VBEntry *)vbLock.GetLockedBuffer();
-            unsigned __int16 *          pIB         = (unsigned __int16 *)ibLock.GetLockedBuffer();
-            TexturedParticle const *    paParticles = particles();
+            TexturedParticle::VBEntry * paVB      = (TexturedParticle::VBEntry *)vbLock.GetLockedBuffer();
+            unsigned __int16 *          pIB       = (unsigned __int16 *)ibLock.GetLockedBuffer();
+            TexturedParticle const *    particles = particles();
 
             // Draw each particle
 
             while (i < nParticles && count < particlesPerGroup)
             {
-                TexturedParticle const * const pParticle = &paParticles[i];     // Convenience
+                TexturedParticle const * const pParticle = &particles_[i];     // Convenience
 
                 // Draw only particles that have been born
 
@@ -1126,49 +1075,41 @@ void TexturedEmitter::draw() const
     }
 }
 
-//! @param pVol Emitter volume.
-//! @param pEnv Environment.
-//! @param pApp Appearance.
+//! @param volume Emitter volume.
+//! @param environment Environment.
+//! @param appearance Appearance.
 //! @param n  Number of particles to create.
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device> device,
-                             EmitterVolume const *        pVol,
-                             Environment const *          pEnv,
-                             Appearance const *           pApp,
-                             int                          n,
-                             bool                         sorted)
-    : BasicEmitter(device,
-                   new SphereParticle[n],
-                   sizeof(SphereParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>   device,
+                             int                            n,
+                             std::shared_ptr<EmitterVolume> volume,
+                             std::shared_ptr<Environment>   environment,
+                             std::shared_ptr<Appearance>    appearance,
+                             bool                           sorted)
+    : BasicEmitter(device, sizeof(SphereParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(n)
 {
-    if (!particles())
-        throw std::bad_alloc();
-
     initialize();
 }
 
-//! @param paParticles  Particle array (the emitter assumes ownership).
-//! @param pVol   Emitter volume.
-//! @param pEnv   Environment applied to all particles.
-//! @param pApp   Appearance shared by all particles.
+//! @param particles  Particle array (the emitter assumes ownership).
+//! @param volume   Emitter volume.
+//! @param environment   Environment applied to all particles.
+//! @param appearance   Appearance shared by all particles.
 //! @param n    Number of particles to create.
 //!
-//! @warning paParticles must have been allocated with new[].
+//! @warning particles must have been allocated with new[].
 
-SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>    device,
-                             std::unique_ptr<SphereParticle> qaParticles,
-                             EmitterVolume const *           pVol,
-                             Environment const *             pEnv,
-                             Appearance const *              pApp,
-                             int                             n,
-                             bool                            sorted)
-    : BasicEmitter(device,
-                   qaParticles.release(),
-                   sizeof(SphereParticle::VBEntry),
-                   pVol, pEnv, pApp, n, sorted)
+SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>   device,
+                             std::vector<SphereParticle>    particles,
+                             std::shared_ptr<EmitterVolume> volume,
+                             std::shared_ptr<Environment>   environment,
+                             std::shared_ptr<Appearance>    appearance,
+                             bool                           sorted)
+    : BasicEmitter(device, sizeof(SphereParticle::VBEntry), volume, environment, appearance, sorted)
+    , particles_(particles)
 {
     initialize();
 }
@@ -1183,19 +1124,17 @@ SphereEmitter::~SphereEmitter()
 
 void SphereEmitter::update(float dt)
 {
-    SphereParticle *    const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Update(dt);
+        particles_[i].Update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
 
     if (sorted())
     {
-        std::sort(&paParticles[0],
-                  &paParticles[size()],
+        std::sort(particles_.begin(),
+                  particles_.end(),
                   ParticleSorter(appearance()->camera()->position()));
     }
 }
@@ -1204,17 +1143,14 @@ void SphereEmitter::initialize()
 {
     // Point the particles' emitter value here
 
-    SphereParticle *    const paParticles = particles();
-
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < particles_.size(); i++)
     {
-        paParticles[i].Bind(this);
+        particles_[i].Bind(this);
     }
 }
 
 void SphereEmitter::uninitialize()
 {
-    delete[] particles();
 }
 
 void SphereEmitter::draw() const

@@ -134,8 +134,8 @@ bool Particle::Update(float dt)
     position += ds;
 
     // Check for collision with clip planes
-    Environment::ClipPlaneList clipPlanes = pE->clipPlanes();
-    if (clipPlanes)
+    Environment::ClipPlaneList const & clipPlanes = pE->clipPlanes();
+    if (!clipPlanes.empty())
     {
         for (auto const & plane : clipPlanes)
         {

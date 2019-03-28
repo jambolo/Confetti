@@ -33,35 +33,24 @@ class BasicEmitter
 public:
 
     //! Constructor.
-    BasicEmitter(std::shared_ptr<Vkx::Device> device,
-                 Particle *                   paParticles,
-                 int                          size,
-                 EmitterVolume const *        pVol,
-                 Environment const *          pEnv,
-                 Appearance const *           pApp,
-                 int                          n,
-                 bool                         sorted);
+    BasicEmitter(std::shared_ptr<Vkx::Device>   device,
+                 int                            size,
+                 std::shared_ptr<EmitterVolume> volume,
+                 std::shared_ptr<Environment>   environment,
+                 std::shared_ptr<Appearance>    appearance,
+                 bool                           sorted);
 
     //! Destructor.
-    virtual ~BasicEmitter();
-
-    //! Returns a pointer to the array of particles.
-    Particle * particles() { return paParticles_; }
-
-    //! Returns a pointer to the array of particles.
-    Particle const * particles() const { return paParticles_; }
+    virtual ~BasicEmitter() = default;
 
     //! Returns the emitter volume.
-    EmitterVolume const * emitterVolume() const { return pEmitterVolume_; }
+    std::shared_ptr<EmitterVolume> emitterVolume() const { return volume_; }
 
     //! Returns the appearance.
-    Appearance const * appearance() const { return pAppearance_; }
+    std::shared_ptr<Appearance> appearance() const { return appearance_; }
 
     //! Returns the environment.
-    Environment const * environment() const { return pEnvironment_; }
-
-    //! Returns the number of particles.
-    int size() const { return numParticles_; }
+    std::shared_ptr<Environment> environment() const { return environment_; }
 
     //! Returns the current position.
     glm::vec3 const & currentPosition() const { return position_; }
@@ -94,24 +83,9 @@ public:
     //! @note	This method must be overridden.
     virtual void draw() const = 0;
 
-    //! Returns a reference to an individual particle
-    //!
-    //! @note	This method must be overridden.
-    virtual Particle * particle(int i) = 0;
-
-    //! Returns a reference to an individual particle
-    //!
-    //! @note	This method must be overridden.
-    virtual Particle const * particle(int i) const = 0;
-
 protected:
 
-    // D3D Stuff
-
-    std::shared_ptr<Vkx::Device> pD3dDevice_;                         //!< D3D device
-    std::shared_ptr<Vkx::LocalBuffer> pVB_;                                //!< Vertex buffer for particles
-    ID3DBlob * pEffect_;                                //!< The effect for rendering this emitter's particles
-    IDirect3DVertexDeclaration11 * pVertexDeclaration_; //!< The vertex buffer format
+    std::shared_ptr<Vkx::LocalBuffer> pVB_;             //!< Vertex buffer for particles
     bool alphaTestAvailable_;                           //!< true if the device supports alpha test
     int maxPrimitives_;                                 //!< Maximum number of primitives in a DrawPrimitive call
     int maxVertexIndex_;                                //!< Highest possible index value
@@ -124,11 +98,9 @@ private:
 
     // Particle data
 
-    Particle * paParticles_;                // Particle array
-    EmitterVolume const * pEmitterVolume_;  // Emitter volume
-    Appearance const * pAppearance_;        // Common appearance parameters
-    Environment const * pEnvironment_;      // Common environment parameters
-    int numParticles_;                      // Number of particles
+    std::shared_ptr<EmitterVolume> volume_;  // Emitter volume
+    std::shared_ptr<Appearance> appearance_;        // Common appearance parameters
+    std::shared_ptr<Environment> environment_;      // Common environment parameters
     bool sorted_;                           // Should the emitter sort the particles back to front?
 
     // Emitter state
@@ -152,20 +124,19 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    PointEmitter(std::shared_ptr<Vkx::Device> device,
-                 EmitterVolume const *        pVol,
-                 Environment const *          pEnv,
-                 Appearance const *           pApp,
-                 int                          n,
-                 bool                         sorted);
+    PointEmitter(std::shared_ptr<Vkx::Device>   device,
+                 int                            n,
+                 std::shared_ptr<EmitterVolume> volume,
+                 std::shared_ptr<Environment>   environment,
+                 std::shared_ptr<Appearance>    appearance,
+                 bool                           sorted);
 
     //! Constructor.
     PointEmitter(std::shared_ptr<Vkx::Device>   device,
-                 std::unique_ptr<PointParticle> qaParticles,
-                 EmitterVolume const *          pVol,
-                 Environment const *            pEnv,
-                 Appearance const *             pApp,
-                 int                            n,
+                 std::vector<PointParticle>     particles,
+                 std::shared_ptr<EmitterVolume> volume,
+                 std::shared_ptr<Environment>   environment,
+                 std::shared_ptr<Appearance>    appearance,
                  bool                           sorted);
 
     virtual ~PointEmitter() override;
@@ -176,27 +147,17 @@ public:
     //! Uninitializes the emitter
     void uninitialize();
 
+    std::vector<PointParticle> &       particles()       { return particles_; }
+    std::vector<PointParticle> const & particles() const { return particles_; }
+
     //! @name Overrides BasicEmitter
     //@{
-    PointParticle * particles()
-    {
-        return static_cast<PointParticle *>(BasicEmitter::particles());
-    }
-    PointParticle const * particles() const
-    {
-        return static_cast<PointParticle const *>(BasicEmitter::particles());
-    }
-    virtual PointParticle * particle(int i) override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
-    virtual PointParticle const * particle(int i) const override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
     virtual void update(float dt) override;
     virtual void draw() const override;
     //@}
+
+private:
+    std::vector<PointParticle> particles_;
 };
 
 //! An Emitter that emits StreakParticles
@@ -209,21 +170,20 @@ class StreakEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    StreakEmitter(std::shared_ptr<Vkx::Device> device,
-                  EmitterVolume const *        pVol,
-                  Environment const *          pEnv,
-                  Appearance const *           pApp,
-                  int                          n,
-                  bool                         sorted);
+    StreakEmitter(std::shared_ptr<Vkx::Device>   device,
+                  int                            n,
+                  std::shared_ptr<EmitterVolume> volume,
+                  std::shared_ptr<Environment>   environment,
+                  std::shared_ptr<Appearance>    appearance,
+                  bool                           sorted);
 
     //! Constructor.
-    StreakEmitter(std::shared_ptr<Vkx::Device>    device,
-                  std::unique_ptr<StreakParticle> qaParticles,
-                  EmitterVolume const *           pVol,
-                  Environment const *             pEnv,
-                  Appearance const *              pApp,
-                  int                             n,
-                  bool                            sorted);
+    StreakEmitter(std::shared_ptr<Vkx::Device>   device,
+                  std::vector<StreakParticle>    particles,
+                  std::shared_ptr<EmitterVolume> volume,
+                  std::shared_ptr<Environment>   environment,
+                  std::shared_ptr<Appearance>    appearance,
+                  bool                           sorted);
 
     virtual ~StreakEmitter() override;
 
@@ -233,27 +193,17 @@ public:
     //! Uninitializes the emitter
     void uninitialize();
 
+    std::vector<StreakParticle> &       particles()       { return particles_; }
+    std::vector<StreakParticle> const & particles() const { return particles_; }
+
     //! @name Overrides BasicEmitter
     //@{
-    StreakParticle * particles()
-    {
-        return static_cast<StreakParticle *>(BasicEmitter::particles());
-    }
-    StreakParticle const * particles() const
-    {
-        return static_cast<StreakParticle const *>(BasicEmitter::particles());
-    }
-    virtual StreakParticle * particle(int i) override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
-    virtual StreakParticle const * particle(int i) const override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
     virtual void update(float dt) override;
     virtual void draw() const override;
     //@}
+
+private:
+    std::vector<StreakParticle> particles_;
 };
 
 //! An Emitter that emits TexturedParticles
@@ -266,21 +216,20 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    TexturedEmitter(std::shared_ptr<Vkx::Device> device,
-                    EmitterVolume const *        pVol,
-                    Environment const *          pEnv,
-                    Appearance const *           pApp,
-                    int                          n,
-                    bool                         sorted);
+    TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
+                    int                            n,
+                    std::shared_ptr<EmitterVolume> volume,
+                    std::shared_ptr<Environment>   environment,
+                    std::shared_ptr<Appearance>    appearance,
+                    bool                           sorted);
 
     //! Constructor.
-    TexturedEmitter(std::shared_ptr<Vkx::Device>      device,
-                    std::unique_ptr<TexturedParticle> qaParticles,
-                    EmitterVolume const *             pVol,
-                    Environment const *               pEnv,
-                    Appearance const *                pApp,
-                    int                               n,
-                    bool                              sorted);
+    TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
+                    std::vector<TexturedParticle>  particles,
+                    std::shared_ptr<EmitterVolume> volume,
+                    std::shared_ptr<Environment>   environment,
+                    std::shared_ptr<Appearance>    appearance,
+                    bool                           sorted);
 
     virtual ~TexturedEmitter() override;
 
@@ -290,30 +239,17 @@ public:
     //! Uninitializes the emitter
     void uninitialize();
 
+    std::vector<TexturedParticle> &       particles()       { return particles_; }
+    std::vector<TexturedParticle> const & particles() const { return particles_; }
+
     //! @name Overrides BasicEmitter
     //@{
-    TexturedParticle * particles()
-    {
-        return static_cast<TexturedParticle *>(BasicEmitter::particles());
-    }
-    TexturedParticle const * particles() const
-    {
-        return static_cast<TexturedParticle const *>(BasicEmitter::particles());
-    }
-    virtual TexturedParticle * particle(int i) override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
-    virtual TexturedParticle const * particle(int i) const override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
     virtual void update(float dt) override;
     virtual void draw() const override;
     //@}
 
 private:
-
+    std::vector<TexturedParticle> particles_;
     std::shared_ptr<Vkx::LocalBuffer> pIB_;                      // Index buffer for particles
 };
 
@@ -327,21 +263,20 @@ class SphereEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    SphereEmitter(std::shared_ptr<Vkx::Device> device,
-                  EmitterVolume const *        pVol,
-                  Environment const *          pEnv,
-                  Appearance const *           pApp,
-                  int                          n,
-                  bool                         sorted);
+    SphereEmitter(std::shared_ptr<Vkx::Device>   device,
+                  int                            n,
+                  std::shared_ptr<EmitterVolume> volume,
+                  std::shared_ptr<Environment>   environment,
+                  std::shared_ptr<Appearance>    appearance,
+                  bool                           sorted);
 
     //! Constructor.
-    SphereEmitter(std::shared_ptr<Vkx::Device>    device,
-                  std::unique_ptr<SphereParticle> qaParticles,
-                  EmitterVolume const *           pVol,
-                  Environment const *             pEnv,
-                  Appearance const *              pApp,
-                  int                             n,
-                  bool                            sorted);
+    SphereEmitter(std::shared_ptr<Vkx::Device>   device,
+                  std::vector<SphereParticle>    particles,
+                  std::shared_ptr<EmitterVolume> volume,
+                  std::shared_ptr<Environment>   environment,
+                  std::shared_ptr<Appearance>    appearance,
+                  bool                           sorted);
 
     virtual ~SphereEmitter() override;
 
@@ -351,27 +286,17 @@ public:
     //! Uninitializes the emitter
     void uninitialize();
 
+    std::vector<SphereParticle> &       particles()       { return particles_; }
+    std::vector<SphereParticle> const & particles() const { return particles_; }
+
     //! @name Overrides BasicEmitter
     //@{
-    SphereParticle * particles()
-    {
-        return static_cast<SphereParticle *>(BasicEmitter::particles());
-    }
-    SphereParticle const * particles() const
-    {
-        return static_cast<SphereParticle const *>(BasicEmitter::particles());
-    }
-    virtual SphereParticle * particle(int i) override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
-    virtual SphereParticle const * particle(int i) const override
-    {
-        assert_limits(0, i, size() - 1); return particles() + i;
-    }
     virtual void update(float dt) override;
     virtual void draw() const override;
     //@}
+
+private:
+    std::vector<SphereParticle> particles_;
 };
 } // namespace Confetti
 

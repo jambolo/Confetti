@@ -17,6 +17,7 @@
 
 #include <glm/glm.hpp>
 
+#include <memory>
 #include <random>
 
 namespace Confetti
@@ -27,377 +28,70 @@ Builder::Builder(std::minstd_rand & rng)
     // Nothing to do
 }
 
-Builder::~Builder()
+std::unique_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const &        configuration,
+                                                             std::shared_ptr<Vkx::Device> device,
+                                                             Vkx::Camera const *          pCamera)
 {
-    for (auto & e : emitters_)
-    {
-        delete e.second;
-    }
-
-    for (auto & v : emitterVolumes_)
-    {
-        delete v.second;
-    }
-
-    for (auto & e : environments_)
-    {
-        delete e.second;
-    }
-
-    for (auto & a : appearances_)
-    {
-        delete a.second;
-    }
-
-    for (auto & p : bouncePlaneLists_)
-    {
-        delete p.second;
-    }
-
-    for (auto & p : clipPlaneLists_)
-    {
-        delete p.second;
-    }
-
-    for (auto & m : materials_)
-    {
-        delete m.second;
-    }
-}
-
-std::vector<ParticleSystem> Builder::buildParticleSystem(Configuration const & configuration,
-                                                         Vkx::Camera const *   pCamera)
-{
-    std::vector<ParticleSystem> pPS = std::make_unique<ParticleSystem>();
-
-    // Build the bounce lists
+    // Build the bounce lists used by the emitters
 
     for (auto const & p : configuration.bouncePlaneLists_)
     {
         buildBouncePlaneList(p.second);
     }
 
-    // Build the clip plane lists
+    // Build the clip plane lists used by the emitters
 
     for (auto const & p : configuration.clipPlaneLists_)
     {
         buildClipPlaneList(p.second);
     }
 
-    // Build the emitter volumes
+    // Build the emitter volumes used by the emitters
 
     for (auto const & v : configuration.emitterVolumes_)
     {
         buildEmitterVolume(v.second);
     }
 
+    std::unique_ptr<ParticleSystem> system = std::make_unique<ParticleSystem>(device);
+
     // Build the environments
 
     for (auto const & e : configuration.environments_)
     {
-        Environment * environment = buildEnvironment(e.second);
+        std::shared_ptr<Environment> environment = buildEnvironment(e.second);
         if (environment)
-            pPS->add(environment);
+            system->add(environment);
     }
 
     // Build the appearances
 
     for (auto const & a : configuration.appearances_)
     {
-        Appearance * appearance = buildAppearance(a.second, pCamera);
+        std::shared_ptr<Appearance> appearance = buildAppearance(a.second, pCamera);
         if (appearance)
-            pPS->add(appearance);
+            system->add(appearance);
     }
 
     // Build the emitters
 
     for (auto const & e : configuration.emitters_)
     {
-        BasicEmitter * emitter = buildEmitter(e.second);
+        std::shared_ptr<BasicEmitter> emitter = buildEmitter(e.second);
         if (emitter)
-            pPS->add(emitter);
+            system->add(emitter);
     }
 
-    return pPS;
+    return system;
 }
 
-std::vector<PointParticle> Builder::buildPointParticles(
-    int                                            n,
-    Configuration::Emitter::ParticleVector const & configurations,
-    Configuration::Emitter const &                 emitterConfiguration,
-    EmitterVolume const &                          volume,
-    Environment const &                            environment,
-    Appearance const &                             appearance)
-{
-    std::vector<PointParticle> particles(n);
-
-    // If there are no individual particle configurations, then generate the particles' characteristics from the
-    // emitter configuration. Otherwise, use the individual configurations.
-
-    if (configurations.empty())
-    {
-        Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
-        std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
-        std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
-        for (int i = 0; i < n; i++)
-        {
-            glm::vec3 direction = randomDirection(rng_);
-            float     speed     = randomSpeed(rng_);
-            float     age       = randomAge(rng_);
-            // Note: RandomDirection returns a direction near the X axis, but the emitter points down the Z axis.
-            // The direction returned by RandomDirection must be rotated -90 degrees around the Y axis.
-            glm::vec3 const velocity = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
-
-            particles[i].Initialize(emitterConfiguration.lifetime_,
-                                    age,
-                                    volume.next(),
-                                    velocity,
-                                    emitterConfiguration.color_);
-        }
-    }
-    else
-    {
-        assert(configurations.size() == n);
-
-        for (int i = 0; i < n; i++)
-        {
-            Configuration::Particle const & configuration = configurations[i];      // Convenience
-
-            particles[i].Initialize(configuration.lifetime_,
-                                    configuration.age_,
-                                    configuration.position_,
-                                    configuration.velocity_,
-                                    configuration.color_);
-        }
-    }
-
-    return particles;
-}
-
-std::vector<StreakParticle> Builder::buildStreakParticles(
-    int                                            n,
-    Configuration::Emitter::ParticleVector const & configurations,
-    Configuration::Emitter const &                 emitterConfiguration,
-    EmitterVolume const &                          volume,
-    Environment const &                            environment,
-    Appearance const &                             appearance)
-{
-    std::vector<StreakParticle> particles(n);
-
-    // If there are no individual particle configurations, then generate the particles' characteristics from the
-    // emitter configuration. Otherwise, use the individual configurations.
-
-    if (configurations.empty())
-    {
-        for (int i = 0; i < n; i++)
-        {
-            Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
-            glm::vec3 direction = randomDirection(rng_);
-            std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
-            float speed = randomSpeed(rng_);
-            std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
-            float     age      = randomAge(rng_);
-            glm::vec3 velocity = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
-
-            particles[i].Initialize(emitterConfiguration.lifetime_,
-                                    age,
-                                    volume.next(),
-                                    velocity,
-                                    emitterConfiguration.color_);
-        }
-    }
-    else
-    {
-        assert(configurations.size() == n);
-
-        for (int i = 0; i < n; i++)
-        {
-            Configuration::Particle const & configuration = configurations[i];      // Convenience
-
-            particles[i].Initialize(configuration.lifetime_,
-                                    configuration.age_,
-                                    configuration.position_,
-                                    configuration.velocity_,
-                                    configuration.color_);
-        }
-    }
-
-    return std::vector<StreakParticle>(particles);
-}
-
-std::vector<TexturedParticle> Builder::buildTexturedParticles(
-    int                                            n,
-    Configuration::Emitter::ParticleVector const & configurations,
-    Configuration::Emitter const &                 emitterConfiguration,
-    EmitterVolume const &                          volume,
-    Environment const &                            environment,
-    Appearance const &                             appearance)
-{
-    TexturedParticle * particles = new TexturedParticle[n];
-
-    // If there are no individual particle configurations, then generate the particles' characteristics from the
-    // emitter configuration. Otherwise, use the individual configurations.
-
-    if (configurations.empty())
-    {
-        for (int i = 0; i < n; i++)
-        {
-            Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
-            glm::vec3 direction = randomDirection(rng_);
-            std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
-            float speed = randomSpeed(rng_);
-            std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
-            float     age      = randomAge(rng_);
-            glm::vec3 velocity = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
-            std::uniform_real_distribution<float> randomRotation(0.0f, glm::two_pi<float>());
-            float rotation = randomRotation(rng_);
-
-            particles[i].Initialize(emitterConfiguration.lifetime_,
-                                    age,
-                                    volume.next(),
-                                    velocity,
-                                    emitterConfiguration.color_,
-                                    emitterConfiguration.radius_,
-                                    rotation);
-        }
-    }
-    else
-    {
-        assert(configurations.size() == n);
-
-        for (int i = 0; i < n; i++)
-        {
-            Configuration::Particle const & configuration = configurations[i];      // Convenience
-
-            particles[i].Initialize(configuration.lifetime_,
-                                    configuration.age_,
-                                    configuration.position_,
-                                    configuration.velocity_,
-                                    configuration.color_,
-                                    configuration.radius_,
-                                    configuration.rotation_);
-        }
-    }
-
-    return std::vector<TexturedParticle>(particles);
-}
-
-std::vector<SphereParticle> Builder::buildSphereParticles(
-    int                                            n,
-    Configuration::Emitter::ParticleVector const & configurations,
-    Configuration::Emitter const &                 emitterConfiguration,
-    EmitterVolume const &                          volume,
-    Environment const &                            environment,
-    Appearance const &                             appearance)
-{
-    SphereParticle * particles = new SphereParticle[n];
-
-    // If there are no individual particle configurations, then generate the particles' characteristics from the
-    // emitter configuration. Otherwise, use the individual configurations.
-
-    if (configurations.empty())
-    {
-        for (int i = 0; i < n; i++)
-        {
-            Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
-            glm::vec3 direction = randomDirection(rng_);
-            std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
-            float speed = randomSpeed(rng_);
-            std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
-            float     age      = randomAge(rng_);
-            glm::vec3 velocity = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
-
-            particles[i].Initialize(emitterConfiguration.lifetime_,
-                                    age,
-                                    volume.next(),
-                                    velocity,
-                                    emitterConfiguration.color_,
-                                    emitterConfiguration.radius_);
-        }
-    }
-    else
-    {
-        assert(configurations.size() == n);
-
-        for (int i = 0; i < n; i++)
-        {
-            Configuration::Particle const & configuration = configurations[i];      // Convenience
-
-            particles[i].Initialize(configuration.lifetime_,
-                                    configuration.age_,
-                                    configuration.position_,
-                                    configuration.velocity_,
-                                    configuration.color_,
-                                    configuration.radius_);
-        }
-    }
-
-    return std::vector<SphereParticle>(particles);
-}
-
-// ********************************************************************************************************************/
-// *																													*/
-// ********************************************************************************************************************/
-//
-// std::vector< EmitterParticle > Builder::BuildEmitterParticles(
-//												int n,
-//												Configuration::Emitter::ParticleVector const & configurations,
-//												Configuration::Emitter const & emitterConfiguration,
-//											    EmitterVolume const & volume,
-//											    Environment const & environment,
-//											    Appearance const & appearance )
-// {
-//	EmitterParticle * const	particles	= new EmitterParticle[ n ];
-//
-//	// If there are no individual particle configurations, then generate the particles' characteristics from the
-//	// emitter configuration. Otherwise, use the individual configurations.
-//
-//	if ( configurations.empty() )
-//	{
-//		for ( int i = 0; i < n; i++ )
-//		{
-//			glm::vec4	const	direction	= dRng_.Get( emitterConfiguration.spread_ );
-//			float const			speed		= fRng_( emitterConfiguration.minSpeed_,
-//														  emitterConfiguration.maxSpeed_ );
-//			glm::vec4	const	velocity	= glm::vec4( -direction.z, direction.y, direction.x ) * speed;
-//
-//			particles[ i ].Initialize( emitterConfiguration.lifetime_,
-//										 fRng_( emitterConfiguration.lifetime_ ),
-//										 volume.next(),
-//										 velocity,
-//										 emitterConfiguration.color_,
-//										 emitterConfiguration.radius_,
-//										 oRng_.Get() );
-//		}
-//	}
-//	else
-//	{
-//		assert( configurations.size() == n );
-//
-//		for ( int i = 0; i < n; i++ )
-//		{
-//			Configuration::Particle const & configuration	= configurations[ i ];	// Convenience
-//
-//			particles[ i ].Initialize( configuration.lifetime_,
-//										 configuration.age_,
-//										 configuration.position_,
-//										 configuration.velocity_,
-//										 configuration.color_,
-//										 configuration.radius_,
-//										 configuration.orientation_ );
-//		}
-//	}
-//
-//
-//	return std::vector< EmitterParticle >( particles );
-// }
-
-BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuration, std::shared_ptr<Vkx::Device> device)
+std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const & configuration,
+                                                    std::shared_ptr<Vkx::Device>   device)
 {
     // Prevent duplicate entries
 
     if (findEmitter(configuration.name_))
-        return nullptr;
+        return std::shared_ptr<BasicEmitter>();
 
     // class Configuration::Emitter
     // {
@@ -424,83 +118,89 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
     //	ParticleVector	particleVector_;
     // };
 
-    EmitterVolume * pVolume      = findEmitterVolume(configuration.volume_);
-    Environment *   pEnvironment = findEnvironment(configuration.environment_);
-    Appearance *    pAppearance  = findAppearance(configuration.appearance_);
+    std::shared_ptr<EmitterVolume> volume      = findEmitterVolume(configuration.volume_);
+    std::shared_ptr<Environment>   environment = findEnvironment(configuration.environment_);
+    std::shared_ptr<Appearance>    appearance  = findAppearance(configuration.appearance_);
 
-    BasicEmitter * pEmitter;
+    std::shared_ptr<BasicEmitter> pEmitter;
 
     if (configuration.type_ == "point")
     {
-        std::vector<PointParticle> qaParticles = buildPointParticles(configuration.count_,
-                                                                     configuration.particleVector_,
-                                                                     configuration,
-                                                                     *pVolume,
-                                                                     *pEnvironment,
-                                                                     *pAppearance);
+        std::vector<PointParticle> particles;
+        if (!configuration.particleVector_.empty())
+        {
+            particles = buildPointParticles(configuration.particleVector_);
+        }
+        else
+        {
+            particles = buildPointParticles(configuration.count_,
+                                            configuration,
+                                            *volume,
+                                            *environment,
+                                            *appearance);
+        }
 
         pEmitter = new PointEmitter(device,
-                                    std::move(qaParticles),
-                                    pVolume,
-                                    pEnvironment,
-                                    pAppearance,
-                                    configuration.count_,
+                                    std::move(particles),
+                                    volume,
+                                    environment,
+                                    appearance,
                                     configuration.sorted_);
     }
     else if (configuration.type_ == "streak")
     {
-        std::vector<StreakParticle> qaParticles = buildStreakParticles(configuration.count_,
-                                                                       configuration.particleVector_,
-                                                                       configuration,
-                                                                       *pVolume,
-                                                                       *pEnvironment,
-                                                                       *pAppearance);
+        std::vector<StreakParticle> particles = buildStreakParticles(configuration.count_,
+                                                                     configuration.particleVector_,
+                                                                     configuration,
+                                                                     *volume,
+                                                                     *environment,
+                                                                     *appearance);
 
         pEmitter = new StreakEmitter(device,
-                                     std::move(qaParticles),
-                                     pVolume,
-                                     pEnvironment,
-                                     pAppearance,
+                                     std::move(particles),
+                                     volume,
+                                     environment,
+                                     appearance,
                                      configuration.count_,
                                      configuration.sorted_);
     }
     else if (configuration.type_ == "textured")
     {
-        std::vector<TexturedParticle> qaParticles = buildTexturedParticles(configuration.count_,
-                                                                           configuration.particleVector_,
-                                                                           configuration,
-                                                                           *pVolume,
-                                                                           *pEnvironment,
-                                                                           *pAppearance);
+        std::vector<TexturedParticle> particles = buildTexturedParticles(configuration.count_,
+                                                                         configuration.particleVector_,
+                                                                         configuration,
+                                                                         *volume,
+                                                                         *environment,
+                                                                         *appearance);
 
         pEmitter = new TexturedEmitter(device,
-                                       std::move(qaParticles),
-                                       pVolume,
-                                       pEnvironment,
-                                       pAppearance,
+                                       std::move(particles),
+                                       volume,
+                                       environment,
+                                       appearance,
                                        configuration.count_,
                                        configuration.sorted_);
     }
     else if (configuration.type_ == "sphere")
     {
-        std::vector<SphereParticle> qaParticles = buildSphereParticles(configuration.count_,
-                                                                       configuration.particleVector_,
-                                                                       configuration,
-                                                                       *pVolume,
-                                                                       *pEnvironment,
-                                                                       *pAppearance);
+        std::vector<SphereParticle> particles = buildSphereParticles(configuration.count_,
+                                                                     configuration.particleVector_,
+                                                                     configuration,
+                                                                     *volume,
+                                                                     *environment,
+                                                                     *appearance);
 
         pEmitter = new SphereEmitter(device,
-                                     std::move(qaParticles),
-                                     pVolume,
-                                     pEnvironment,
-                                     pAppearance,
+                                     std::move(particles),
+                                     volume,
+                                     environment,
+                                     appearance,
                                      configuration.count_,
                                      configuration.sorted_);
     }
 //	else if ( configuration.type_ == "emitter" )
 //	{
-//		std::vector< EmitterParticle >	qaParticles = BuildEmitterParticles( configuration.count_,
+//		std::vector< EmitterParticle >	particles = BuildEmitterParticles( configuration.count_,
 //																		         configuration.particleVector_,
 //																				 configuration,
 //																		         *pVolume,
@@ -508,7 +208,7 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
 //																		         *pAppearance );
 //
 //		pEmitter = new EmitterEmitter( device,
-//                                   std::move(qaParticles),
+//                                   std::move(particles),
 //									 pVolume,
 //									 pEnvironment,
 //									 pAppearance,
@@ -524,15 +224,14 @@ BasicEmitter * Builder::buildEmitter(Configuration::Emitter const & configuratio
     // Manage the emitter
 
     if (pEmitter)
-        addEmitter(configuration.name_, pEmitter);
+        emitters_.emplace(configuration.name_, pEmitter);
 
     return pEmitter;
 }
 
-Appearance * Builder::buildAppearance(Configuration::Appearance const & configuration,
-                                      std::shared_ptr<Vkx::Device>      device,
-                                      ID3D11DeviceContext *             pD3dContext,
-                                      Vkx::Camera const *               pCamera)
+std::shared_ptr<Appearance> Builder::buildAppearance(Configuration::Appearance const & configuration,
+                                                     std::shared_ptr<Vkx::Device>      device,
+                                                     Vkx::Camera const *               pCamera)
 {
     // Prevent duplicate entries
 
@@ -550,8 +249,8 @@ Appearance * Builder::buildAppearance(Configuration::Appearance const & configur
     //		float		size_;
     //	};
 
-    std::shared_ptr<Vkx::Texture> pTexture;
-    Vkx::Material * pMaterial;
+    std::shared_ptr<Vkx::Texture>  pTexture;
+    std::shared_ptr<Vkx::Material> pMaterial;
 
     // Create the texture (if specified)
 
@@ -592,19 +291,109 @@ Appearance * Builder::buildAppearance(Configuration::Appearance const & configur
     pMaterial = nullptr;      // No material specified
 //	}
 
-    Appearance * pAppearance = new Appearance(pCamera,
-                                              configuration.colorChange_,
-                                              configuration.radiusChange_,
-                                              configuration.radialVelocity_,
-                                              pTexture,
-                                              configuration.size_);
+    std::shared_ptr<Appearance> pAppearance = new Appearance(pCamera,
+                                                             configuration.colorChange_,
+                                                             configuration.radiusChange_,
+                                                             configuration.radialVelocity_,
+                                                             pTexture,
+                                                             configuration.size_);
 
     addAppearance(configuration.name_, pAppearance);
 
     return pAppearance;
 }
 
-EmitterVolume * Builder::buildEmitterVolume(Configuration::EmitterVolume const & configuration)
+std::shared_ptr<Environment> Builder::buildEnvironment(Configuration::Environment const & configuration)
+{
+    // Prevent duplicate entries
+
+    if (findEnvironment(configuration.name_))
+        return nullptr;
+
+    //	class Configuration::Environment
+    //	{
+    //	public:
+    //		std::string	name_;
+    //		glm::vec4	gravity_;
+    //		glm::vec4	windVelocity_;
+    //		glm::vec4	gustiness_;
+    //		float		airFriction_;
+    //		std::string	bounce_;
+    //		std::string	clip_;
+    //	};
+
+    std::shared_ptr<Environment::BouncePlaneList> pBouncePlaneList = findBouncePlaneList(configuration.bounce_);
+    std::shared_ptr<Environment::ClipPlaneList>   pClipPlaneList   = findClipPlaneList(configuration.clip_);
+
+    std::shared_ptr<Environment> pEnvironment = new Environment(configuration.gravity_,
+                                                                configuration.windVelocity_,
+                                                                configuration.airFriction_,
+                                                                configuration.gustiness_,
+                                                                pBouncePlaneList, pClipPlaneList);
+    addEnvironment(configuration.name_, pEnvironment);
+    return pEnvironment;
+}
+
+Environment::BouncePlaneList Builder::buildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
+{
+//     // Prevent duplicate entries
+//
+//     if (findBouncePlaneList(configuration.name_))
+//         return Environment::BouncePlaneList();
+
+    //	class Configuration::BouncePlaneList
+    //	{
+    //	public:
+    //		std::string					name_;
+    //		std::vector< BouncePlane >	bouncePlanes_;
+    //	};
+    //
+    //	class Configuration::BouncePlane
+    //	{
+    //	public:
+    //		glm::vec4	plane_;
+    //		float		dampening_;
+    //	};
+
+    Environment::BouncePlaneList list;
+    list.reserve(configuration.bouncePlanes_.size());
+    for (auto const & config : configuration.bouncePlanes_)
+    {
+        list.emplace_back(config.plane_, config.dampening_);
+    }
+
+//    addBouncePlaneList(configuration.name_, list);
+
+    return list;
+}
+
+Environment::ClipPlaneList Builder::buildClipPlaneList(Configuration::ClipPlaneList const & configuration)
+{
+//     // Prevent duplicate entries
+//
+//     if (findClipPlaneList(configuration.name_))
+//         return nullptr;
+
+    //	class Configuration::ClipPlaneList
+    //	{
+    //	public:
+    //		std::string					name_;
+    //		std::vector< glm::vec4 >	clipPlanes_;
+    //	};
+
+    Environment::ClipPlaneList list;
+    list.reserve(configuration.clipPlanes_.size());
+    for (size_t i = 0; i < configuration.clipPlanes_.size(); i++)
+    {
+        list[i] = configuration.clipPlanes_[i];
+    }
+
+//     addClipPlaneList(configuration.name_, list);
+
+    return list;
+}
+
+std::shared_ptr<EmitterVolume> Builder::buildEmitterVolume(Configuration::EmitterVolume const & configuration)
 {
     // Prevent duplicate entries
 
@@ -624,147 +413,287 @@ EmitterVolume * Builder::buildEmitterVolume(Configuration::EmitterVolume const &
     //		float		radius_;
     //	};
 
-    EmitterVolume * pVolume;
+    std::shared_ptr<EmitterVolume> pVolume;
 
     if (configuration.type_ == "point")
     {
-        pVolume = new EmitterPoint(rng_);
+        pVolume = std::make_shared<Confetti::EmitterPoint>(rng_);
     }
     else if (configuration.type_ == "line")
     {
-        pVolume = new EmitterLine(rng_, configuration.length_);
+        pVolume = std::make_shared<Confetti::EmitterLine>(rng_, configuration.length_);
     }
     else if (configuration.type_ == "rectangle")
     {
-        pVolume = new EmitterRectangle(rng_, configuration.width_, configuration.height_);
+        pVolume = std::make_shared<Confetti::EmitterRectangle>(rng_, configuration.width_, configuration.height_);
     }
     else if (configuration.type_ == "circle")
     {
-        pVolume = new EmitterCircle(rng_, configuration.radius_);
+        pVolume = std::make_shared<Confetti::EmitterCircle>(rng_, configuration.radius_);
     }
     else if (configuration.type_ == "sphere")
     {
-        pVolume = new EmitterSphere(rng_, configuration.radius_);
+        pVolume = std::make_shared<Confetti::EmitterSphere>(rng_, configuration.radius_);
     }
     else if (configuration.type_ == "box")
     {
-        pVolume = new EmitterBox(rng_, { configuration.width_, configuration.height_, configuration.depth_ });
+        pVolume =
+            std::make_shared<Confetti::EmitterBox>(rng_, glm::vec3(configuration.width_,
+                                                                   configuration.height_,
+                                                                   configuration.depth_));
     }
     else if (configuration.type_ == "cylinder")
     {
-        pVolume = new EmitterCylinder(rng_, configuration.radius_, configuration.height_);
+        pVolume = std::make_shared<Confetti::EmitterCylinder>(rng_, configuration.radius_, configuration.height_);
     }
     else if (configuration.type_ == "cone")
     {
-        pVolume = new EmitterCone(rng_, configuration.radius_, configuration.height_);
-    }
-    else
-    {
-        // Invalid configuration.type_
-        pVolume = nullptr;
+        pVolume = std::make_shared<Confetti::EmitterCone>(rng_, configuration.radius_, configuration.height_);
     }
 
     if (pVolume)
-        addEmitterVolume(configuration.name_, pVolume);
+        emitterVolumes_.emplace(configuration.name_, pVolume);
 
     return pVolume;
 }
 
-Environment * Builder::buildEnvironment(Configuration::Environment const & configuration)
+std::vector<PointParticle> Builder::buildPointParticles(int                            n,
+                                                        Configuration::Emitter const & emitterConfiguration,
+                                                        EmitterVolume const &          volume,
+                                                        Environment const &            environment,
+                                                        Appearance const &             appearance)
 {
-    // Prevent duplicate entries
+    std::vector<PointParticle> particles;
+    particles.reserve(n);
 
-    if (findEnvironment(configuration.name_))
-        return nullptr;
+    // Generate the particles' characteristics from the emitter configuration.
 
-    //	class Configuration::Environment
-    //	{
-    //	public:
-    //		std::string	name_;
-    //		glm::vec4	gravity_;
-    //		glm::vec4	windVelocity_;
-    //		glm::vec4	gustiness_;
-    //		float		airFriction_;
-    //		std::string	bounce_;
-    //		std::string	clip_;
-    //	};
+    Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
+    std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
+    std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
 
-    Environment::BouncePlaneList * pBouncePlaneList = findBouncePlaneList(configuration.bounce_);
-    Environment::ClipPlaneList *   pClipPlaneList   = findClipPlaneList(configuration.clip_);
-
-    Environment * pEnvironment = new Environment(configuration.gravity_,
-                                                 configuration.windVelocity_,
-                                                 configuration.airFriction_,
-                                                 configuration.gustiness_,
-                                                 pBouncePlaneList, pClipPlaneList);
-    addEnvironment(configuration.name_, pEnvironment);
-    return pEnvironment;
-}
-
-Environment::BouncePlaneList * Builder::buildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
-{
-    // Prevent duplicate entries
-
-    if (findBouncePlaneList(configuration.name_))
-        return nullptr;
-
-    //	class Configuration::BouncePlaneList
-    //	{
-    //	public:
-    //		std::string					name_;
-    //		std::vector< BouncePlane >	bouncePlanes_;
-    //	};
-    //
-    //	class Configuration::BouncePlane
-    //	{
-    //	public:
-    //		glm::vec4	plane_;
-    //		float		dampening_;
-    //	};
-
-    Environment::BouncePlaneList * pList = new Environment::BouncePlaneList;
-    pList->resize(configuration.bouncePlanes_.size());
-    for (size_t i = 0; i < configuration.bouncePlanes_.size(); i++)
+    for (int i = 0; i < n; i++)
     {
-        (*pList)[i].plane_     = configuration.bouncePlanes_[i].plane_;
-        (*pList)[i].dampening_ = configuration.bouncePlanes_[i].dampening_;
+        glm::vec3 direction = randomDirection(rng_);
+        float     speed     = randomSpeed(rng_);
+        float     age       = randomAge(rng_);
+        // Note: RandomDirection returns a direction near the X axis, but the emitter points down the Z axis.
+        // The direction returned by RandomDirection must be rotated -90 degrees around the Y axis.
+        glm::vec3 const velocity = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
+
+        particles.emplace_back(emitterConfiguration.lifetime_,
+                               age,
+                               volume.next(),
+                               velocity,
+                               emitterConfiguration.color_);
     }
 
-    addBouncePlaneList(configuration.name_, pList);
-
-    return pList;
+    return particles;
 }
 
-Environment::ClipPlaneList * Builder::buildClipPlaneList(Configuration::ClipPlaneList const & configuration)
+std::vector<PointParticle> Builder::buildPointParticles(Configuration::Emitter::ParticleVector const & configurations)
 {
-    // Prevent duplicate entries
+    std::vector<PointParticle> particles;
+    particles.reserve(configurations.size());
 
-    if (findClipPlaneList(configuration.name_))
-        return nullptr;
-
-    //	class Configuration::ClipPlaneList
-    //	{
-    //	public:
-    //		std::string					name_;
-    //		std::vector< glm::vec4 >	clipPlanes_;
-    //	};
-
-    Environment::ClipPlaneList * pList = new Environment::ClipPlaneList();
-    pList->resize(configuration.clipPlanes_.size());
-    for (size_t i = 0; i < configuration.clipPlanes_.size(); i++)
+    for (auto const & c : configurations)
     {
-        (*pList)[i] = configuration.clipPlanes_[i];
+        particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_);
     }
 
-    addClipPlaneList(configuration.name_, pList);
-
-    return pList;
+    return particles;
 }
 
-BasicEmitter * Builder::findEmitter(std::string const & name)
+std::vector<StreakParticle> Builder::buildStreakParticles(int                            n,
+                                                          Configuration::Emitter const & emitterConfiguration,
+                                                          EmitterVolume const &          volume,
+                                                          Environment const &            environment,
+                                                          Appearance const &             appearance)
 {
-    EmitterMap::iterator pEntry = emitters_.find(name);
-    BasicEmitter *       pEmitter;
+    std::vector<StreakParticle> particles;
+    particles.reserve(n);
+
+    // Generate the particles' characteristics from the emitter configuration.
+
+    Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
+    std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
+    std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
+
+    for (int i = 0; i < n; i++)
+    {
+        glm::vec3 direction = randomDirection(rng_);
+        float     speed     = randomSpeed(rng_);
+        float     age       = randomAge(rng_);
+        glm::vec3 velocity  = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
+
+        particles.emplace_back(emitterConfiguration.lifetime_,
+                               age,
+                               volume.next(),
+                               velocity,
+                               emitterConfiguration.color_);
+    }
+
+    return particles;
+}
+
+std::vector<StreakParticle> Builder::buildStreakParticles(Configuration::Emitter::ParticleVector const & configurations)
+{
+    std::vector<StreakParticle> particles;
+    particles.reserve(configurations.size());
+
+    for (auto const & c : configurations)
+    {
+        particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_);
+    }
+
+    return particles;
+}
+
+std::vector<TexturedParticle> Builder::buildTexturedParticles(int                            n,
+                                                              Configuration::Emitter const & emitterConfiguration,
+                                                              EmitterVolume const &          volume,
+                                                              Environment const &            environment,
+                                                              Appearance const &             appearance)
+{
+    std::vector<TexturedParticle> particles;
+    particles.reserve(n);
+
+    // Generate the particles' characteristics from the emitter configuration.
+
+    Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
+    std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
+    std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
+    std::uniform_real_distribution<float> randomRotation(0.0f, glm::two_pi<float>());
+
+    for (int i = 0; i < n; i++)
+    {
+        glm::vec3 direction = randomDirection(rng_);
+        float     speed     = randomSpeed(rng_);
+        float     age       = randomAge(rng_);
+        glm::vec3 velocity  = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
+        float     rotation  = randomRotation(rng_);
+
+        particles.emplace_back(emitterConfiguration.lifetime_,
+                               age,
+                               volume.next(),
+                               velocity,
+                               emitterConfiguration.color_,
+                               emitterConfiguration.radius_,
+                               rotation);
+    }
+
+    return particles;
+}
+
+std::vector<TexturedParticle> Builder::buildTexturedParticles(Configuration::Emitter::ParticleVector const & configurations)
+{
+    std::vector<TexturedParticle> particles;
+    particles.reserve(configurations.size());
+
+    for (auto const & c : configurations)
+    {
+        particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_, c.radius_, c.rotation_);
+    }
+
+    return particles;
+}
+
+std::vector<SphereParticle> Builder::buildSphereParticles(int                            n,
+                                                          Configuration::Emitter const & emitterConfiguration,
+                                                          EmitterVolume const &          volume,
+                                                          Environment const &            environment,
+                                                          Appearance const &             appearance)
+{
+    std::vector<SphereParticle> particles;
+    particles.reserve(n);
+
+    // Generate the particles' characteristics from the emitter configuration.
+
+    Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
+    std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
+    std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
+
+    for (int i = 0; i < n; i++)
+    {
+        glm::vec3 direction = randomDirection(rng_);
+        float     speed     = randomSpeed(rng_);
+        float     age       = randomAge(rng_);
+        glm::vec3 velocity  = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
+
+        particles.emplace_back(emitterConfiguration.lifetime_,
+                               age,
+                               volume.next(),
+                               velocity,
+                               emitterConfiguration.color_,
+                               emitterConfiguration.radius_);
+    }
+
+    return particles;
+}
+
+std::vector<SphereParticle> Builder::buildSphereParticles(Configuration::Emitter::ParticleVector const & configurations)
+{
+    std::vector<SphereParticle> particles;
+    particles.reserve(configurations.size());
+
+    for (auto const & c : configurations)
+    {
+        particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_, c.radius_);
+    }
+
+    return particles;
+}
+
+std::vector<EmitterParticle> Builder::buildEmitterParticles(int                            n,
+                                                            Configuration::Emitter const & emitterConfiguration,
+                                                            EmitterVolume const &          volume,
+                                                            Environment const &            environment,
+                                                            Appearance const &             appearance)
+{
+    std::vector<EmitterParticle> particles;
+    particles.reserve(n);
+
+    // Generate the particles' characteristics from the emitter configuration.
+
+    Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
+    std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
+    std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
+
+    for (int i = 0; i < n; i++)
+    {
+        glm::vec3 direction = randomDirection(rng_);
+        float     speed     = randomSpeed(rng_);
+        float     age       = randomAge(rng_);
+        glm::vec3 velocity  = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
+
+        particles.emplace_back(emitterConfiguration.lifetime_,
+                               age,
+                               volume.next(),
+                               velocity,
+                               emitterConfiguration.color_,
+                               emitterConfiguration.radius_);
+    }
+
+    return particles;
+}
+
+std::vector<EmitterParticle> Builder::buildEmitterParticles(Configuration::Emitter::ParticleVector const & configurations)
+{
+    std::vector<EmitterParticle> particles;
+    particles.reserve(configurations.size());
+
+    for (auto const & c : configurations)
+    {
+        particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_, c.radius_);
+    }
+
+    return particles;
+}
+
+std::shared_ptr<BasicEmitter> Builder::findEmitter(std::string const & name)
+{
+    EmitterMap::iterator          pEntry = emitters_.find(name);
+    std::shared_ptr<BasicEmitter> pEmitter;
 
     if (pEntry != emitters_.end())
         pEmitter = pEntry->second;
@@ -774,10 +703,10 @@ BasicEmitter * Builder::findEmitter(std::string const & name)
     return pEmitter;
 }
 
-Appearance * Builder::findAppearance(std::string const & name)
+std::shared_ptr<Appearance> Builder::findAppearance(std::string const & name)
 {
-    AppearanceMap::iterator pEntry = appearances_.find(name);
-    Appearance * pAppearance;
+    AppearanceMap::iterator     pEntry = appearances_.find(name);
+    std::shared_ptr<Appearance> pAppearance;
 
     if (pEntry != appearances_.end())
         pAppearance = pEntry->second;
@@ -787,10 +716,10 @@ Appearance * Builder::findAppearance(std::string const & name)
     return pAppearance;
 }
 
-Environment * Builder::findEnvironment(std::string const & name)
+std::shared_ptr<Environment> Builder::findEnvironment(std::string const & name)
 {
-    EnvironmentMap::iterator pEntry = environments_.find(name);
-    Environment * pEnvironment;
+    EnvironmentMap::iterator     pEntry = environments_.find(name);
+    std::shared_ptr<Environment> pEnvironment;
 
     if (pEntry != environments_.end())
         pEnvironment = pEntry->second;
@@ -800,10 +729,10 @@ Environment * Builder::findEnvironment(std::string const & name)
     return pEnvironment;
 }
 
-EmitterVolume * Builder::findEmitterVolume(std::string const & name)
+std::shared_ptr<EmitterVolume> Builder::findEmitterVolume(std::string const & name)
 {
-    EmitterVolumeMap::iterator pEntry = emitterVolumes_.find(name);
-    EmitterVolume * pEmitterVolume;
+    EmitterVolumeMap::iterator     pEntry = emitterVolumes_.find(name);
+    std::shared_ptr<EmitterVolume> pEmitterVolume;
 
     if (pEntry != emitterVolumes_.end())
         pEmitterVolume = pEntry->second;
@@ -813,10 +742,10 @@ EmitterVolume * Builder::findEmitterVolume(std::string const & name)
     return pEmitterVolume;
 }
 
-Environment::BouncePlaneList * Builder::findBouncePlaneList(std::string const & name)
+std::shared_ptr<Environment::BouncePlaneList> Builder::findBouncePlaneList(std::string const & name)
 {
-    BouncePlaneListMap::iterator   pEntry = bouncePlaneLists_.find(name);
-    Environment::BouncePlaneList * pBouncePlaneList;
+    BouncePlaneListMap::iterator pEntry = bouncePlaneLists_.find(name);
+    std::shared_ptr<Environment::BouncePlaneList> pBouncePlaneList;
 
     if (pEntry != bouncePlaneLists_.end())
         pBouncePlaneList = pEntry->second;
@@ -826,10 +755,10 @@ Environment::BouncePlaneList * Builder::findBouncePlaneList(std::string const & 
     return pBouncePlaneList;
 }
 
-Environment::ClipPlaneList * Builder::findClipPlaneList(std::string const & name)
+std::shared_ptr<Environment::ClipPlaneList> Builder::findClipPlaneList(std::string const & name)
 {
-    ClipPlaneListMap::iterator   pEntry = clipPlaneLists_.find(name);
-    Environment::ClipPlaneList * pClipPlaneList;
+    ClipPlaneListMap::iterator pEntry = clipPlaneLists_.find(name);
+    std::shared_ptr<Environment::ClipPlaneList> pClipPlaneList;
 
     if (pEntry != clipPlaneLists_.end())
         pClipPlaneList = pEntry->second;
@@ -839,19 +768,19 @@ Environment::ClipPlaneList * Builder::findClipPlaneList(std::string const & name
     return pClipPlaneList;
 }
 
-// Vkx::Material * Builder::FindMaterial(std::string const & name)
-// {
-//     MaterialMap::iterator pEntry = materials_.find(name);
-//     Vkx::Material *        pMaterial;
-//
-//     if (pEntry != materials_.end())
-//         pMaterial = pEntry->second;
-//     else
-//         pMaterial= nullptr;
-//
-//     return pMaterial;
-// }
-//
+std::shared_ptr<Vkx::Material> Builder::FindMaterial(std::string const & name)
+{
+    MaterialMap::iterator          pEntry = materials_.find(name);
+    std::shared_ptr<Vkx::Material> pMaterial;
+
+    if (pEntry != materials_.end())
+        pMaterial = pEntry->second;
+    else
+        pMaterial = nullptr;
+
+    return pMaterial;
+}
+
 std::shared_ptr<Vkx::Texture> Builder::findTexture(std::string const & name)
 {
     TextureMap::iterator          pEntry = textures_.find(name);
@@ -865,83 +794,53 @@ std::shared_ptr<Vkx::Texture> Builder::findTexture(std::string const & name)
     return pTexture;
 }
 
-Builder::EmitterMap::iterator Builder::addEmitter(std::string const & name, BasicEmitter * pEmitter)
+Builder::EnvironmentMap::iterator Builder::addEnvironment(std::string const & name, std::shared_ptr<Environment> pEnvironment)
 {
-    std::pair<EmitterMap::iterator, bool> rv;
+    auto i = environments_.emplace(name, pEnvironment);
+    assert(i.second);
 
-    rv = emitters_.insert(EmitterMap::value_type(name, pEmitter));
-    assert(rv.second);
-
-    return rv.first;
+    return i.first;
 }
 
-Builder::EmitterVolumeMap::iterator Builder::addEmitterVolume(std::string const & name, EmitterVolume * pVolume)
+Builder::AppearanceMap::iterator Builder::addAppearance(std::string const & name, std::shared_ptr<Appearance> pAppearance)
 {
-    std::pair<EmitterVolumeMap::iterator, bool> rv;
+    auto i = appearances_.emplace(name, pAppearance);
+    assert(i.second);
 
-    rv = emitterVolumes_.insert(EmitterVolumeMap::value_type(name, pVolume));
-    assert(rv.second);
-
-    return rv.first;
+    return i.first;
 }
 
-Builder::EnvironmentMap::iterator Builder::addEnvironment(std::string const & name, Environment * pEnvironment)
+Builder::BouncePlaneListMap::iterator Builder::addBouncePlaneList(std::string const &                           name,
+                                                                  std::shared_ptr<Environment::BouncePlaneList> pList)
 {
-    std::pair<EnvironmentMap::iterator, bool> rv;
+    auto i = bouncePlaneLists_.emplace(name, pList);
+    assert(i.second);
 
-    rv = environments_.insert(EnvironmentMap::value_type(name, pEnvironment));
-    assert(rv.second);
-
-    return rv.first;
+    return i.first;
 }
 
-Builder::AppearanceMap::iterator Builder::addAppearance(std::string const & name, Appearance * pAppearance)
+Builder::ClipPlaneListMap::iterator Builder::addClipPlaneList(std::string const &                         name,
+                                                              std::shared_ptr<Environment::ClipPlaneList> pList)
 {
-    std::pair<AppearanceMap::iterator, bool> rv;
+    auto i = clipPlaneLists_.emplace(name, pList);
+    assert(i.second);
 
-    rv = appearances_.insert(AppearanceMap::value_type(name, pAppearance));
-    assert(rv.second);
-
-    return rv.first;
+    return i.first;
 }
 
-Builder::BouncePlaneListMap::iterator Builder::addBouncePlaneList(std::string const & name, Environment::BouncePlaneList * pList)
+Builder::MaterialMap::iterator Builder::addMaterial(std::string const & name, std::shared_ptr<Vkx::Material> pMaterial)
 {
-    std::pair<BouncePlaneListMap::iterator, bool> rv;
+    auto i = materials_.emplace(name, pMaterial);
+    assert(i.second);
 
-    rv = bouncePlaneLists_.insert(BouncePlaneListMap::value_type(name, pList));
-    assert(rv.second);
-
-    return rv.first;
+    return i.first;
 }
-
-Builder::ClipPlaneListMap::iterator Builder::addClipPlaneList(std::string const & name, Environment::ClipPlaneList * pList)
-{
-    std::pair<ClipPlaneListMap::iterator, bool> rv;
-
-    rv = clipPlaneLists_.insert(ClipPlaneListMap::value_type(name, pList));
-    assert(rv.second);
-
-    return rv.first;
-}
-//
-// Builder::MaterialMap::iterator Builder::AddMaterial(std::string const & name, Vkx::Material * pMaterial)
-// {
-//     std::pair<MaterialMap::iterator, bool> rv;
-//
-//     rv = materials_.insert(MaterialMap::value_type(name, pMaterial));
-//     assert(rv.second);
-//
-//     return rv.first;
-// }
 
 Builder::TextureMap::iterator Builder::addTexture(std::string const & name, std::shared_ptr<Vkx::Texture> pTexture)
 {
-    std::pair<TextureMap::iterator, bool> rv;
+    auto i = textures_.emplace(name, pTexture);
+    assert(i.second);
 
-    rv = textures_.insert(TextureMap::value_type(name, pTexture));
-    assert(rv.second);
-
-    return rv.first;
+    return i.first;
 }
 } // namespace Confetti

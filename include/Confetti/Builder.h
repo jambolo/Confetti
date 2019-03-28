@@ -12,8 +12,9 @@
 namespace Vkx
 {
     class Camera;
-    class Texture;
+    class Device;
     class Material;
+    class Texture;
 }
 
 namespace Confetti
@@ -37,119 +38,123 @@ public:
     //! Constructor.
     Builder(std::minstd_rand & rng);
 
-    //! Destructor.
-    virtual ~Builder();
-
     //! Returns a new particle system build using the supplied configuration
-    std::unique_ptr<ParticleSystem> buildParticleSystem(Configuration const & configuration,
-                                                        Vkx::Camera const *   pCamera);
+    std::unique_ptr<ParticleSystem> buildParticleSystem(Configuration const &        configuration,
+                                                        std::shared_ptr<Vkx::Device> device,
+                                                        Vkx::Camera const *          pCamera);
 
     //! Builds an emitter.
-    BasicEmitter * buildEmitter(Configuration::Emitter const & configuration);
+    std::shared_ptr<BasicEmitter> buildEmitter(Configuration::Emitter const & configuration,
+                                               std::shared_ptr<Vkx::Device>   device);
 
     //! Builds an appearance.
-    Appearance * buildAppearance(Configuration::Appearance const & configuration,
-                                 Vkx::Camera const *               pCamera);
-
-    //! Builds an emitter volume.
-    EmitterVolume * buildEmitterVolume(Configuration::EmitterVolume const & configuration);
+    std::shared_ptr<Appearance> buildAppearance(Configuration::Appearance const & configuration,
+                                                Vkx::Camera const *               pCamera);
 
     //! Builds an environment.
-    Environment * buildEnvironment(Configuration::Environment const & configuration);
+    std::shared_ptr<Environment> buildEnvironment(Configuration::Environment const & configuration);
 
     //! Builds an bounce plane list.
-    Environment::BouncePlaneList * buildBouncePlaneList(Configuration::BouncePlaneList const & configuration);
+    std::shared_ptr<Environment::BouncePlaneList> buildBouncePlaneList(Configuration::BouncePlaneList const & configuration);
 
     //! Builds a clip plane list.
-    Environment::ClipPlaneList * buildClipPlaneList(Configuration::ClipPlaneList const & configuration);
+    std::shared_ptr<Environment::ClipPlaneList> buildClipPlaneList(Configuration::ClipPlaneList const & configuration);
+
+    //! Builds an emitter volume.
+    std::shared_ptr<EmitterVolume> buildEmitterVolume(Configuration::EmitterVolume const & configuration);
 
     //! Builds the particles for a point emitter.
-    std::vector<PointParticle> Builder::buildPointParticles(
-        int                                            n,
-        Configuration::Emitter::ParticleVector const & configurations,
-        Configuration::Emitter const &                 emitterConfiguration,
-        EmitterVolume const &                          volume,
-        Environment const &                            environment,
-        Appearance const &                             appearance);
+    std::vector<PointParticle> Builder::buildPointParticles(int                            n,
+                                                            Configuration::Emitter const & emitterConfiguration,
+                                                            EmitterVolume const &          volume,
+                                                            Environment const &            environment,
+                                                            Appearance const &             appearance);
+
+    //! Builds the particles for a point emitter.
+    std::vector<PointParticle> Builder::buildPointParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for a streak emitter.
-    std::vector<StreakParticle> Builder::buildStreakParticles(
-        int                                            n,
-        Configuration::Emitter::ParticleVector const & configurations,
-        Configuration::Emitter const &                 emitterConfiguration,
-        EmitterVolume const &                          volume,
-        Environment const &                            environment,
-        Appearance const &                             appearance);
+    std::vector<StreakParticle> Builder::buildStreakParticles(int                            n,
+                                                              Configuration::Emitter const & emitterConfiguration,
+                                                              EmitterVolume const &          volume,
+                                                              Environment const &            environment,
+                                                              Appearance const &             appearance);
+
+    //! Builds the particles for a streak emitter.
+    std::vector<StreakParticle> Builder::buildStreakParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for a textured emitter.
-    std::vector<TexturedParticle> Builder::buildTexturedParticles(
-        int                                            n,
-        Configuration::Emitter::ParticleVector const & configurations,
-        Configuration::Emitter const &                 emitterConfiguration,
-        EmitterVolume const &                          volume,
-        Environment const &                            environment,
-        Appearance const &                             appearance);
+    std::vector<TexturedParticle> Builder::buildTexturedParticles(int                            n,
+                                                                  Configuration::Emitter const & emitterConfiguration,
+                                                                  EmitterVolume const &          volume,
+                                                                  Environment const &            environment,
+                                                                  Appearance const &             appearance);
+
+    //! Builds the particles for a textured emitter.
+    std::vector<TexturedParticle> Builder::buildTexturedParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for a sphere emitter.
-    std::vector<SphereParticle> Builder::buildSphereParticles(
-        int                                            n,
-        Configuration::Emitter::ParticleVector const & configurations,
-        Configuration::Emitter const &                 emitterConfiguration,
-        EmitterVolume const &                          volume,
-        Environment const &                            environment,
-        Appearance const &                             appearance);
+    std::vector<SphereParticle> Builder::buildSphereParticles(int                            n,
+                                                              Configuration::Emitter const & emitterConfiguration,
+                                                              EmitterVolume const &          volume,
+                                                              Environment const &            environment,
+                                                              Appearance const &             appearance);
 
-//! Builds the particles for an emitter emitter
-    std::vector<EmitterParticle> Builder::buildEmitterParticles(
-        int                                            n,
-        Configuration::Emitter::ParticleVector const & configurations,
-        Configuration::Emitter const &                 emitterConfiguration,
-        EmitterVolume const &                          volume,
-        Environment const &                            environment,
-        Appearance const &                             appearance);
+    //! Builds the particles for a sphere emitter.
+    std::vector<SphereParticle> Builder::buildSphereParticles(Configuration::Emitter::ParticleVector const & configurations);
+
+    //! Builds the particles for an emitter emitter
+    std::vector<EmitterParticle> Builder::buildEmitterParticles(int                            n,
+                                                                Configuration::Emitter const & emitterConfiguration,
+                                                                EmitterVolume const &          volume,
+                                                                Environment const &            environment,
+                                                                Appearance const &             appearance);
+
+    //! Builds the particles for an emitter emitter
+    std::vector<EmitterParticle> Builder::buildEmitterParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Returns the named emitter or nullptr if not found.
-    BasicEmitter * findEmitter(std::string const & name);
+    std::shared_ptr<BasicEmitter> findEmitter(std::string const & name);
 
     //! Returns the named emitter volume or nullptr if not found.
-    EmitterVolume * findEmitterVolume(std::string const & name);
+    std::shared_ptr<EmitterVolume> findEmitterVolume(std::string const & name);
 
     //! Returns the named environment or nullptr if not found.
-    Environment * findEnvironment(std::string const & name);
+    std::shared_ptr<Environment> findEnvironment(std::string const & name);
 
     //! Returns the named appearance or nullptr if not found.
-    Appearance * findAppearance(std::string const & name);
+    std::shared_ptr<Appearance> findAppearance(std::string const & name);
 
     //! Returns the named bound plane list or nullptr if not found.
-    Environment::BouncePlaneList * findBouncePlaneList(std::string const & name);
+    std::shared_ptr<Environment::BouncePlaneList> findBouncePlaneList(std::string const & name);
 
     //! Returns the named clip plane list or nullptr if not found.
-    Environment::ClipPlaneList * findClipPlaneList(std::string const & name);
+    std::shared_ptr<Environment::ClipPlaneList> findClipPlaneList(std::string const & name);
 
     //! Returns the named material or nullptr if not found.
-    Vkx::Material * findMaterial(std::string const & name);
+    std::shared_ptr<Vkx::Material> findMaterial(std::string const & name);
 
     //! Returns the named texture or nullptr if not found.
     std::shared_ptr<Vkx::Texture> findTexture(std::string const & name);
 
 private:
 
-    using EmitterMap         = std::map<std::string, BasicEmitter *>;
-    using EmitterVolumeMap   = std::map<std::string, EmitterVolume *>;
-    using EnvironmentMap     = std::map<std::string, Environment *>;
-    using AppearanceMap      = std::map<std::string, Appearance *>;
-    using BouncePlaneListMap = std::map<std::string, Environment::BouncePlaneList *>;
-    using ClipPlaneListMap   = std::map<std::string, Environment::ClipPlaneList *>;
+    using EmitterMap         = std::map<std::string, std::shared_ptr<BasicEmitter>>;
+    using EmitterVolumeMap   = std::map<std::string, std::shared_ptr<EmitterVolume>>;
+    using EnvironmentMap     = std::map<std::string, std::shared_ptr<Environment>>;
+    using AppearanceMap      = std::map<std::string, std::shared_ptr<Appearance>>;
+    using BouncePlaneListMap = std::map<std::string, std::shared_ptr<Environment::BouncePlaneList>>;
+    using ClipPlaneListMap   = std::map<std::string, std::shared_ptr<Environment::ClipPlaneList>>;
     using TextureMap         = std::map<std::string, std::shared_ptr<Vkx::Texture>>;
-    using MaterialMap        = std::map<std::string, Vkx::Material *>;
+    using MaterialMap        = std::map<std::string, std::shared_ptr<Vkx::Material>>;
 
-    EmitterMap::iterator         addEmitter(std::string const & name, BasicEmitter * pEmitter);
-    EmitterVolumeMap::iterator   addEmitterVolume(std::string const & name, EmitterVolume * pVolume);
-    EnvironmentMap::iterator     addEnvironment(std::string const & name, Environment * pEnvironment);
-    AppearanceMap::iterator      addAppearance(std::string const & name, Appearance * pAppearance);
-    BouncePlaneListMap::iterator addBouncePlaneList(std::string const & name, Environment::BouncePlaneList * pList);
-    ClipPlaneListMap::iterator   addClipPlaneList(std::string const & name, Environment::ClipPlaneList * pList);
-    MaterialMap::iterator        addMaterial(std::string const & name, Vkx::Material * pMaterial);
+    EmitterMap::iterator         addEmitter(std::string const & name, std::shared_ptr<BasicEmitter> pEmitter);
+    EmitterVolumeMap::iterator   addEmitterVolume(std::string const & name, std::shared_ptr<EmitterVolume> pVolume);
+    EnvironmentMap::iterator     addEnvironment(std::string const & name, std::shared_ptr<Environment> pEnvironment);
+    AppearanceMap::iterator      addAppearance(std::string const & name, std::shared_ptr<Appearance> pAppearance);
+    BouncePlaneListMap::iterator addBouncePlaneList(std::string const & name, std::shared_ptr<Environment::BouncePlaneList> pList);
+    ClipPlaneListMap::iterator   addClipPlaneList(std::string const & name, std::shared_ptr<Environment::ClipPlaneList> pList);
+    MaterialMap::iterator        addMaterial(std::string const & name, std::shared_ptr<Vkx::Material> pMaterial);
     TextureMap::iterator         addTexture(std::string const & name, std::shared_ptr<Vkx::Texture> pTexture);
 
     EmitterMap emitters_;                      //!< Active emitters

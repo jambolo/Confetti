@@ -89,13 +89,13 @@ public:
     void setBouncePlanes(BouncePlaneList const & bpl) { bouncePlanes_ = bpl; }
 
     //! Returns the list of bounce plane
-    BouncePlaneList bouncePlanes() const { return bouncePlanes_; }
+    BouncePlaneList const & bouncePlanes() const { return bouncePlanes_; }
 
     //! Sets the list of clip planes
     void setClipPlanes(ClipPlaneList const & cpl) { clipPlanes_ = cpl; }
 
     //! Returns the list of clip planes
-    ClipPlaneList clipPlanes() const { return clipPlanes_; }
+    ClipPlaneList const & clipPlanes() const { return clipPlanes_; }
 
     //! Updates the environment.
     void update(float dt);
