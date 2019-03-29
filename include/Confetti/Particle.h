@@ -3,6 +3,9 @@
 #if !defined(CONFETTI_PARTICLE_H)
 #define CONFETTI_PARTICLE_H
 
+#include <glm/glm.hpp>
+#include <memory>
+
 namespace Vkx
 {
     class Device;
@@ -29,7 +32,7 @@ public:
     Particle() = default;
 
     //! Constructor.
-    Particle(BasicEmitter const * pEmitter,
+    Particle(BasicEmitter const * emitter,
              float                lifetime,
              float                age,
              glm::vec3 const &    position,
@@ -40,39 +43,39 @@ public:
     virtual ~Particle() = default;
 
     //! Updates the particle. Returns true if the particle was reborn.
-    virtual bool Update(float dt);
+    virtual bool update(float dt);
 
     //! Draws the particle.
     //!
     //!
     //! @note	This method must be overridden.
-    virtual void Draw(std::shared_ptr<Vkx::Device> device) const = 0;
+    virtual void draw(std::shared_ptr<Vkx::Device> device) const = 0;
 
     //! Binds to an emitter.
-    void Bind(BasicEmitter * pEmitter) { pEmitter_ = pEmitter; }
+    void bind(BasicEmitter * pEmitter) { emitter_ = pEmitter; }
 
     //! Returns the age of the particle.
-    float GetAge() const { return age_; }
+    float age() const { return age_; }
 
     //! Returns the particle's current position.
-    glm::vec3 GetPosition() const { return position_; }
+    glm::vec3 position() const { return position_; }
 
     //! Returns the particle's current velocity.
-    glm::vec3 GetVelocity() const { return velocity_; }
+    glm::vec3 velocity() const { return velocity_; }
 
     //! Returns the particle's current velocity.
-    glm::vec4 GetColor() const { return color_; }
+    glm::vec4 color() const { return color_; }
 
 protected:
 
     //! Initializes after using the default constructor.
-    void Initialize(float             lifetime,
+    void initialize(float             lifetime,
                     float             age,
                     glm::vec3 const & position,
                     glm::vec3 const & velocity,
                     glm::vec4 const & color);
 
-    BasicEmitter const * pEmitter_;            //!< This particle's emitter
+    BasicEmitter const * emitter_;            //!< This particle's emitter
 
     // Age data
 

@@ -47,8 +47,8 @@ public:
 
     //! @name Overrides Particle
     //@{
-    virtual bool Update(float dt) override;
-    virtual void Draw(std::shared_ptr<Vkx::Device> device) const override;
+    virtual bool update(float dt) override;
+    virtual void draw(std::shared_ptr<Vkx::Device> device) const override;
     //@}
 
     //! Vertex buffer info.

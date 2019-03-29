@@ -41,15 +41,15 @@ void PointParticle::Initialize(float             lifetime,
                                glm::vec3 const & velocity,
                                glm::vec4 const & color)
 {
-    Particle::Initialize(lifetime, age, position, velocity, color);
+    Particle::initialize(lifetime, age, position, velocity, color);
 }
 
-bool PointParticle::Update(float dt)
+bool PointParticle::update(float dt)
 {
     return Particle::Update(dt);
 }
 
-void PointParticle::Draw(std::shared_ptr<Vkx::Device> device) const
+void PointParticle::draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do. The particles are drawn by the emitter. This function should not be called.
     assert(false);

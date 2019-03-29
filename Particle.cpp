@@ -15,13 +15,13 @@ namespace Confetti
 //! @param	position		Position at birth.
 //! @param	velocity		Velocity at birth.
 
-Particle::Particle(BasicEmitter const * pEmitter,
+Particle::Particle(BasicEmitter const * emitter,
                    float                lifetime,
                    float                age,
                    glm::vec3 const &    position,
                    glm::vec3 const &    velocity,
                    glm::vec4 const &    color)
-    : pEmitter_(pEmitter)
+    : emitter_(emitter)
     , lifetime_(lifetime)
     , age_(age)
     , initialPosition_(position)
@@ -39,7 +39,7 @@ Particle::Particle(BasicEmitter const * pEmitter,
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth
 
-void Particle::Initialize(float             lifetime,
+void Particle::initialize(float             lifetime,
                           float             age,
                           glm::vec3 const & position,
                           glm::vec3 const & velocity,
@@ -61,7 +61,7 @@ void Particle::Initialize(float             lifetime,
 //! @note	Methods overriding this method must call this first in order to determine the particle's age and if it
 //!			has been reborn or not.
 
-bool Particle::Update(float dt)
+bool Particle::update(float dt)
 {
     bool reborn;
 
@@ -90,24 +90,25 @@ bool Particle::Update(float dt)
 
     glm::vec3 velocity = velocity_;
     glm::vec3 position = position_;
+    glm::vec4 color = color_;
 
     // If (re)born, then reset to initial values and adjust dt
 
     if (reborn)
     {
-        glm::vec3 emitterVelocity = pEmitter_->currentVelocity();
-        glm::vec3 emitterPosition = pEmitter_->currentPosition();
+        glm::vec3 emitterVelocity = emitter_->currentVelocity();
+        glm::vec3 emitterPosition = emitter_->currentPosition();
         glm::vec3 initialVelocity = initialVelocity_;
         glm::vec3 initialPosition = initialPosition_;
 
         velocity = emitterVelocity + initialVelocity;
         position = emitterPosition + initialPosition;
-        color_   = initialColor_;
+        color    = initialColor_;
         dt       = age_;
     }
 
-    Environment const * pE = pEmitter_->environment();
-    Appearance const *  pA = pEmitter_->appearance();
+    Environment const * pE = emitter_->environment().get();
+    Appearance const *  pA = emitter_->appearance().get();
 
     // Update velocity and position
     glm::vec3 dv;
@@ -137,10 +138,9 @@ bool Particle::Update(float dt)
     Environment::ClipPlaneList const & clipPlanes = pE->clipPlanes();
     if (!clipPlanes.empty())
     {
-        for (auto const & plane : clipPlanes)
+        for (auto const & clip : clipPlanes)
         {
-            glm::vec4 plane = plane;
-            if (glm::dot(plane, glm::vec4(position.x, position.y, position.z, 0.0f)) < 0.0f)
+            if (glm::dot(clip, glm::vec4(position.x, position.y, position.z, 0.0f)) < 0.0f)
             {
                 age_ -= lifetime_;
                 return reborn;
@@ -149,26 +149,25 @@ bool Particle::Update(float dt)
     }
 
     // Check for collision with bounce planes
-    Environment::BouncePlaneList const * pBouncePlanes = pE->bouncePlanes();
-    if (pBouncePlanes)
+    Environment::BouncePlaneList const & bouncePlanes = pE->bouncePlanes();
+    if (!bouncePlanes.empty())
     {
-        for (auto const & plane : *pBouncePlanes)
+        for (auto const & bounce : bouncePlanes)
         {
-            glm::vec4 plane(XMLoadFloat4(&plane.plane_));
-            if (XMVector3Less(XMPlaneDotCoord(plane, position),  XMVectorZero()))
+            glm::vec4 const & plane = bounce.plane;
+            if (glm::dot(plane, glm::vec4(position.x, position.y, position.z, 0.0f)) < 0.0f)
             {
-                float f = 1.0f + plane.dampening_;
-                velocity -= plane * (f * XMPlaneDotNormal(plane, velocity));
-                position -= plane * (f * XMPlaneDotCoord(plane, position));
+                glm::vec3 normal(plane);
+                float f = 1.0f + bounce.dampening;
+                velocity -= normal * (f * glm::dot(normal, velocity));
+                position -= normal * (f * glm::dot(plane, glm::vec4(position, 1.0f)));
             }
         }
     }
 
     // Update color
-    glm::vec4 color = color_;
-    glm::vec4 colorRate(XMLoadFloat4(&pA->colorRate()));
-    color += colorRate * dt;
-    color  =  XMVectorClamp(color,  XMVectorZero(),  XMVectorSplatOne());
+    color += pA->colorRate * dt;
+    color  =  glm::clamp(color,  glm::zero<glm::vec4>(),  glm::one<glm::vec4>());
 
     velocity_ = velocity;
     position_ = position;
@@ -190,7 +189,7 @@ bool Particle::Update(float dt)
 //
 // glm::vec3 Particle::Position() const
 // {
-//	Environment const &	e	= *pEmitter_->Environment();
+//	Environment const &	e	= *emitter_->Environment();
 //
 //	if ( glm::IsCloseToZero( e.AirFriction() ) )
 //	{
@@ -248,7 +247,7 @@ bool Particle::Update(float dt)
 //
 // glm::vec3 Particle::Velocity() const
 // {
-//	Environment const &	e	= *pEmitter_->Environment();
+//	Environment const &	e	= *emitter_->Environment();
 //
 //	if ( glm::IsCloseToZero( e.AirFriction() ) )
 //	{

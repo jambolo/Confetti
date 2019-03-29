@@ -63,7 +63,7 @@ void TexturedParticle::Initialize(float             lifetime,
                                   float             radius,
                                   float             rotation)
 {
-    Particle::Initialize(lifetime, age, position, velocity, color);
+    Particle::initialize(lifetime, age, position, velocity, color);
 
     initialRadius_   = radius;
     initialRotation_ = rotation;
@@ -75,7 +75,7 @@ void TexturedParticle::Initialize(float             lifetime,
 //!
 //! @param	dt	The amount of time that has passed since the last update
 
-bool TexturedParticle::Update(float dt)
+bool TexturedParticle::update(float dt)
 {
     // Update base class
 
@@ -98,7 +98,7 @@ bool TexturedParticle::Update(float dt)
     return reborn;
 }
 
-void TexturedParticle::Draw(std::shared_ptr<Vkx::Device> device) const
+void TexturedParticle::draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

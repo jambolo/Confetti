@@ -44,7 +44,7 @@ void SphereParticle::Initialize(float             lifetime,
                                 glm::vec4 const & color,
                                 float             radius)
 {
-    Particle::Initialize(lifetime, age, position, velocity, color);
+    Particle::initialize(lifetime, age, position, velocity, color);
 
     initialRadius_ = radius;
 }
@@ -52,7 +52,7 @@ void SphereParticle::Initialize(float             lifetime,
 //!
 //! @param	dt	The amount of time that has passed since the last update
 
-bool SphereParticle::Update(float dt)
+bool SphereParticle::update(float dt)
 {
     // Update base class
 
@@ -73,7 +73,7 @@ bool SphereParticle::Update(float dt)
     return reborn;
 }
 
-void SphereParticle::Draw(std::shared_ptr<Vkx::Device> device) const
+void SphereParticle::draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do because the particle is drawn by the emitter. This function should not be called.
     assert(false);

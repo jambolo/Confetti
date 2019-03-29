@@ -43,10 +43,10 @@ void StreakParticle::Initialize(float             lifetime,
                                 glm::vec3 const & velocity,
                                 glm::vec4 const & color)
 {
-    Particle::Initialize(lifetime, age, position, velocity, color);
+    Particle::initialize(lifetime, age, position, velocity, color);
 }
 
-bool StreakParticle::Update(float dt)
+bool StreakParticle::update(float dt)
 {
     bool reborn;
 
@@ -67,7 +67,7 @@ bool StreakParticle::Update(float dt)
     return reborn;
 }
 
-void StreakParticle::Draw(std::shared_ptr<Vkx::Device> device) const
+void StreakParticle::draw(std::shared_ptr<Vkx::Device> device) const
 {
     // Nothing to do here because all drawing is done by the emitter. This function should not be called
     assert(false);

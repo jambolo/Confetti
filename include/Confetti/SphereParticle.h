@@ -46,8 +46,8 @@ public:
                     glm::vec4 const & color,
                     float             radius);
 
-    virtual bool Update(float dt) override;
-    virtual void Draw(std::shared_ptr<Vkx::Device> device) const override;
+    virtual bool update(float dt) override;
+    virtual void draw(std::shared_ptr<Vkx::Device> device) const override;
     //!@}
 
     //! Returns the particle's radius.
