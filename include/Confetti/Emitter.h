@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <Misc/Assertx.h>
+#include <vector>
 
 namespace Vkx
 {
@@ -85,17 +86,12 @@ public:
 
 protected:
 
-    std::shared_ptr<Vkx::LocalBuffer> pVB_;             //!< Vertex buffer for particles
-    bool alphaTestAvailable_;                           //!< true if the device supports alpha test
-    int maxPrimitives_;                                 //!< Maximum number of primitives in a DrawPrimitive call
-    int maxVertexIndex_;                                //!< Highest possible index value
+//    std::shared_ptr<Vkx::LocalBuffer> pVB_;             //!< Vertex buffer for particles
+//    bool alphaTestAvailable_;                           //!< true if the device supports alpha test
+//    int maxPrimitives_;                                 //!< Maximum number of primitives in a DrawPrimitive call
+//    int maxVertexIndex_;                                //!< Highest possible index value
 
 private:
-
-    // non-copyable
-    BasicEmitter(BasicEmitter const &) = delete;
-    BasicEmitter & operator =(BasicEmitter const &) = delete;
-
     // Particle data
 
     std::shared_ptr<EmitterVolume> volume_;  // Emitter volume

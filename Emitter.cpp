@@ -9,6 +9,7 @@
 #include <Vkx/Camera.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 
 #include <algorithm>
 
@@ -26,13 +27,9 @@ public:
 
     bool operator ()(Confetti::Particle const & a, Confetti::Particle const & b)
     {
-        glm::vec4 positionA(XMLoadFloat3(&a.GetPosition()));
-        glm::vec4 positionB(XMLoadFloat3(&b.GetPosition()));
-        glm::vec4 cameraPosition = cameraPosition_;
-
-        glm::vec4 da = positionA - cameraPosition;
-        glm::vec4 db = positionB - cameraPosition;
-        return XMVector3Greater(XMVector3LengthSq(da), XMVector3LengthSq(db));
+        glm::vec3 da = a.position() - cameraPosition_;
+        glm::vec3 db = b.position() - cameraPosition_;
+        return glm::length2(da) > glm::length2(db);
     }
 
     glm::vec3 cameraPosition_;
@@ -56,13 +53,12 @@ BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device>   device,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
     : volume_(volume)
-    , environment_(environment)
     , appearance_(appearance)
+    , environment_(environment)
     , sorted_(sorted)
     , enabled_(true)
     , position_({ 0.0f, 0.0f, 0.0f })
     , velocity_({ 0.0f, 0.0f, 0.0f })
-    , pVB_(nullptr)
 {
 //     // Check caps bits for certain features
 //     {
@@ -172,15 +168,13 @@ PointEmitter::~PointEmitter()
 
 void PointEmitter::initialize()
 {
-    HRESULT hr;
-
     // Point the particles' emitter value here
 
     for (auto & p : particles_)
     {
-        p.Bind(this);
+        p.bind(this);
     }
-
+#if 0
     // Load the shader
     {
         wchar_t shaderSource[] =
@@ -312,6 +306,7 @@ void PointEmitter::initialize()
 
 //     hr = pD3dDevice_->CreateVertexDeclaration(PointParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
 //     assert_succeeded(hr);
+#endif
 }
 
 void PointEmitter::uninitialize()
@@ -323,9 +318,9 @@ void PointEmitter::uninitialize()
 
 void PointEmitter::update(float dt)
 {
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Update(dt);
+        p.update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
@@ -334,15 +329,14 @@ void PointEmitter::update(float dt)
     {
         std::sort(particles_.begin(),
                   particles_.end(),
-                  ParticleSorter(appearance()->camera()->position()));
+                  ParticleSorter(appearance()->camera->position()));
     }
 }
 
 void PointEmitter::draw() const
 {
-    HRESULT hr;
-
-    std::shared_ptr<Appearance> appearanceearance = appearance();
+#if 0
+    std::shared_ptr<Appearance> appearance = appearance();
     int nParticles = particles_.size();                     // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
@@ -483,6 +477,7 @@ void PointEmitter::draw() const
             pEffect_->End();
         }
     }
+#endif
 }
 
 /********************************************************************************************************************/
@@ -541,9 +536,9 @@ StreakEmitter::~StreakEmitter()
 
 void StreakEmitter::update(float dt)
 {
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Update(dt);
+        p.update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
@@ -552,21 +547,19 @@ void StreakEmitter::update(float dt)
     {
         std::sort(particles_.begin(),
                   particles_.end(),
-                  ParticleSorter(appearance()->camera()->position()));
+                  ParticleSorter(appearance()->camera->position()));
     }
 }
 
 void StreakEmitter::initialize()
 {
-    HRESULT hr;
-
     // Point the particles' emitter value here
 
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Bind(this);
+        p.bind(this);
     }
-
+#if 0
     // Load the effects file
 
     {
@@ -594,19 +587,17 @@ void StreakEmitter::initialize()
 
     hr = pD3dDevice_->CreateVertexDeclaration(StreakParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
+#endif
 }
 
 void StreakEmitter::uninitialize()
 {
-    Wx::SafeRelease(pEffect_);
-    Wx::SafeRelease(pVertexDeclaration_);
 }
 
 void StreakEmitter::draw() const
 {
-    HRESULT hr;
-
-    std::shared_ptr<Appearance> appearanceearance = appearance();
+#if 0
+    std::shared_ptr<Appearance> appearance = appearance();
     int nParticles = particles_.size();                     // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
@@ -724,6 +715,7 @@ void StreakEmitter::draw() const
             pEffect_->End();
         }
     }
+#endif
 }
 
 /********************************************************************************************************************/
@@ -776,14 +768,12 @@ TexturedEmitter::~TexturedEmitter()
 
 void TexturedEmitter::initialize()
 {
-    HRESULT hr;
-
     // Point the particles' emitter value here
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Bind(this);
+        p.bind(this);
     }
-
+#if 0
     // Figure out the maximum necessary size of the index buffer. It is the minimum of the following:
     //
     // 1. The number of particles * 6 ( 2 triangles per particle, 3 verts per triangle
@@ -836,13 +826,11 @@ void TexturedEmitter::initialize()
 
     hr = pD3dDevice_->CreateVertexDeclaration(TexturedParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
+#endif
 }
 
 void TexturedEmitter::uninitialize()
 {
-    Wx::SafeRelease(pVertexDeclaration_);
-    Wx::SafeRelease(pEffect_);
-    Wx::SafeRelease(pIB_);
 }
 
 //!
@@ -850,11 +838,9 @@ void TexturedEmitter::uninitialize()
 
 void TexturedEmitter::update(float dt)
 {
-    TexturedParticle *  const particles = particles();
-
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Update(dt);
+        p.update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
@@ -863,16 +849,15 @@ void TexturedEmitter::update(float dt)
     {
         std::sort(particles_.begin(),
                   particles_.end(),
-                  ParticleSorter(appearance()->camera()->position()));
+                  ParticleSorter(appearance()->camera->position()));
     }
 }
 
 void TexturedEmitter::draw() const
 {
-    HRESULT hr;
-
-    std::shared_ptr<Appearance>   appearanceearance = appearance();
-    std::shared_ptr<Vkx::Texture> pTexture          = pAppearance->texture();
+#if 0
+    std::shared_ptr<Appearance>   appearance = appearance();
+    std::shared_ptr<Vkx::Texture> pTexture          = appearance->texture();
     int nParticles = particles_.size();                         // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
@@ -1073,6 +1058,7 @@ void TexturedEmitter::draw() const
             pEffect_->End();
         }
     }
+#endif
 }
 
 //! @param volume Emitter volume.
@@ -1124,9 +1110,9 @@ SphereEmitter::~SphereEmitter()
 
 void SphereEmitter::update(float dt)
 {
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Update(dt);
+        p.update(dt);
     }
 
     // Sort the particles by distance from the camera if desired
@@ -1135,7 +1121,7 @@ void SphereEmitter::update(float dt)
     {
         std::sort(particles_.begin(),
                   particles_.end(),
-                  ParticleSorter(appearance()->camera()->position()));
+                  ParticleSorter(appearance()->camera->position()));
     }
 }
 
@@ -1143,9 +1129,9 @@ void SphereEmitter::initialize()
 {
     // Point the particles' emitter value here
 
-    for (int i = 0; i < particles_.size(); i++)
+    for (auto & p : particles_)
     {
-        particles_[i].Bind(this);
+        p.bind(this);
     }
 }
 

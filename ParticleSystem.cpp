@@ -13,9 +13,9 @@
 template <class List, typename T>
 bool removeFromList(List & list, T * value)
 {
-    List::iterator new_end = std::remove_if(list.begin(),
+    typename List::iterator new_end = std::remove_if(list.begin(),
                                             list.end(),
-                                            [this, emitter] (std::shared_ptr<T> & entry) {
+                                            [value] (std::shared_ptr<T> & entry) {
                                                 return entry.get() == value;
                                             });
     bool found = new_end != list.end();

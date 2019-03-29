@@ -77,7 +77,7 @@ std::unique_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const
 
     for (auto const & e : configuration.emitters_)
     {
-        std::shared_ptr<BasicEmitter> emitter = buildEmitter(e.second);
+        std::shared_ptr<BasicEmitter> emitter = buildEmitter(e.second, device);
         if (emitter)
             system->add(emitter);
     }
@@ -122,7 +122,7 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     std::shared_ptr<Environment>   environment = findEnvironment(configuration.environment_);
     std::shared_ptr<Appearance>    appearance  = findAppearance(configuration.appearance_);
 
-    std::shared_ptr<BasicEmitter> pEmitter;
+    std::shared_ptr<BasicEmitter> emitter;
 
     if (configuration.type_ == "point")
     {
@@ -140,7 +140,7 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
                                             *appearance);
         }
 
-        pEmitter = new PointEmitter(device,
+        emitter = std::make_shared<PointEmitter>(device,
                                     std::move(particles),
                                     volume,
                                     environment,
@@ -149,14 +149,20 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     }
     else if (configuration.type_ == "streak")
     {
-        std::vector<StreakParticle> particles = buildStreakParticles(configuration.count_,
-                                                                     configuration.particleVector_,
-                                                                     configuration,
-                                                                     *volume,
-                                                                     *environment,
-                                                                     *appearance);
-
-        pEmitter = new StreakEmitter(device,
+        std::vector<StreakParticle> particles;
+        if (!configuration.particleVector_.empty())
+        {
+            particles = buildStreakParticles(configuration.particleVector_);
+        }
+        else
+        {
+            particles = buildStreakParticles(configuration.count_,
+                                             configuration,
+                                             *volume,
+                                             *environment,
+                                             *appearance);
+        }
+        emitter = std::make_shared<StreakEmitter>(device,
                                      std::move(particles),
                                      volume,
                                      environment,
@@ -166,14 +172,20 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     }
     else if (configuration.type_ == "textured")
     {
-        std::vector<TexturedParticle> particles = buildTexturedParticles(configuration.count_,
-                                                                         configuration.particleVector_,
-                                                                         configuration,
-                                                                         *volume,
-                                                                         *environment,
-                                                                         *appearance);
-
-        pEmitter = new TexturedEmitter(device,
+        std::vector<TexturedParticle> particles;
+        if (!configuration.particleVector_.empty())
+        {
+            particles = buildTexturedParticles(configuration.particleVector_);
+        }
+        else
+        {
+            particles = buildTexturedParticles(configuration.count_,
+                                               configuration,
+                                               *volume,
+                                               *environment,
+                                               *appearance);
+        }
+        emitter = std::make_shared<TexturedEmitter>(device,
                                        std::move(particles),
                                        volume,
                                        environment,
@@ -183,14 +195,20 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     }
     else if (configuration.type_ == "sphere")
     {
-        std::vector<SphereParticle> particles = buildSphereParticles(configuration.count_,
-                                                                     configuration.particleVector_,
-                                                                     configuration,
-                                                                     *volume,
-                                                                     *environment,
-                                                                     *appearance);
-
-        pEmitter = new SphereEmitter(device,
+        std::vector<SphereParticle> particles;
+        if (!configuration.particleVector_.empty())
+        {
+            particles = buildSphereParticles(configuration.particleVector_);
+        }
+        else
+        {
+            particles = buildSphereParticles(configuration.count_,
+                                             configuration,
+                                             *volume,
+                                             *environment,
+                                             *appearance);
+        }
+        emitter = std::make_shared<SphereEmitter>(device,
                                      std::move(particles),
                                      volume,
                                      environment,
@@ -200,33 +218,34 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     }
 //	else if ( configuration.type_ == "emitter" )
 //	{
-//		std::vector< EmitterParticle >	particles = BuildEmitterParticles( configuration.count_,
-//																		         configuration.particleVector_,
-//																				 configuration,
-//																		         *pVolume,
-//																		         *pEnvironment,
-//																		         *pAppearance );
-//
-//		pEmitter = new EmitterEmitter( device,
+//        std::vector<EmitterParticle> particles;
+//        if (!configuration.particleVector_.empty())
+//        {
+//            particles = buildEmitterParticles(configuration.particleVector_);
+//        }
+//        else
+//        {
+//            particles = buildEmitterParticles(configuration.count_,
+//                                            configuration,
+//                                              *volume,
+//                                              *environment,
+//                                              *appearance );
+//        }
+//        emitter = std::make_shared<EmitterEmitter>( device,
 //                                   std::move(particles),
-//									 pVolume,
-//									 pEnvironment,
-//									 pAppearance,
-//									 configuration.count_,
-//									 configuration.sorted_ );
-//	}
-    else
-    {
-        // Invalid emitter type
-        pEmitter = nullptr;
-    }
+//                                                    pVolume,
+//                                                    pEnvironment,
+//                                                    pAppearance,
+//                                                    configuration.count_,
+//                                                    configuration.sorted_ );
+//    }
 
     // Manage the emitter
 
-    if (pEmitter)
-        emitters_.emplace(configuration.name_, pEmitter);
+    if (emitter)
+        emitters_.emplace(configuration.name_, emitter);
 
-    return pEmitter;
+    return emitter;
 }
 
 std::shared_ptr<Appearance> Builder::buildAppearance(Configuration::Appearance const & configuration,

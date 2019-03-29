@@ -54,24 +54,24 @@ public:
     //@}
 
     //! Returns the particle's current radius.
-    float GetRadius() const { return radius_; }
+    float radius() const { return radius_; }
 
     //! Returns the particle's current rotation.
-    float GetRotation() const { return rotation_; }
+    float rotation() const { return rotation_; }
 
     //! Vertex buffer info
     struct VBEntry
     {
-        static int const NUM_VERTICES = 4;      //!< Number of vertices in the particle
+        static int constexpr NUM_VERTICES = 4;      //!< Number of vertices in the particle
 
         //! Vertex buffer entry
         struct Vertex
         {
             glm::vec3 position; //!< Particle (not vertex!) position
             glm::vec3 color;    //!< Color
-            float u, v;                 //!< Texture position
-            float radius;               //!< Radius of the particle
-            float rotation;             //!< Amount of rotation of the particle
+            float u, v;         //!< Texture position
+            float radius;       //!< Radius of the particle
+            float rotation;     //!< Amount of rotation of the particle
         };
 
         Vertex v[NUM_VERTICES]; //!< Vertex buffer entries
