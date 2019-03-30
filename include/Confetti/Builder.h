@@ -7,7 +7,7 @@
 #include <Confetti/Environment.h>
 #include <memory>
 #include <random>
-#include <Vkx/Random.h>
+//#include <Vkx/Random.h>
 
 namespace Vkx
 {
@@ -38,7 +38,7 @@ public:
     //! Constructor.
     Builder(std::minstd_rand & rng);
 
-    //! Returns a new particle system build using the supplied configuration
+    //! Returns a new particle system built using the supplied configuration
     std::shared_ptr<ParticleSystem> buildParticleSystem(Configuration const &        configuration,
                                                         std::shared_ptr<Vkx::Device> device,
                                                         Vkx::Camera const *          camera);

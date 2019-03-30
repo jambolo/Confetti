@@ -4,9 +4,7 @@
 #include "Emitter.h"
 #include "Environment.h"
 
-#include <d3d11.h>
 #include <glm/glm.hpp>
-using namespace DirectX;
 
 namespace Confetti
 {
@@ -56,7 +54,7 @@ bool SphereParticle::update(float dt)
 {
     // Update base class
 
-    bool const reborn = Particle::Update(dt);
+    bool const reborn = Particle::update(dt);
 
     if (reborn)
     {
@@ -64,11 +62,9 @@ bool SphereParticle::update(float dt)
         dt      = age_;
     }
 
-    Appearance const * const pA = pEmitter_->appearance();
-
     // Update size and rotation
 
-    radius_ += dt * pA->radiusRate();
+    radius_ += dt * emitter_->appearance()->radiusRate;
 
     return reborn;
 }

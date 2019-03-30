@@ -168,7 +168,7 @@ public:
     bool Load(char const * sFilename);
 
     //! Loads a configuration from an XML DOM. Returns true if successful.
-    bool XmlConfiguration::Load(IXMLDOMDocument2 * pDocument);
+    bool Load(IXMLDOMDocument2 * pDocument);
 
     //! Saves the configuration to an XML file. Returns true if successful.
     bool Save(char const * sFilename);

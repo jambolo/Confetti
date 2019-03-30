@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <random>
+#include<glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace Confetti
 {

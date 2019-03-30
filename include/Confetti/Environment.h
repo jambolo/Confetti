@@ -113,17 +113,17 @@ private:
 
     glm::vec3 gravity_;                     // Gravity.
     glm::vec3 windVelocity_;                // Constant wind velocity component of the current wind velocity.
-    float airFriction_;                        // Friction factor.
+    float airFriction_;                     // Friction factor.
     float gustiness_;                       // Gustiness factor.
     BouncePlaneList bouncePlanes_;          // A list of planes that the particles bounce against.
     ClipPlaneList clipPlanes_;              // A list of planes that clip the particles.
-    std::minstd_rand rng_;                  // The RNG for environments
     Vkx::RandomDirection gustDirection_;    // Direction generator for gusts
     glm::vec3 gust_;                        // Gust component of the current wind velocity.
     glm::vec3 currentWindVelocity_;         // Current wind velocity.
     glm::vec3 terminalVelocity_;            // Terminal velocity.
     glm::vec3 terminalDistance_;            // Movement of a particle traveling at terminal velocity.
     float ect1_;                            // The value 1.0f - exp( -airFriction_ * dt ) calculated during the last update.
+    std::minstd_rand rng_;                  // The RNG for environments
 };
 } // namespace Confetti
 

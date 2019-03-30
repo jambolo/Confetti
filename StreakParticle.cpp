@@ -7,12 +7,12 @@ namespace Confetti
 {
 // Vertex shader data declaration info
 
-D3DVERTEXELEMENT11 const StreakParticle::aVSDataDeclarationInfo_[] =
-{
-    { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-    D3DDECL_END()
-};
+// D3DVERTEXELEMENT11 const StreakParticle::aVSDataDeclarationInfo_[] =
+// {
+//     { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+//     { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+//     D3DDECL_END()
+// };
 
 //! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
@@ -50,20 +50,13 @@ bool StreakParticle::update(float dt)
 {
     bool reborn;
 
-    reborn = Particle::Update(dt);
+    reborn = Particle::update(dt);
 
     if (reborn)
         dt = age_;
 
     // Update the location of the tail
-
-    glm::vec4 position = position_;
-    glm::vec4 velocity = velocity_;
-
-    glm::vec4 tail;
-    tail = position - velocity * dt;
-
-    tail_ = tail;
+    tail_ = position_ - velocity_ * dt;
     return reborn;
 }
 

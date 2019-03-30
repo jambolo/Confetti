@@ -3,20 +3,18 @@
 #include "Appearance.h"
 #include "Emitter.h"
 
-#include <d3d11.h>
 #include <glm/glm.hpp>
-using namespace DirectX;
 
 namespace Confetti
 {
 // Vertex shader data declaration info
 
-D3DVERTEXELEMENT11 const PointParticle::aVSDataDeclarationInfo_[] =
-{
-    { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-    D3DDECL_END()
-};
+// D3DVERTEXELEMENT11 const PointParticle::aVSDataDeclarationInfo_[] =
+// {
+//     { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+//     { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+//     D3DDECL_END()
+// };
 
 //! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
@@ -46,7 +44,7 @@ void PointParticle::Initialize(float             lifetime,
 
 bool PointParticle::update(float dt)
 {
-    return Particle::Update(dt);
+    return Particle::update(dt);
 }
 
 void PointParticle::draw(std::shared_ptr<Vkx::Device> device) const

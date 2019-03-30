@@ -13,9 +13,6 @@
 
 #include <algorithm>
 
-// Vertex buffer size
-static int const VERTEX_BUFFER_SIZE = 1024 * 1024;
-
 // This class sorts particles back-to-front
 class ParticleSorter
 {

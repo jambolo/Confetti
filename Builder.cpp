@@ -29,8 +29,8 @@ Builder::Builder(std::minstd_rand & rng)
 }
 
 std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const &        configuration,
-                                                             std::shared_ptr<Vkx::Device> device,
-                                                             Vkx::Camera const *          pCamera)
+                                                        std::shared_ptr<Vkx::Device> device,
+                                                        Vkx::Camera const *          pCamera)
 {
     // Build the bounce lists used by the emitters
 
@@ -53,7 +53,7 @@ std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const
         buildEmitterVolume(v.second);
     }
 
-    std::shared_ptr<ParticleSystem> system = std::make_unique<ParticleSystem>(device);
+    std::shared_ptr<ParticleSystem> system = std::make_shared<ParticleSystem>(device);
 
     // Build the environments
 
@@ -335,16 +335,17 @@ std::shared_ptr<Environment> Builder::buildEnvironment(Configuration::Environmen
     std::shared_ptr<Environment::ClipPlaneList>   clipPlaneList   = findClipPlaneList(configuration.clip_);
 
     std::shared_ptr<Environment> environment = std::make_shared<Environment>(configuration.gravity_,
+    auto environment = std::make_shared<Environment>(configuration.gravity_,
                                                                              configuration.airFriction_,
                                                                              configuration.windVelocity_,
                                                                              configuration.gustiness_,
-                                                                             bouncePlaneList,
-                                                                             clipPlaneList);
+                                                                             *bouncePlaneList,
+                                                                             *clipPlaneList);
     environments_.emplace(configuration.name_, environment);
     return environment;
 }
 
-Environment::BouncePlaneList Builder::buildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
+std::shared_ptr<Environment::BouncePlaneList> Builder::buildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
 {
 //     // Prevent duplicate entries
 //
@@ -365,24 +366,24 @@ Environment::BouncePlaneList Builder::buildBouncePlaneList(Configuration::Bounce
     //		float		dampening_;
     //	};
 
-    Environment::BouncePlaneList list;
-    list.reserve(configuration.bouncePlanes_.size());
+    std::shared_ptr<Environment::BouncePlaneList> list(new Environment::BouncePlaneList);
+    list->reserve(configuration.bouncePlanes_.size());
     for (auto const & config : configuration.bouncePlanes_)
     {
-        list.emplace_back(config.plane_, config.dampening_);
+        list->emplace_back(config.plane_, config.dampening_);
     }
 
-//    addBouncePlaneList(configuration.name_, list);
+    bouncePlaneLists_.emplace(configuration.name_, list);
 
     return list;
 }
 
-Environment::ClipPlaneList Builder::buildClipPlaneList(Configuration::ClipPlaneList const & configuration)
+std::shared_ptr<Environment::ClipPlaneList> Builder::buildClipPlaneList(Configuration::ClipPlaneList const & configuration)
 {
-//     // Prevent duplicate entries
-//
-//     if (findClipPlaneList(configuration.name_))
-//         return nullptr;
+    // Prevent duplicate entries
+
+    if (findClipPlaneList(configuration.name_))
+         return nullptr;
 
     //	class Configuration::ClipPlaneList
     //	{
@@ -391,14 +392,8 @@ Environment::ClipPlaneList Builder::buildClipPlaneList(Configuration::ClipPlaneL
     //		std::vector< glm::vec4 >	clipPlanes_;
     //	};
 
-    Environment::ClipPlaneList list;
-    list.reserve(configuration.clipPlanes_.size());
-    for (size_t i = 0; i < configuration.clipPlanes_.size(); i++)
-    {
-        list[i] = configuration.clipPlanes_[i];
-    }
-
-//     addClipPlaneList(configuration.name_, list);
+    auto list = std::make_shared<Environment::ClipPlaneList>(configuration.clipPlanes_);
+    clipPlaneLists_.emplace(configuration.name_, list);
 
     return list;
 }

@@ -4,23 +4,21 @@
 #include "Emitter.h"
 #include "Environment.h"
 
-#include <d3d11.h>
 #include <glm/glm.hpp>
-using namespace DirectX;
 
 namespace Confetti
 {
 // Vertex shader data declaration info
 
-D3DVERTEXELEMENT11 const TexturedParticle::aVSDataDeclarationInfo_[] =
-{
-    { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-    { 0, 16,  D3DDECLTYPE_FLOAT2,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-    { 0, 24,  D3DDECLTYPE_FLOAT1,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-    { 0, 28,  D3DDECLTYPE_FLOAT1,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 },
-    D3DDECL_END()
-};
+// D3DVERTEXELEMENT11 const TexturedParticle::aVSDataDeclarationInfo_[] =
+// {
+//     { 0,  0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+//     { 0, 12,  D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+//     { 0, 16,  D3DDECLTYPE_FLOAT2,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+//     { 0, 24,  D3DDECLTYPE_FLOAT1,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
+//     { 0, 28,  D3DDECLTYPE_FLOAT1,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 2 },
+//     D3DDECL_END()
+// };
 
 //! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
@@ -79,7 +77,7 @@ bool TexturedParticle::update(float dt)
 {
     // Update base class
 
-    bool const reborn = Particle::Update(dt);
+    bool const reborn = Particle::update(dt);
 
     if (reborn)
     {
@@ -88,12 +86,12 @@ bool TexturedParticle::update(float dt)
         dt        = age_;
     }
 
-    Appearance const * const pA = pEmitter_->appearance();
+    std::shared_ptr<Appearance> pA = emitter_->appearance();
 
     // Update size and rotation
 
-    radius_   += dt * pA->radiusRate();
-    rotation_ += dt * pA->angularVelocity();
+    radius_   += dt * pA->radiusRate;
+    rotation_ += dt * pA->angularVelocity;
 
     return reborn;
 }
