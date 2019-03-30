@@ -465,7 +465,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
         //        <xsd:all>
         //            <xsd:element name="Gravity" type="vector3" minOccurs="0" />
         //            <xsd:element name="WindVelocity" type="vector3" minOccurs="0" />
-        //            <xsd:element name="Gustiness" type="vector3" minOccurs="0" />
+        //            <xsd:element name="Gustiness" type="xsd:float" minOccurs="0" />
         //            <xsd:element name="AirFriction" type="xsd:float" minOccurs="0" />
         //            <xsd:element name="Bounce" type="xsd:string" minOccurs="0" />
         //            <xsd:element name="Clip" type="xsd:string" minOccurs="0" />
@@ -478,7 +478,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
         environment.name_         = Msxmlx::GetStringAttribute(pElement, "name");
         environment.gravity_      = GetVectorSubElement(pElement, "Gravity");
         environment.windVelocity_ = GetVectorSubElement(pElement, "WindVelocity");
-        environment.gustiness_    = GetVectorSubElement(pElement, "Gustiness");
+        environment.gustiness_    = Msxmlx::GetFloatSubElement(pElement, "Gustiness");
         environment.airFriction_  = Msxmlx::GetFloatSubElement(pElement, "AirFriction");
         environment.bounce_       = Msxmlx::GetStringSubElement(pElement, "Bounce");
         environment.clip_         = Msxmlx::GetStringSubElement(pElement, "Clip");
@@ -490,7 +490,7 @@ bool XmlConfiguration::ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t c
                 << "[" << environment.gravity_ << "], "
                 << "[" << environment.windVelocity_ << "], "
                 << environment.airFriction_ << ", "
-                << "[" << environment.gustiness_ << "], "
+                << environment.gustiness_ << ", "
                 << "\"" << environment.bounce_ << "\", "
                 << "\"" << environment.clip_ << "\" )"
                 << std::endl;

@@ -5,7 +5,6 @@
 
 #include <glm/glm.hpp>
 #include <random>
-#include <Vkx/Vkx.h>
 
 namespace Confetti
 {
@@ -17,21 +16,15 @@ namespace Confetti
 class EmitterVolume
 {
 public:
-
-    //! Constructor.
-    EmitterVolume(std::minstd_rand & rng);
-
     //! Destructor.
     virtual ~EmitterVolume() = default;
 
     //! Returns a value used to specify a particle's point of emission.
     //!
+    //! @param	rng     Random number generator.
     //!
     //! @note	This method must be overridden.
-    virtual glm::vec3 next() const = 0;
-
-protected:
-    std::minstd_rand & rng_;      // A random number generator.
+    virtual glm::vec3 operator ()(std::minstd_rand & rng) const = 0;
 };
 
 //! An EmitterVolume that emits particles from the point <tt>[0,0,0]</tt>.
@@ -39,16 +32,12 @@ protected:
 class EmitterPoint : public EmitterVolume
 {
 public:
-
-    //! Constructor.
-    EmitterPoint(std::minstd_rand & rng);
-
     //! Destructor.
     virtual ~EmitterPoint() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override { return { 0.0f, 0.0f, 0.0f }; }
+    glm::vec3 operator ()(std::minstd_rand &) const override { return { 0.0f, 0.0f, 0.0f }; }
     //@}
 };
 
@@ -69,19 +58,18 @@ class EmitterLine : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterLine(std::minstd_rand & rng, float size);
+    EmitterLine(float size);
 
     //! Destructor.
     virtual ~EmitterLine() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    float size_;       // The length of the line segment.
+    std::uniform_real_distribution<float> randomX;
 };
 
 //! An EmitterVolume that emits particles from the interior of a rectangle.
@@ -101,19 +89,19 @@ class EmitterRectangle : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterRectangle(std::minstd_rand & rng, float w, float h);
+    EmitterRectangle(float w, float h);
 
     //! Destructor.
     virtual ~EmitterRectangle() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    float width_, height_;     // The width and height of the rectangle.
+    std::uniform_real_distribution<float> randomX_;
+    std::uniform_real_distribution<float> randomZ_;
 };
 
 //! An EmitterVolume that emits particles from the interior of a circle.
@@ -133,19 +121,19 @@ class EmitterCircle : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterCircle(std::minstd_rand & rng, float radius);
+    EmitterCircle(float radius);
 
     //! Destructor.
     virtual ~EmitterCircle() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    float radius_;         // The radius of the circle.
+    std::uniform_real_distribution<float> randomAngle_;
+    std::uniform_real_distribution<float> randomR_;
 };
 
 //! An EmitterVolume that emits particles from the interior of a sphere.
@@ -165,19 +153,20 @@ class EmitterSphere : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterSphere(std::minstd_rand & rng, float radius);
+    EmitterSphere(float radius);
 
     //! Destructor.
     virtual ~EmitterSphere() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    float radius_;         // The radius of the sphere.
+    std::uniform_real_distribution<float> randomR_;
+    std::uniform_real_distribution<float> randomAngle_;
+    std::uniform_real_distribution<float> randomCos_;
 };
 
 //! An EmitterVolume that emits particles from the interior of a box.
@@ -198,19 +187,20 @@ class EmitterBox : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterBox(std::minstd_rand & rng, glm::vec3 const & size);
+    EmitterBox(glm::vec3 const & size);
 
     //! Destructor.
     virtual ~EmitterBox() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    glm::vec3 size_;     // The width, height, and depth of the box.
+    std::uniform_real_distribution<float> randomX_;
+    std::uniform_real_distribution<float> randomY_;
+    std::uniform_real_distribution<float> randomZ_;
 };
 
 //! An EmitterVolume that emits particles from the interior of a cylinder.
@@ -231,20 +221,20 @@ class EmitterCylinder : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterCylinder(std::minstd_rand & rng, float radius, float height);
+    EmitterCylinder(float radius, float height);
 
     //! Destructor.
     virtual ~EmitterCylinder() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    float radius_;             // The radius of the cylinder.
-    float height_;             // The height of the cylinder.
+    std::uniform_real_distribution<float> randomAngle_;
+    std::uniform_real_distribution<float> randomR_;
+    std::uniform_real_distribution<float> randomZ_;
 };
 
 //! An EmitterVolume that emits particles from the interior of a cone.
@@ -265,20 +255,20 @@ class EmitterCone : public EmitterVolume
 public:
 
     //! Constructor.
-    EmitterCone(std::minstd_rand & rng, float radius, float height);
+    EmitterCone(float radius, float height);
 
     //! Destructor.
     virtual ~EmitterCone() override = default;
 
     //! @name Overrides EmitterVolume
     //@{
-    glm::vec3 next() const override;
+    glm::vec3 operator ()(std::minstd_rand & rng) const override;
     //@}
 
 private:
-
-    float radius_;             // The radius of the cone at the base.
-    float height_;             // The height of the cone.
+    std::uniform_real_distribution<float> randomAngle_;
+    std::uniform_real_distribution<float> randomZ_;
+    std::uniform_real_distribution<float> randomR_;
 };
 } // namespace Confetti
 

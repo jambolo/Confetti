@@ -54,10 +54,10 @@ public:
     std::shared_ptr<Environment> environment() const { return environment_; }
 
     //! Returns the current position.
-    glm::vec3 const & currentPosition() const { return position_; }
+    glm::vec3 currentPosition() const { return position_; }
 
     //! Returns the current velocity.
-    glm::vec3 const & currentVelocity() const { return velocity_; }
+    glm::vec3 currentVelocity() const { return velocity_; }
 
     //! Returns true if the emitter is enabled.
     bool enabled() const { return enabled_; }
@@ -94,14 +94,14 @@ protected:
 private:
     // Particle data
 
-    std::shared_ptr<EmitterVolume> volume_;  // Emitter volume
-    std::shared_ptr<Appearance> appearance_;        // Common appearance parameters
-    std::shared_ptr<Environment> environment_;      // Common environment parameters
-    bool sorted_;                           // Should the emitter sort the particles back to front?
+    std::shared_ptr<EmitterVolume> volume_;     // Emitter volume
+    std::shared_ptr<Appearance> appearance_;    // Common appearance parameters
+    std::shared_ptr<Environment> environment_;  // Common environment parameters
+    bool sorted_;                               // Should the emitter sort the particles back to front?
 
     // Emitter state
 
-    bool enabled_;                  // Enabled or not
+    bool enabled_;          // Enabled or not
     glm::vec3 position_;    // Current position
     glm::vec3 velocity_;    // Current velocity
 };

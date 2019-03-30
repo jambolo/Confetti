@@ -28,7 +28,7 @@ Builder::Builder(std::minstd_rand & rng)
     // Nothing to do
 }
 
-std::unique_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const &        configuration,
+std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const &        configuration,
                                                              std::shared_ptr<Vkx::Device> device,
                                                              Vkx::Camera const *          pCamera)
 {
@@ -53,7 +53,7 @@ std::unique_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const
         buildEmitterVolume(v.second);
     }
 
-    std::unique_ptr<ParticleSystem> system = std::make_unique<ParticleSystem>(device);
+    std::shared_ptr<ParticleSystem> system = std::make_unique<ParticleSystem>(device);
 
     // Build the environments
 
@@ -141,11 +141,11 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
         }
 
         emitter = std::make_shared<PointEmitter>(device,
-                                    std::move(particles),
-                                    volume,
-                                    environment,
-                                    appearance,
-                                    configuration.sorted_);
+                                                 std::move(particles),
+                                                 volume,
+                                                 environment,
+                                                 appearance,
+                                                 configuration.sorted_);
     }
     else if (configuration.type_ == "streak")
     {
@@ -163,12 +163,11 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
                                              *appearance);
         }
         emitter = std::make_shared<StreakEmitter>(device,
-                                     std::move(particles),
-                                     volume,
-                                     environment,
-                                     appearance,
-                                     configuration.count_,
-                                     configuration.sorted_);
+                                                  std::move(particles),
+                                                  volume,
+                                                  environment,
+                                                  appearance,
+                                                  configuration.sorted_);
     }
     else if (configuration.type_ == "textured")
     {
@@ -186,12 +185,11 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
                                                *appearance);
         }
         emitter = std::make_shared<TexturedEmitter>(device,
-                                       std::move(particles),
-                                       volume,
-                                       environment,
-                                       appearance,
-                                       configuration.count_,
-                                       configuration.sorted_);
+                                                    std::move(particles),
+                                                    volume,
+                                                    environment,
+                                                    appearance,
+                                                    configuration.sorted_);
     }
     else if (configuration.type_ == "sphere")
     {
@@ -209,12 +207,11 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
                                              *appearance);
         }
         emitter = std::make_shared<SphereEmitter>(device,
-                                     std::move(particles),
-                                     volume,
-                                     environment,
-                                     appearance,
-                                     configuration.count_,
-                                     configuration.sorted_);
+                                                  std::move(particles),
+                                                  volume,
+                                                  environment,
+                                                  appearance,
+                                                  configuration.sorted_);
     }
 //	else if ( configuration.type_ == "emitter" )
 //	{
@@ -236,7 +233,6 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
 //                                                    pVolume,
 //                                                    pEnvironment,
 //                                                    pAppearance,
-//                                                    configuration.count_,
 //                                                    configuration.sorted_ );
 //    }
 
@@ -249,8 +245,7 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
 }
 
 std::shared_ptr<Appearance> Builder::buildAppearance(Configuration::Appearance const & configuration,
-                                                     std::shared_ptr<Vkx::Device>      device,
-                                                     Vkx::Camera const *               pCamera)
+                                                     Vkx::Camera const *               camera)
 {
     // Prevent duplicate entries
 
@@ -268,8 +263,8 @@ std::shared_ptr<Appearance> Builder::buildAppearance(Configuration::Appearance c
     //		float		size_;
     //	};
 
-    std::shared_ptr<Vkx::Texture>  pTexture;
-    std::shared_ptr<Vkx::Material> pMaterial;
+    std::shared_ptr<Vkx::Texture>  texture;
+    std::shared_ptr<Vkx::Material> material;
 
     // Create the texture (if specified)
 
@@ -277,8 +272,8 @@ std::shared_ptr<Appearance> Builder::buildAppearance(Configuration::Appearance c
     {
         // If the texture is not already created, then create it. Otherwise, use the existing one.
 
-        pTexture = findTexture(configuration.texture_);
-        if (!pTexture)
+        texture = findTexture(configuration.texture_);
+        if (!texture)
         {
             // Not working for now
             assert(false);
@@ -286,40 +281,35 @@ std::shared_ptr<Appearance> Builder::buildAppearance(Configuration::Appearance c
 //            hr = D3DXCreateTextureFromFile(device, configuration.texture_.c_str(), &pTexture);
 //            assert_succeeded(hr);
 
-            addTexture(configuration.texture_, pTexture);
+            textures_.emplace(configuration.texture_, texture);
         }
     }
-    else
-    {
-        pTexture = nullptr;   // No texture specified
-    }
 
-//	// Create the material (if specified)
+//     // Create the material (if specified)
 //
-//	if ( !configuration.material_.empty() )
-//	{
-//		// If the material is not already created, then create it. Otherwise, use the existing one.
+//     if (!configuration.material_.empty())
+//     {
+//         // If the material is not already created, then create it. Otherwise, use the existing one.
 //
-//		pMaterial = FindMaterial( configuration.material_ );
-//		if ( !pMaterial )
-//		{
-//		}
-//	}
-//	else
-//	{
-    pMaterial = nullptr;      // No material specified
-//	}
+//         material = findMaterial(configuration.material_);
+//         if (!material)
+//         {
+//             // Not working for now
+//             assert(false);
+//             materials_.emplace(configuration.material_, material);
+//         }
+//     }
 
-    std::shared_ptr<Appearance> pAppearance = new Appearance(pCamera,
-                                                             configuration.colorChange_,
-                                                             configuration.radiusChange_,
-                                                             configuration.radialVelocity_,
-                                                             pTexture,
-                                                             configuration.size_);
+    std::shared_ptr<Appearance> appearance(new Appearance{ camera,
+                                                           texture,
+                                                           configuration.colorChange_,
+                                                           configuration.radiusChange_,
+                                                           configuration.radialVelocity_,
+                                                           configuration.size_ });
 
-    addAppearance(configuration.name_, pAppearance);
+    appearances_.emplace(configuration.name_, appearance);
 
-    return pAppearance;
+    return appearance;
 }
 
 std::shared_ptr<Environment> Builder::buildEnvironment(Configuration::Environment const & configuration)
@@ -335,22 +325,23 @@ std::shared_ptr<Environment> Builder::buildEnvironment(Configuration::Environmen
     //		std::string	name_;
     //		glm::vec4	gravity_;
     //		glm::vec4	windVelocity_;
-    //		glm::vec4	gustiness_;
+    //		float       gustiness_;
     //		float		airFriction_;
     //		std::string	bounce_;
     //		std::string	clip_;
     //	};
 
-    std::shared_ptr<Environment::BouncePlaneList> pBouncePlaneList = findBouncePlaneList(configuration.bounce_);
-    std::shared_ptr<Environment::ClipPlaneList>   pClipPlaneList   = findClipPlaneList(configuration.clip_);
+    std::shared_ptr<Environment::BouncePlaneList> bouncePlaneList = findBouncePlaneList(configuration.bounce_);
+    std::shared_ptr<Environment::ClipPlaneList>   clipPlaneList   = findClipPlaneList(configuration.clip_);
 
-    std::shared_ptr<Environment> pEnvironment = new Environment(configuration.gravity_,
-                                                                configuration.windVelocity_,
-                                                                configuration.airFriction_,
-                                                                configuration.gustiness_,
-                                                                pBouncePlaneList, pClipPlaneList);
-    addEnvironment(configuration.name_, pEnvironment);
-    return pEnvironment;
+    std::shared_ptr<Environment> environment = std::make_shared<Environment>(configuration.gravity_,
+                                                                             configuration.airFriction_,
+                                                                             configuration.windVelocity_,
+                                                                             configuration.gustiness_,
+                                                                             bouncePlaneList,
+                                                                             clipPlaneList);
+    environments_.emplace(configuration.name_, environment);
+    return environment;
 }
 
 Environment::BouncePlaneList Builder::buildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
@@ -478,7 +469,7 @@ std::shared_ptr<EmitterVolume> Builder::buildEmitterVolume(Configuration::Emitte
 
 std::vector<PointParticle> Builder::buildPointParticles(int                            n,
                                                         Configuration::Emitter const & emitterConfiguration,
-                                                        EmitterVolume const &          volume,
+                                                        EmitterVolume const &          randomPosition,
                                                         Environment const &            environment,
                                                         Appearance const &             appearance)
 {
@@ -502,7 +493,7 @@ std::vector<PointParticle> Builder::buildPointParticles(int                     
 
         particles.emplace_back(emitterConfiguration.lifetime_,
                                age,
-                               volume.next(),
+                               randomPosition(rng_),
                                velocity,
                                emitterConfiguration.color_);
     }
@@ -525,7 +516,7 @@ std::vector<PointParticle> Builder::buildPointParticles(Configuration::Emitter::
 
 std::vector<StreakParticle> Builder::buildStreakParticles(int                            n,
                                                           Configuration::Emitter const & emitterConfiguration,
-                                                          EmitterVolume const &          volume,
+                                                          EmitterVolume const &          randomPosition,
                                                           Environment const &            environment,
                                                           Appearance const &             appearance)
 {
@@ -547,7 +538,7 @@ std::vector<StreakParticle> Builder::buildStreakParticles(int                   
 
         particles.emplace_back(emitterConfiguration.lifetime_,
                                age,
-                               volume.next(),
+                               randomPosition(rng_),
                                velocity,
                                emitterConfiguration.color_);
     }
@@ -570,7 +561,7 @@ std::vector<StreakParticle> Builder::buildStreakParticles(Configuration::Emitter
 
 std::vector<TexturedParticle> Builder::buildTexturedParticles(int                            n,
                                                               Configuration::Emitter const & emitterConfiguration,
-                                                              EmitterVolume const &          volume,
+                                                              EmitterVolume const &          randomPosition,
                                                               Environment const &            environment,
                                                               Appearance const &             appearance)
 {
@@ -594,7 +585,7 @@ std::vector<TexturedParticle> Builder::buildTexturedParticles(int               
 
         particles.emplace_back(emitterConfiguration.lifetime_,
                                age,
-                               volume.next(),
+                               randomPosition(rng_),
                                velocity,
                                emitterConfiguration.color_,
                                emitterConfiguration.radius_,
@@ -619,7 +610,7 @@ std::vector<TexturedParticle> Builder::buildTexturedParticles(Configuration::Emi
 
 std::vector<SphereParticle> Builder::buildSphereParticles(int                            n,
                                                           Configuration::Emitter const & emitterConfiguration,
-                                                          EmitterVolume const &          volume,
+                                                          EmitterVolume const &          randomPosition,
                                                           Environment const &            environment,
                                                           Appearance const &             appearance)
 {
@@ -641,7 +632,7 @@ std::vector<SphereParticle> Builder::buildSphereParticles(int                   
 
         particles.emplace_back(emitterConfiguration.lifetime_,
                                age,
-                               volume.next(),
+                               randomPosition(rng_),
                                velocity,
                                emitterConfiguration.color_,
                                emitterConfiguration.radius_);
@@ -663,203 +654,121 @@ std::vector<SphereParticle> Builder::buildSphereParticles(Configuration::Emitter
     return particles;
 }
 
-std::vector<EmitterParticle> Builder::buildEmitterParticles(int                            n,
-                                                            Configuration::Emitter const & emitterConfiguration,
-                                                            EmitterVolume const &          volume,
-                                                            Environment const &            environment,
-                                                            Appearance const &             appearance)
-{
-    std::vector<EmitterParticle> particles;
-    particles.reserve(n);
-
-    // Generate the particles' characteristics from the emitter configuration.
-
-    Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
-    std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
-    std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
-
-    for (int i = 0; i < n; i++)
-    {
-        glm::vec3 direction = randomDirection(rng_);
-        float     speed     = randomSpeed(rng_);
-        float     age       = randomAge(rng_);
-        glm::vec3 velocity  = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
-
-        particles.emplace_back(emitterConfiguration.lifetime_,
-                               age,
-                               volume.next(),
-                               velocity,
-                               emitterConfiguration.color_,
-                               emitterConfiguration.radius_);
-    }
-
-    return particles;
-}
-
-std::vector<EmitterParticle> Builder::buildEmitterParticles(Configuration::Emitter::ParticleVector const & configurations)
-{
-    std::vector<EmitterParticle> particles;
-    particles.reserve(configurations.size());
-
-    for (auto const & c : configurations)
-    {
-        particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_, c.radius_);
-    }
-
-    return particles;
-}
+// std::vector<EmitterParticle> Builder::buildEmitterParticles(int                            n,
+//                                                             Configuration::Emitter const & emitterConfiguration,
+//                                                             EmitterVolume const &          randomPosition,
+//                                                             Environment const &            environment,
+//                                                             Appearance const &             appearance)
+// {
+//     std::vector<EmitterParticle> particles;
+//     particles.reserve(n);
+//
+//     // Generate the particles' characteristics from the emitter configuration.
+//
+//     Vkx::RandomDirection randomDirection(emitterConfiguration.spread_);
+//     std::uniform_real_distribution<float> randomSpeed(emitterConfiguration.minSpeed_, emitterConfiguration.maxSpeed_);
+//     std::uniform_real_distribution<float> randomAge(0.0f, emitterConfiguration.lifetime_);
+//
+//     for (int i = 0; i < n; i++)
+//     {
+//         glm::vec3 direction = randomDirection(rng_);
+//         float     speed     = randomSpeed(rng_);
+//         float     age       = randomAge(rng_);
+//         glm::vec3 velocity  = glm::vec3(-direction.z * speed, direction.y * speed, direction.x * speed);
+//
+//         particles.emplace_back(emitterConfiguration.lifetime_,
+//                                age,
+//                                randomPosition(rng_),
+//                                velocity,
+//                                emitterConfiguration.color_,
+//                                emitterConfiguration.radius_);
+//     }
+//
+//     return particles;
+// }
+//
+// std::vector<EmitterParticle> Builder::buildEmitterParticles(Configuration::Emitter::ParticleVector const & configurations)
+// {
+//     std::vector<EmitterParticle> particles;
+//     particles.reserve(configurations.size());
+//
+//     for (auto const & c : configurations)
+//     {
+//         particles.emplace_back(c.lifetime_, c.age_, c.position_, c.velocity_, c.color_, c.radius_);
+//     }
+//
+//     return particles;
+// }
 
 std::shared_ptr<BasicEmitter> Builder::findEmitter(std::string const & name)
 {
-    EmitterMap::iterator          pEntry = emitters_.find(name);
-    std::shared_ptr<BasicEmitter> pEmitter;
-
-    if (pEntry != emitters_.end())
-        pEmitter = pEntry->second;
-    else
-        pEmitter = nullptr;
-
-    return pEmitter;
+    EmitterMap::iterator          entry = emitters_.find(name);
+    std::shared_ptr<BasicEmitter> emitter;
+    if (entry != emitters_.end())
+        emitter = entry->second;
+    return emitter;
 }
 
 std::shared_ptr<Appearance> Builder::findAppearance(std::string const & name)
 {
-    AppearanceMap::iterator     pEntry = appearances_.find(name);
-    std::shared_ptr<Appearance> pAppearance;
-
-    if (pEntry != appearances_.end())
-        pAppearance = pEntry->second;
-    else
-        pAppearance = nullptr;
-
-    return pAppearance;
+    AppearanceMap::iterator     entry = appearances_.find(name);
+    std::shared_ptr<Appearance> appearance;
+    if (entry != appearances_.end())
+        appearance = entry->second;
+    return appearance;
 }
 
 std::shared_ptr<Environment> Builder::findEnvironment(std::string const & name)
 {
-    EnvironmentMap::iterator     pEntry = environments_.find(name);
-    std::shared_ptr<Environment> pEnvironment;
-
-    if (pEntry != environments_.end())
-        pEnvironment = pEntry->second;
-    else
-        pEnvironment = nullptr;
-
-    return pEnvironment;
+    EnvironmentMap::iterator     entry = environments_.find(name);
+    std::shared_ptr<Environment> environment;
+    if (entry != environments_.end())
+        environment = entry->second;
+    return environment;
 }
 
 std::shared_ptr<EmitterVolume> Builder::findEmitterVolume(std::string const & name)
 {
-    EmitterVolumeMap::iterator     pEntry = emitterVolumes_.find(name);
-    std::shared_ptr<EmitterVolume> pEmitterVolume;
-
-    if (pEntry != emitterVolumes_.end())
-        pEmitterVolume = pEntry->second;
-    else
-        pEmitterVolume = nullptr;
-
-    return pEmitterVolume;
+    EmitterVolumeMap::iterator     entry = emitterVolumes_.find(name);
+    std::shared_ptr<EmitterVolume> emitterVolume;
+    if (entry != emitterVolumes_.end())
+        emitterVolume = entry->second;
+    return emitterVolume;
 }
 
 std::shared_ptr<Environment::BouncePlaneList> Builder::findBouncePlaneList(std::string const & name)
 {
-    BouncePlaneListMap::iterator pEntry = bouncePlaneLists_.find(name);
-    std::shared_ptr<Environment::BouncePlaneList> pBouncePlaneList;
-
-    if (pEntry != bouncePlaneLists_.end())
-        pBouncePlaneList = pEntry->second;
-    else
-        pBouncePlaneList = nullptr;
-
-    return pBouncePlaneList;
+    BouncePlaneListMap::iterator entry = bouncePlaneLists_.find(name);
+    std::shared_ptr<Environment::BouncePlaneList> bouncePlaneList;
+    if (entry != bouncePlaneLists_.end())
+        bouncePlaneList = entry->second;
+    return bouncePlaneList;
 }
 
 std::shared_ptr<Environment::ClipPlaneList> Builder::findClipPlaneList(std::string const & name)
 {
-    ClipPlaneListMap::iterator pEntry = clipPlaneLists_.find(name);
-    std::shared_ptr<Environment::ClipPlaneList> pClipPlaneList;
-
-    if (pEntry != clipPlaneLists_.end())
-        pClipPlaneList = pEntry->second;
-    else
-        pClipPlaneList = nullptr;
-
-    return pClipPlaneList;
+    ClipPlaneListMap::iterator entry = clipPlaneLists_.find(name);
+    std::shared_ptr<Environment::ClipPlaneList> clipPlaneList;
+    if (entry != clipPlaneLists_.end())
+        clipPlaneList = entry->second;
+    return clipPlaneList;
 }
 
-std::shared_ptr<Vkx::Material> Builder::FindMaterial(std::string const & name)
+std::shared_ptr<Vkx::Material> Builder::findMaterial(std::string const & name)
 {
-    MaterialMap::iterator          pEntry = materials_.find(name);
-    std::shared_ptr<Vkx::Material> pMaterial;
-
-    if (pEntry != materials_.end())
-        pMaterial = pEntry->second;
-    else
-        pMaterial = nullptr;
-
-    return pMaterial;
+    MaterialMap::iterator          entry = materials_.find(name);
+    std::shared_ptr<Vkx::Material> material;
+    if (entry != materials_.end())
+        material = entry->second;
+    return material;
 }
 
 std::shared_ptr<Vkx::Texture> Builder::findTexture(std::string const & name)
 {
-    TextureMap::iterator          pEntry = textures_.find(name);
-    std::shared_ptr<Vkx::Texture> pTexture;
-
-    if (pEntry != textures_.end())
-        pTexture = pEntry->second;
-    else
-        pTexture = nullptr;
-
-    return pTexture;
-}
-
-Builder::EnvironmentMap::iterator Builder::addEnvironment(std::string const & name, std::shared_ptr<Environment> pEnvironment)
-{
-    auto i = environments_.emplace(name, pEnvironment);
-    assert(i.second);
-
-    return i.first;
-}
-
-Builder::AppearanceMap::iterator Builder::addAppearance(std::string const & name, std::shared_ptr<Appearance> pAppearance)
-{
-    auto i = appearances_.emplace(name, pAppearance);
-    assert(i.second);
-
-    return i.first;
-}
-
-Builder::BouncePlaneListMap::iterator Builder::addBouncePlaneList(std::string const &                           name,
-                                                                  std::shared_ptr<Environment::BouncePlaneList> pList)
-{
-    auto i = bouncePlaneLists_.emplace(name, pList);
-    assert(i.second);
-
-    return i.first;
-}
-
-Builder::ClipPlaneListMap::iterator Builder::addClipPlaneList(std::string const &                         name,
-                                                              std::shared_ptr<Environment::ClipPlaneList> pList)
-{
-    auto i = clipPlaneLists_.emplace(name, pList);
-    assert(i.second);
-
-    return i.first;
-}
-
-Builder::MaterialMap::iterator Builder::addMaterial(std::string const & name, std::shared_ptr<Vkx::Material> pMaterial)
-{
-    auto i = materials_.emplace(name, pMaterial);
-    assert(i.second);
-
-    return i.first;
-}
-
-Builder::TextureMap::iterator Builder::addTexture(std::string const & name, std::shared_ptr<Vkx::Texture> pTexture)
-{
-    auto i = textures_.emplace(name, pTexture);
-    assert(i.second);
-
-    return i.first;
+    TextureMap::iterator          entry = textures_.find(name);
+    std::shared_ptr<Vkx::Texture> texture;
+    if (entry != textures_.end())
+        texture = entry->second;
+    return texture;
 }
 } // namespace Confetti

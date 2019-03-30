@@ -84,7 +84,7 @@ public:
         std::string name_;
         glm::vec3 gravity_;
         glm::vec3 windVelocity_;
-        glm::vec3 gustiness_;
+        float gustiness_;
         float airFriction_;
         std::string bounce_;
         std::string clip_;

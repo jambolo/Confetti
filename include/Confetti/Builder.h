@@ -41,7 +41,7 @@ public:
     //! Returns a new particle system build using the supplied configuration
     std::shared_ptr<ParticleSystem> buildParticleSystem(Configuration const &        configuration,
                                                         std::shared_ptr<Vkx::Device> device,
-                                                        Vkx::Camera const *          pCamera);
+                                                        Vkx::Camera const *          camera);
 
     //! Builds an emitter.
     std::shared_ptr<BasicEmitter> buildEmitter(Configuration::Emitter const & configuration,
@@ -55,60 +55,60 @@ public:
     std::shared_ptr<Environment> buildEnvironment(Configuration::Environment const & configuration);
 
     //! Builds an bounce plane list.
-    std::shared_ptr<Environment::BouncePlaneList> buildBouncePlaneList(Configuration::BouncePlaneList const & configuration);
+    Environment::BouncePlaneList buildBouncePlaneList(Configuration::BouncePlaneList const & configuration);
 
     //! Builds a clip plane list.
-    std::shared_ptr<Environment::ClipPlaneList> buildClipPlaneList(Configuration::ClipPlaneList const & configuration);
+    Environment::ClipPlaneList buildClipPlaneList(Configuration::ClipPlaneList const & configuration);
 
     //! Builds an emitter volume.
     std::shared_ptr<EmitterVolume> buildEmitterVolume(Configuration::EmitterVolume const & configuration);
 
     //! Builds the particles for a point emitter.
     std::vector<PointParticle> buildPointParticles(int                            n,
-                                                            Configuration::Emitter const & emitterConfiguration,
-                                                            EmitterVolume const &          volume,
-                                                            Environment const &            environment,
-                                                            Appearance const &             appearance);
+                                                   Configuration::Emitter const & emitterConfiguration,
+                                                   EmitterVolume const &          volume,
+                                                   Environment const &            environment,
+                                                   Appearance const &             appearance);
 
     //! Builds the particles for a point emitter.
     std::vector<PointParticle> buildPointParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for a streak emitter.
     std::vector<StreakParticle> buildStreakParticles(int                            n,
-                                                              Configuration::Emitter const & emitterConfiguration,
-                                                              EmitterVolume const &          volume,
-                                                              Environment const &            environment,
-                                                              Appearance const &             appearance);
+                                                     Configuration::Emitter const & emitterConfiguration,
+                                                     EmitterVolume const &          volume,
+                                                     Environment const &            environment,
+                                                     Appearance const &             appearance);
 
     //! Builds the particles for a streak emitter.
     std::vector<StreakParticle> buildStreakParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for a textured emitter.
     std::vector<TexturedParticle> buildTexturedParticles(int                            n,
-                                                                  Configuration::Emitter const & emitterConfiguration,
-                                                                  EmitterVolume const &          volume,
-                                                                  Environment const &            environment,
-                                                                  Appearance const &             appearance);
+                                                         Configuration::Emitter const & emitterConfiguration,
+                                                         EmitterVolume const &          volume,
+                                                         Environment const &            environment,
+                                                         Appearance const &             appearance);
 
     //! Builds the particles for a textured emitter.
     std::vector<TexturedParticle> buildTexturedParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for a sphere emitter.
     std::vector<SphereParticle> buildSphereParticles(int                            n,
-                                                              Configuration::Emitter const & emitterConfiguration,
-                                                              EmitterVolume const &          volume,
-                                                              Environment const &            environment,
-                                                              Appearance const &             appearance);
+                                                     Configuration::Emitter const & emitterConfiguration,
+                                                     EmitterVolume const &          volume,
+                                                     Environment const &            environment,
+                                                     Appearance const &             appearance);
 
     //! Builds the particles for a sphere emitter.
     std::vector<SphereParticle> buildSphereParticles(Configuration::Emitter::ParticleVector const & configurations);
 
     //! Builds the particles for an emitter emitter
     std::vector<EmitterParticle> buildEmitterParticles(int                            n,
-                                                        Configuration::Emitter const & emitterConfiguration,
-                                                        EmitterVolume const &          volume,
-                                                        Environment const &            environment,
-                                                        Appearance const &             appearance);
+                                                       Configuration::Emitter const & emitterConfiguration,
+                                                       EmitterVolume const &          volume,
+                                                       Environment const &            environment,
+                                                       Appearance const &             appearance);
 
     //! Builds the particles for an emitter emitter
     std::vector<EmitterParticle> buildEmitterParticles(Configuration::Emitter::ParticleVector const & configurations);
