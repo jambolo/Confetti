@@ -32,8 +32,8 @@ private:
     bool load(char const * path);
     bool load(IXMLDOMDocument2 * document);
 
-    bool processBouncePlane(IXMLDOMElement * element, BouncePlaneList & list);
-    bool processBouncePlaneList(IXMLDOMElement * element, BouncePlaneListMap & lists);
+    bool processSurface(IXMLDOMElement * element, SurfaceList & list);
+    bool processSurfaceList(IXMLDOMElement * element, SurfaceListMap & lists);
     bool processClipPlane(IXMLDOMElement * element, ClipPlaneList & planes);
     bool processClipPlaneList(IXMLDOMElement * element, ClipPlaneListMap & lists);
     bool processEnvironment(IXMLDOMElement * element, EnvironmentMap & environments);

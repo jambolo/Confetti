@@ -85,42 +85,42 @@ static void to_json(json & j, Configuration::Particle const & particle)
 static void from_json(json const & j, Configuration::ClipPlaneList & list)
 {
     j.at("name").get_to(list.name_);
-    j.at("bouncePlanes").get_to(list.planes_);
+    j.at("surfaces").get_to(list.planes_);
 }
 
 static void to_json(json & j, Configuration::ClipPlaneList const & list)
 {
     j = json{
         { "name", list.name_ },
-        { "bouncePlanes", list.planes_ }
+        { "surfaces", list.planes_ }
     };
 }
 
-static void from_json(json const & j, Configuration::BouncePlane & bouncePlane)
+static void from_json(json const & j, Configuration::Surface & surface)
 {
-    j.at("plane").get_to(bouncePlane.plane_);
-    j.at("dampening").get_to(bouncePlane.dampening_);
+    j.at("plane").get_to(surface.plane_);
+    j.at("dampening").get_to(surface.dampening_);
 }
 
-static void to_json(json & j, Configuration::BouncePlane const & bouncePlane)
+static void to_json(json & j, Configuration::Surface const & surface)
 {
     j = json{
-        { "plane", bouncePlane.plane_ },
-        { "dampening", bouncePlane.dampening_ }
+        { "plane", surface.plane_ },
+        { "dampening", surface.dampening_ }
     };
 }
 
-static void from_json(json const & j, Configuration::BouncePlaneList & list)
+static void from_json(json const & j, Configuration::SurfaceList & list)
 {
     j.at("name").get_to(list.name_);
-    j.at("bouncePlanes").get_to(list.planes_);
+    j.at("surfaces").get_to(list.planes_);
 }
 
-static void to_json(json & j, Configuration::BouncePlaneList const & list)
+static void to_json(json & j, Configuration::SurfaceList const & list)
 {
     j = json{
         { "name", list.name_ },
-        { "bouncePlanes", list.planes_ }
+        { "surfaces", list.planes_ }
     };
 }
 
@@ -153,7 +153,7 @@ static void from_json(json const & j, Configuration::Environment & environment)
     j.at("windVelocity").get_to(environment.windVelocity_);
     j.at("gustiness").get_to(environment.gustiness_);
     j.at("airFriction").get_to(environment.airFriction_);
-    j.at("bounce").get_to(environment.bounce_);
+    j.at("surface").get_to(environment.surface_);
     j.at("clip").get_to(environment.clip_);
 }
 
@@ -165,7 +165,7 @@ static void to_json(json & j, Configuration::Environment const & environment)
         { "windVelocity", environment.windVelocity_ },
         { "gustiness", environment.gustiness_ },
         { "airFriction", environment.airFriction_ },
-        { "bounce", environment.bounce_ },
+        { "surface", environment.surface_ },
         { "clip", environment.clip_ }
     };
 }
@@ -245,7 +245,7 @@ static void from_json(json const & j, Configuration & configuration)
     j.at("environments").get_to(configuration.environments_);
     j.at("appearances").get_to(configuration.appearances_);
     j.at("clipPlaneLists").get_to(configuration.clipPlaneLists_);
-    j.at("bouncePlaneLists").get_to(configuration.bouncePlaneLists_);
+    j.at("surfaceLists").get_to(configuration.surfaceLists_);
 }
 
 static void to_json(json & j, Configuration const & configuration)
@@ -256,7 +256,7 @@ static void to_json(json & j, Configuration const & configuration)
         { "environments", configuration.environments_ },
         { "appearances", configuration.appearances_ },
         { "clipPlaneLists", configuration.clipPlaneLists_ },
-        { "bouncePlaneLists", configuration.bouncePlaneLists_ }
+        { "surfaceLists", configuration.surfaceLists_ }
     };
 }
 } // namespace Confetti

@@ -31,13 +31,13 @@ class Environment
 public:
 
     //! A plane that the particles bounce against.
-    struct BouncePlane
+    struct Surface
     {
         glm::vec4 plane;   //!< The plane
         float dampening;   //!< The ratio of the post-bounce velocity to the pre-bounce velocity.
 
         //! Constructor.
-        BouncePlane()
+        Surface()
             : plane(1.0f, 0.0f, 0.0f, 1.0f)
             , dampening(1.0f)
         {
@@ -47,8 +47,8 @@ public:
     //! A plane that clips particles.
     using ClipPlane = glm::vec4;
 
-    //! A list of BouncePlanes.
-    using BouncePlaneList = std::vector<BouncePlane>;
+    //! A list of Surfaces.
+    using SurfaceList = std::vector<Surface>;
 
     //! A list of ClipPlanes.
     using ClipPlaneList = std::vector<ClipPlane>;
@@ -57,8 +57,8 @@ public:
     explicit Environment(glm::vec3 const & gravity      = { 0.0f, 0.0f, 0.0f },
                          float airFriction              = 0.0f,
                          glm::vec3 const & windVelocity = { 0.0f, 0.0f, 0.0f },
-                         float gustiness = 0.0f,
-                         BouncePlaneList const &   bpl = BouncePlaneList(),
+                         float gustiness               = 0.0f,
+                         SurfaceList const &   bpl     = SurfaceList(),
                          ClipPlaneList const &     cpl = ClipPlaneList());
 
     //! Sets gravity.
@@ -85,11 +85,11 @@ public:
     //! Returns gustiness
     float gustiness() const { return gustiness_; }
 
-    //! Sets the list of bounce plane
-    void setBouncePlanes(BouncePlaneList const & bpl) { bouncePlanes_ = bpl; }
+    //! Sets the list of surface
+    void setSurfaces(SurfaceList const & bpl) { surfaces_ = bpl; }
 
-    //! Returns the list of bounce plane
-    BouncePlaneList const & bouncePlanes() const { return bouncePlanes_; }
+    //! Returns the list of surface
+    SurfaceList const & surfaces() const { return surfaces_; }
 
     //! Sets the list of clip planes
     void setClipPlanes(ClipPlaneList const & cpl) { clipPlanes_ = cpl; }
@@ -115,7 +115,7 @@ private:
     glm::vec3 windVelocity_;                // Constant wind velocity component of the current wind velocity.
     float airFriction_;                     // Friction factor.
     float gustiness_;                       // Gustiness factor.
-    BouncePlaneList bouncePlanes_;          // A list of planes that the particles bounce against.
+    SurfaceList surfaces_;                  // A list of planes that the particles bounce against.
     ClipPlaneList clipPlanes_;              // A list of planes that clip the particles.
     Vkx::RandomDirection gustDirection_;    // Direction generator for gusts
     glm::vec3 gust_;                        // Gust component of the current wind velocity.

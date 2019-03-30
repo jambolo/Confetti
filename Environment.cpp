@@ -15,20 +15,20 @@ namespace Confetti
 //! @param  friction        Deceleration due to air friction as a fraction of gravity (default: 0.0f)
 //! @param  windVelocity    Prevalent wind velocity (default: { 0.0f, 0.0f, 0.0f })
 //! @param  gustiness       Gust acceleration value (default: 0.0f)
-//! @param  bpl             List of bounce planes (default: BouncePlaneList())
+//! @param  bpl             List of surfaces (default: SurfaceList())
 //! @param  cpl             List of clip planes (default: ClipPlaneList())
 
-Environment::Environment(glm::vec3 const &       gravity /*= { 0.0f, 0.0f, 0.0f }*/,
-                         float                   friction /*= 0.0f*/,
-                         glm::vec3 const &       windVelocity /*= { 0.0f, 0.0f, 0.0f }*/,
-                         float                   gustiness /*= 0.0f*/,
-                         BouncePlaneList const & bpl /*= BouncePlaneList()*/,
-                         ClipPlaneList const &   cpl /*= ClipPlaneList()*/)
+Environment::Environment(glm::vec3 const &     gravity /*= { 0.0f, 0.0f, 0.0f }*/,
+                         float                 friction /*= 0.0f*/,
+                         glm::vec3 const &     windVelocity /*= { 0.0f, 0.0f, 0.0f }*/,
+                         float                 gustiness /*= 0.0f*/,
+                         SurfaceList const &   bpl /*= SurfaceList()*/,
+                         ClipPlaneList const & cpl /*= ClipPlaneList()*/)
     : gravity_(gravity)
     , windVelocity_(windVelocity)
     , airFriction_(friction)
     , gustiness_(gustiness)
-    , bouncePlanes_(bpl)
+    , surfaces_(bpl)
     , clipPlanes_(cpl)
     , gust_({ 0.0f, 0.0f, 0.0f })
     , currentWindVelocity_(windVelocity)

@@ -29,14 +29,14 @@ Builder::Builder(std::minstd_rand & rng)
 }
 
 std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const &        configuration,
-                                                        std::shared_ptr<Vkx::Device> device,
-                                                        Vkx::Camera const *          pCamera)
+                                                             std::shared_ptr<Vkx::Device> device,
+                                                             Vkx::Camera const *          pCamera)
 {
-    // Build the bounce lists used by the emitters
+    // Build the surface lists used by the emitters
 
-    for (auto const & p : configuration.bouncePlaneLists_)
+    for (auto const & p : configuration.surfaceLists_)
     {
-        buildBouncePlaneList(p.second);
+        buildSurfaceList(p.second);
     }
 
     // Build the clip plane lists used by the emitters
@@ -327,53 +327,52 @@ std::shared_ptr<Environment> Builder::buildEnvironment(Configuration::Environmen
     //		glm::vec4	windVelocity_;
     //		float       gustiness_;
     //		float		airFriction_;
-    //		std::string	bounce_;
+    //		std::string	surface_;
     //		std::string	clip_;
     //	};
 
-    std::shared_ptr<Environment::BouncePlaneList> bouncePlaneList = findBouncePlaneList(configuration.bounce_);
-    std::shared_ptr<Environment::ClipPlaneList>   clipPlaneList   = findClipPlaneList(configuration.clip_);
+    std::shared_ptr<Environment::SurfaceList>   surfaceList   = findSurfaceList(configuration.surface_);
+    std::shared_ptr<Environment::ClipPlaneList> clipPlaneList = findClipPlaneList(configuration.clip_);
 
-    std::shared_ptr<Environment> environment = std::make_shared<Environment>(configuration.gravity_,
     auto environment = std::make_shared<Environment>(configuration.gravity_,
-                                                                             configuration.airFriction_,
-                                                                             configuration.windVelocity_,
-                                                                             configuration.gustiness_,
-                                                                             *bouncePlaneList,
-                                                                             *clipPlaneList);
+                                                     configuration.airFriction_,
+                                                     configuration.windVelocity_,
+                                                     configuration.gustiness_,
+                                                     *surfaceList,
+                                                     *clipPlaneList);
     environments_.emplace(configuration.name_, environment);
     return environment;
 }
 
-std::shared_ptr<Environment::BouncePlaneList> Builder::buildBouncePlaneList(Configuration::BouncePlaneList const & configuration)
+std::shared_ptr<Environment::SurfaceList> Builder::buildSurfaceList(Configuration::SurfaceList const & configuration)
 {
 //     // Prevent duplicate entries
 //
-//     if (findBouncePlaneList(configuration.name_))
-//         return Environment::BouncePlaneList();
+//     if (findSurfaceList(configuration.name_))
+//         return Environment::SurfaceList();
 
-    //	class Configuration::BouncePlaneList
+    //	class Configuration::SurfaceList
     //	{
     //	public:
     //		std::string					name_;
-    //		std::vector< BouncePlane >	bouncePlanes_;
+    //		std::vector< Surface >	surfaces_;
     //	};
     //
-    //	class Configuration::BouncePlane
+    //	class Configuration::Surface
     //	{
     //	public:
     //		glm::vec4	plane_;
     //		float		dampening_;
     //	};
 
-    std::shared_ptr<Environment::BouncePlaneList> list(new Environment::BouncePlaneList);
-    list->reserve(configuration.bouncePlanes_.size());
-    for (auto const & config : configuration.bouncePlanes_)
+    std::shared_ptr<Environment::SurfaceList> list(new Environment::SurfaceList);
+    list->reserve(configuration.planes_.size());
+    for (auto const & config : configuration.planes_)
     {
         list->emplace_back(config.plane_, config.dampening_);
     }
 
-    bouncePlaneLists_.emplace(configuration.name_, list);
+    surfaceLists_.emplace(configuration.name_, list);
 
     return list;
 }
@@ -383,7 +382,7 @@ std::shared_ptr<Environment::ClipPlaneList> Builder::buildClipPlaneList(Configur
     // Prevent duplicate entries
 
     if (findClipPlaneList(configuration.name_))
-         return nullptr;
+        return nullptr;
 
     //	class Configuration::ClipPlaneList
     //	{
@@ -392,7 +391,7 @@ std::shared_ptr<Environment::ClipPlaneList> Builder::buildClipPlaneList(Configur
     //		std::vector< glm::vec4 >	clipPlanes_;
     //	};
 
-    auto list = std::make_shared<Environment::ClipPlaneList>(configuration.clipPlanes_);
+    auto list = std::make_shared<Environment::ClipPlaneList>(configuration.planes_);
     clipPlaneLists_.emplace(configuration.name_, list);
 
     return list;
@@ -731,13 +730,13 @@ std::shared_ptr<EmitterVolume> Builder::findEmitterVolume(std::string const & na
     return emitterVolume;
 }
 
-std::shared_ptr<Environment::BouncePlaneList> Builder::findBouncePlaneList(std::string const & name)
+std::shared_ptr<Environment::SurfaceList> Builder::findSurfaceList(std::string const & name)
 {
-    BouncePlaneListMap::iterator entry = bouncePlaneLists_.find(name);
-    std::shared_ptr<Environment::BouncePlaneList> bouncePlaneList;
-    if (entry != bouncePlaneLists_.end())
-        bouncePlaneList = entry->second;
-    return bouncePlaneList;
+    SurfaceListMap::iterator entry = surfaceLists_.find(name);
+    std::shared_ptr<Environment::SurfaceList> surfaceList;
+    if (entry != surfaceLists_.end())
+        surfaceList = entry->second;
+    return surfaceList;
 }
 
 std::shared_ptr<Environment::ClipPlaneList> Builder::findClipPlaneList(std::string const & name)

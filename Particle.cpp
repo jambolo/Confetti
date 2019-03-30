@@ -90,7 +90,7 @@ bool Particle::update(float dt)
 
     glm::vec3 velocity = velocity_;
     glm::vec3 position = position_;
-    glm::vec4 color = color_;
+    glm::vec4 color    = color_;
 
     // If (re)born, then reset to initial values and adjust dt
 
@@ -148,17 +148,17 @@ bool Particle::update(float dt)
         }
     }
 
-    // Check for collision with bounce planes
-    Environment::BouncePlaneList const & bouncePlanes = pE->bouncePlanes();
-    if (!bouncePlanes.empty())
+    // Check for collision with surfaces
+    Environment::SurfaceList const & surfaces = pE->surfaces();
+    if (!surfaces.empty())
     {
-        for (auto const & bounce : bouncePlanes)
+        for (auto const & surface : surfaces)
         {
-            glm::vec4 const & plane = bounce.plane;
+            glm::vec4 const & plane = surface.plane;
             if (glm::dot(plane, glm::vec4(position.x, position.y, position.z, 0.0f)) < 0.0f)
             {
                 glm::vec3 normal(plane);
-                float f = 1.0f + bounce.dampening;
+                float     f = 1.0f + surface.dampening;
                 velocity -= normal * (f * glm::dot(normal, velocity));
                 position -= normal * (f * glm::dot(plane, glm::vec4(position, 1.0f)));
             }

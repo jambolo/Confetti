@@ -76,7 +76,7 @@ public:
         glm::vec3 windVelocity_;
         float gustiness_;
         float airFriction_;
-        std::string bounce_;
+        std::string surface_;
         std::string clip_;
     };
 
@@ -93,7 +93,7 @@ public:
     };
 
     //! Bounce plane configuration
-    class BouncePlane
+    class Surface
     {
 public:
         glm::vec4 plane_;
@@ -109,22 +109,22 @@ public:
     };
 
     //! Bounce plane list configuration
-    class BouncePlaneList
+    class SurfaceList
     {
 public:
         std::string name_;
-        std::vector<BouncePlane> planes_;
+        std::vector<Surface> planes_;
     };
 
     Configuration()          = default;
     virtual ~Configuration() = default;
 
-    using EmitterMap         = std::map<std::string, Emitter>;          //!< A map of Emitters
-    using EmitterVolumeMap   = std::map<std::string, EmitterVolume>;     //!< A map of EmitterVolumes
-    using EnvironmentMap     = std::map<std::string, Environment>;      //!< A map of Environments
-    using AppearanceMap      = std::map<std::string, Appearance>;       //!< A map of Appearances
-    using ClipPlaneListMap   = std::map<std::string, ClipPlaneList>;     //!< A map of ClipPlaneLists
-    using BouncePlaneListMap = std::map<std::string, BouncePlaneList>;     //!< A map of BouncePlaneLists
+    using EmitterMap       = std::map<std::string, Emitter>;            //!< A map of Emitters
+    using EmitterVolumeMap = std::map<std::string, EmitterVolume>;       //!< A map of EmitterVolumes
+    using EnvironmentMap   = std::map<std::string, Environment>;        //!< A map of Environments
+    using AppearanceMap    = std::map<std::string, Appearance>;         //!< A map of Appearances
+    using ClipPlaneListMap = std::map<std::string, ClipPlaneList>;       //!< A map of ClipPlaneLists
+    using SurfaceListMap   = std::map<std::string, SurfaceList>;   //!< A map of SurfaceLists
 
     //! @name  Object Configurations
     //@{
@@ -133,7 +133,7 @@ public:
     EnvironmentMap environments_;              //!< Environment configurations, indexed by name
     AppearanceMap appearances_;                //!< Appearance configurations, indexed by name
     ClipPlaneListMap clipPlaneLists_;          //!< ClipPlaneList configurations, indexed by name
-    BouncePlaneListMap bouncePlaneLists_;      //!< BouncePlaneList configurations, indexed by name
+    SurfaceListMap surfaceLists_;      //!< SurfaceList configurations, indexed by name
     //@}
 };
 } // namespace Confetti

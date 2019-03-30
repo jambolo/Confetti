@@ -279,7 +279,7 @@ bool XmlConfiguration::load(IXMLDOMDocument2 * document)
     //            <xsd:element name="Environment" type="environment" />
     //            <xsd:element name="Appearance" type="appearance" />
     //            <xsd:element name="Volume" type="volume" />
-    //            <xsd:element name="BouncePlaneList" type="bounceplanelist" />
+    //            <xsd:element name="SurfaceList" type="surfacelist" />
     //            <xsd:element name="ClipPlaneList" type="clipplanelist" />
     //        </xsd:choice>
     //    </xsd:complexType>
@@ -293,7 +293,7 @@ bool XmlConfiguration::load(IXMLDOMDocument2 * document)
     }
 
     Msxmlx::ForEachSubElement(root,
-                              [this] (IXMLDOMElement * element) { return processBouncePlaneList(element, bouncePlaneLists_); });
+                              [this] (IXMLDOMElement * element) { return processSurfaceList(element, surfaceLists_); });
     Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processClipPlaneList(element, clipPlaneLists_); });
     Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processEnvironment(element, environments_); });
     Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processAppearance(element, appearances_); });
@@ -303,36 +303,36 @@ bool XmlConfiguration::load(IXMLDOMDocument2 * document)
     return true;
 }
 
-bool XmlConfiguration::processBouncePlaneList(IXMLDOMElement * element, BouncePlaneListMap & lists)
+bool XmlConfiguration::processSurfaceList(IXMLDOMElement * element, SurfaceListMap & lists)
 {
     HRESULT  hr;
     CComBSTR tag;
     hr = element->get_tagName(&tag);
 
-    if (tag == CComBSTR("BouncePlaneList"))
+    if (tag == CComBSTR("SurfaceList"))
     {
-        //    <xsd:complexType name="bounceplanelist">
+        //    <xsd:complexType name="surfacelist">
         //        <xsd:sequence>
-        //            <xsd:element name="BouncePlane" type="bounceplane" minOccurs="0" maxOccurs="unbounded" />
+        //            <xsd:element name="Surface" type="surface" minOccurs="0" maxOccurs="unbounded" />
         //        </xsd:sequence>
         //        <xsd:attribute name="name" type="xsd:string" use="required" />
         //    </xsd:complexType>
 
-        BouncePlaneList planes;
+        SurfaceList planes;
 
         planes.name_ =   Msxmlx::GetStringAttribute(element, "name");
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "BouncePlaneList: " << planes.name_ << std::endl;
+            msg << "SurfaceList: " << planes.name_ << std::endl;
             OutputDebugString(msg.str().c_str());
         }
 #endif      // defined( _DEBUG )
 
-        // Process all the BouncePlanes in the list
+        // Process all the Surfaces in the list
         Msxmlx::ForEachSubElement(element, [this, &planes] (IXMLDOMElement * element) {
-                                      return processBouncePlane(element, planes);
+                                      return processSurface(element, planes);
                                   });
 
         lists.emplace(planes.name_, planes);
@@ -340,36 +340,36 @@ bool XmlConfiguration::processBouncePlaneList(IXMLDOMElement * element, BouncePl
     return true;
 }
 
-bool XmlConfiguration::processBouncePlane(IXMLDOMElement * element, BouncePlaneList & list)
+bool XmlConfiguration::processSurface(IXMLDOMElement * element, SurfaceList & list)
 {
-//    <xsd:complexType name="bounceplane">
+//    <xsd:complexType name="surface">
 //        <xsd:all>
 //            <xsd:element name="Plane" type="plane" />
 //            <xsd:element name="Dampening" type="xsd:float" />
 //        </xsd:all>
 //    </xsd:complexType>
 
-    BouncePlane bounce;
-    bounce.plane_     = GetPlaneSubElement(element, "Plane");
-    bounce.dampening_ = Msxmlx::GetFloatSubElement(element, "Dampening");
+    Surface surface;
+    surface.plane_     = GetPlaneSubElement(element, "Plane");
+    surface.dampening_ = Msxmlx::GetFloatSubElement(element, "Dampening");
 
 #if defined(_DEBUG)
     {
         std::ostringstream msg;
-        msg << "    BouncePlane: ["
-            << bounce.plane_.x << " "
-            << bounce.plane_.y << " "
-            << bounce.plane_.z << " "
-            << bounce.plane_.w << "], "
-            << bounce.dampening_
+        msg << "    Surface: ["
+            << surface.plane_.x << " "
+            << surface.plane_.y << " "
+            << surface.plane_.z << " "
+            << surface.plane_.w << "], "
+            << surface.dampening_
             << std::endl;
         OutputDebugString(msg.str().c_str());
     }
 #endif  // defined( _DEBUG )
 
-    // Add this BouncePlane to the list
+    // Add this Surface to the list
 
-    list.planes_.push_back(bounce);
+    list.planes_.push_back(surface);
 
     return true;
 }
@@ -477,7 +477,7 @@ bool XmlConfiguration::processEnvironment(IXMLDOMElement * element, EnvironmentM
         environment.windVelocity_ = GetVectorSubElement(element, "WindVelocity");
         environment.gustiness_    = Msxmlx::GetFloatSubElement(element, "Gustiness");
         environment.airFriction_  = Msxmlx::GetFloatSubElement(element, "AirFriction");
-        environment.bounce_       = Msxmlx::GetStringSubElement(element, "Bounce");
+        environment.surface_      = Msxmlx::GetStringSubElement(element, "Bounce");
         environment.clip_         = Msxmlx::GetStringSubElement(element, "Clip");
 
 #if defined(_DEBUG)
@@ -488,7 +488,7 @@ bool XmlConfiguration::processEnvironment(IXMLDOMElement * element, EnvironmentM
                 << "[" << environment.windVelocity_ << "], "
                 << environment.airFriction_ << ", "
                 << environment.gustiness_ << ", "
-                << "\"" << environment.bounce_ << "\", "
+                << "\"" << environment.surface_ << "\", "
                 << "\"" << environment.clip_ << "\" )"
                 << std::endl;
             OutputDebugString(msg.str().c_str());
