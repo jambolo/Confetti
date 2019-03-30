@@ -41,18 +41,21 @@ set(SOURCES
     include/Confetti/Emitter.h
     include/Confetti/EmitterVolume.h
     include/Confetti/Environment.h
+    include/Confetti/JsonConfiguration.h
     include/Confetti/Particle.h
     include/Confetti/ParticleSystem.h
     include/Confetti/PointParticle.h
     include/Confetti/SphereParticle.h
     include/Confetti/StreakParticle.h
     include/Confetti/TexturedParticle.h
+    include/Confetti/XmlConfiguration.h
     
     Appearance.cpp
     Builder.cpp
     Emitter.cpp
     EmitterVolume.cpp
     Environment.cpp
+    JsonConfiguration.cpp
     Particle.cpp
     ParticleSystem.cpp
     PointParticle.cpp

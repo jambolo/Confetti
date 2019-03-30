@@ -1,19 +1,13 @@
-#pragma once
-
 #if !defined(CONFETTI_CONFIGURATION_H)
 #define CONFETTI_CONFIGURATION_H
+
+#pragma once
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <map>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-
-struct IXMLDOMDocument2;
-struct IXMLDOMElement;
-struct IXMLDOMNodeVector;
-struct IXMLDOMNode;
 
 namespace Confetti
 {
@@ -21,12 +15,10 @@ namespace Confetti
 class Configuration
 {
 public:
-
     //! Particle configuration
     class Particle
     {
 public:
-
         float lifetime_;
         float age_;
         glm::vec3 position_;
@@ -34,14 +26,13 @@ public:
         glm::vec4 color_;
         float radius_;
         float rotation_;
-        glm::vec4 orientation_;
+        glm::quat orientation_;
     };
 
     //! Emitter configuration
     class Emitter
     {
 public:
-
         using ParticleVector = std::vector<Particle>;
 
         std::string name_;
@@ -67,7 +58,6 @@ public:
     class EmitterVolume
     {
 public:
-
         std::string name_;
         std::string type_;
         float length_;
@@ -115,7 +105,7 @@ public:
     {
 public:
         std::string name_;
-        std::vector<glm::vec4> clipPlanes_;
+        std::vector<glm::vec4> planes_;
     };
 
     //! Bounce plane list configuration
@@ -123,13 +113,10 @@ public:
     {
 public:
         std::string name_;
-        std::vector<BouncePlane> bouncePlanes_;
+        std::vector<BouncePlane> planes_;
     };
 
-    //! Constructor.
-    Configuration() = default;
-
-    //! Destructor.
+    Configuration()          = default;
     virtual ~Configuration() = default;
 
     using EmitterMap         = std::map<std::string, Emitter>;          //!< A map of Emitters
@@ -148,103 +135,6 @@ public:
     ClipPlaneListMap clipPlaneLists_;          //!< ClipPlaneList configurations, indexed by name
     BouncePlaneListMap bouncePlaneLists_;      //!< BouncePlaneList configurations, indexed by name
     //@}
-};
-
-//! A configuration loaded from an XML file
-class XmlConfiguration : public Configuration
-{
-public:
-
-    //! Constructor.
-    XmlConfiguration(char const * sFilename = nullptr);
-
-    //! Constructor.
-    XmlConfiguration(IXMLDOMDocument2 * pDoc);
-
-    //! Destructor.
-    virtual ~XmlConfiguration() override = default;
-
-    //! Loads a configuration from an XML file. Returns true if successful.
-    bool Load(char const * sFilename);
-
-    //! Loads a configuration from an XML DOM. Returns true if successful.
-    bool Load(IXMLDOMDocument2 * pDocument);
-
-    //! Saves the configuration to an XML file. Returns true if successful.
-    bool Save(char const * sFilename);
-
-    //! Saves the configuration to an XML DOM. Returns true if successful.
-    bool Save(IXMLDOMDocument2 * pDocument);
-
-private:
-
-    static bool ProcessBouncePlane(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessBouncePlaneList(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessClipPlane(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessClipPlaneList(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessEnvironment(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessAppearance(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessVolume(IXMLDOMElement * pElement, uintptr_t context);
-    static bool ProcessEmitter(IXMLDOMElement * pElement, uintptr_t context);
-//         static void ProcessPointParticles(PointEmitter *        pEmitter,
-//                                           IXMLDOMNodeVector *   pNodeVector,
-//                                           int                   numParticles,
-//                                           Configuration const * pConfiguration,
-//                                           float                 globalLifetime,
-//                                           uint32_t              globalColor,
-//                                           float                 spread,
-//                                           float                 minSpeed,
-//                                           float                 maxSpeed);
-//         static void ProcessStreakParticles(StreakEmitter *       pEmitter,
-//                                            IXMLDOMNodeVector *   pNodeVector,
-//                                            int                   numParticles,
-//                                            Configuration const * pConfiguration,
-//                                            float                 globalLifetime,
-//                                            uint32_t              globalColor,
-//                                            float                 spread,
-//                                            float                 minSpeed,
-//                                            float                 maxSpeed);
-//         static void ProcessTexturedParticles(TexturedEmitter *     pEmitter,
-//                                              IXMLDOMNodeVector *   pNodeVector,
-//                                              int                   numParticles,
-//                                              Configuration const * pConfiguration,
-//                                              float                 globalLifetime,
-//                                              uint32_t              globalColor,
-//                                              float                 spread,
-//                                              float                 minSpeed,
-//                                              float                 maxSpeed);
-//         static void ProcessSphereParticles(SphereEmitter *       pEmitter,
-//                                            IXMLDOMNodeVector *   pNodeVector,
-//                                            int                   numParticles,
-//                                            Configuration const * pConfiguration,
-//                                            float                 globalLifetime,
-//                                            uint32_t              globalColor,
-//                                            float                 spread,
-//                                            float                 minSpeed,
-//                                            float                 maxSpeed);
-//         static void ProcessParticle(IXMLDOMNode * pNode,
-//                                     float *       pLifetime,
-//                                     float *       pAge,
-//                                     uint32_t *    pColor,
-//                                     float *       pRadius,
-//                                     float *       pOrientation,
-//                                     glm::vec4 * pVelocity,
-//                                     glm::vec4 * pPosition);
-};
-
-//! A configuration loaded from JSON
-class JsonConfiguration : public Configuration
-{
-public:
-
-    //! Constructor.
-    JsonConfiguration(nlohmann::json json);
-
-    //! Destructor.
-    virtual ~JsonConfiguration() override;
-
-    //! Saves the configuration to a JSON object
-    nlohmann::json toJson();
 };
 } // namespace Confetti
 
