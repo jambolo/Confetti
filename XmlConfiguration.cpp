@@ -1,5 +1,7 @@
 #include "Configuration.h"
 
+#if defined(_WIN32)
+
 #include <Misc/Exceptions.h>
 #include <Msxmlx/Msxmlx.h>
 #include <Vkx/Vkx.h>
@@ -1016,3 +1018,5 @@ bool XmlConfiguration::ProcessEmitter(IXMLDOMElement * pElement, uintptr_t conte
 //    }
 // }
 } // namespace Confetti
+
+#endif // defined(_WIN32)

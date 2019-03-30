@@ -50,7 +50,6 @@ set(SOURCES
     
     Appearance.cpp
     Builder.cpp
-    Configuration.cpp
     Emitter.cpp
     EmitterVolume.cpp
     Environment.cpp
@@ -60,6 +59,7 @@ set(SOURCES
     SphereParticle.cpp
     StreakParticle.cpp
     TexturedParticle.cpp
+    XmlConfiguration.cpp
 )
 source_group(Sources FILE ${SOURCES})
 
@@ -68,12 +68,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVAT
 target_link_libraries(${PROJECT_NAME}
     Vkx
     Vulkan::Vulkan
-    Wx
     Misc
-    Msxmlx
     nlohmann_json::nlohmann_json
     glm
 )
+
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} Wx Msxmlx)
+endif()
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         -DNOMINMAX
@@ -87,10 +90,12 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
 add_subdirectory(json)
-add_subdirectory(Msxmlx)
 add_subdirectory(Misc)
 add_subdirectory(Vkx)
-add_subdirectory(Wx)
+if(WIN32)
+    add_subdirectory(Wx)
+    add_subdirectory(Msxmlx)
+endif()
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
