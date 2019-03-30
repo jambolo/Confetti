@@ -280,7 +280,7 @@ bool XmlConfiguration::load(IXMLDOMDocument2 * document)
     //            <xsd:element name="Appearance" type="appearance" />
     //            <xsd:element name="Volume" type="volume" />
     //            <xsd:element name="SurfaceList" type="surfacelist" />
-    //            <xsd:element name="ClipPlaneList" type="clipplanelist" />
+    //            <xsd:element name="ClipperList" type="clipperlist" />
     //        </xsd:choice>
     //    </xsd:complexType>
 
@@ -294,7 +294,7 @@ bool XmlConfiguration::load(IXMLDOMDocument2 * document)
 
     Msxmlx::ForEachSubElement(root,
                               [this] (IXMLDOMElement * element) { return processSurfaceList(element, surfaceLists_); });
-    Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processClipPlaneList(element, clipPlaneLists_); });
+    Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processClipperList(element, clipperLists_); });
     Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processEnvironment(element, environments_); });
     Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processAppearance(element, appearances_); });
     Msxmlx::ForEachSubElement(root, [this] (IXMLDOMElement * element) { return processVolume(element, emitterVolumes_); });
@@ -374,37 +374,37 @@ bool XmlConfiguration::processSurface(IXMLDOMElement * element, SurfaceList & li
     return true;
 }
 
-bool XmlConfiguration::processClipPlaneList(IXMLDOMElement * element, ClipPlaneListMap & lists)
+bool XmlConfiguration::processClipperList(IXMLDOMElement * element, ClipperListMap & lists)
 {
     HRESULT  hr;
     CComBSTR tag;
     hr = element->get_tagName(&tag);
 
-    if (tag == CComBSTR("ClipPlaneList"))
+    if (tag == CComBSTR("ClipperList"))
     {
-        //    <xsd:complexType name="clipplanelist">
+        //    <xsd:complexType name="clipperlist">
         //        <xsd:sequence>
-        //            <xsd:element name="ClipPlane" type="plane" minOccurs="0" maxOccurs="unbounded" />
+        //            <xsd:element name="Clipper" type="plane" minOccurs="0" maxOccurs="unbounded" />
         //        </xsd:sequence>
         //        <xsd:attribute name="name" type="xsd:string" use="required" />
         //    </xsd:complexType>
 
-        ClipPlaneList planes;
+        ClipperList planes;
 
         planes.name_ = Msxmlx::GetStringAttribute(element, "name");
 
 #if defined(_DEBUG)
         {
             std::ostringstream msg;
-            msg << "ClipPlaneList: " << planes.name_ << std::endl;
+            msg << "ClipperList: " << planes.name_ << std::endl;
             OutputDebugString(msg.str().c_str());
         }
 #endif      // defined( _DEBUG )
 
-        // Process all the ClipPlanes in the list
+        // Process all the Clippers in the list
 
         Msxmlx::ForEachSubElement(element,
-                                  [this, &planes] (IXMLDOMElement * element) { return processClipPlane(element, planes); });
+                                  [this, &planes] (IXMLDOMElement * element) { return processClipper(element, planes); });
 
         lists.emplace(planes.name_, planes);
     }
@@ -412,7 +412,7 @@ bool XmlConfiguration::processClipPlaneList(IXMLDOMElement * element, ClipPlaneL
     return true;
 }
 
-bool XmlConfiguration::processClipPlane(IXMLDOMElement * element, ClipPlaneList & planes)
+bool XmlConfiguration::processClipper(IXMLDOMElement * element, ClipperList & planes)
 {
     //    <xsd:complexType name="plane">
     //        <xsd:all>
@@ -433,7 +433,7 @@ bool XmlConfiguration::processClipPlane(IXMLDOMElement * element, ClipPlaneList 
 #if defined(_DEBUG)
     {
         std::ostringstream msg;
-        msg << "    ClipPlane: ["
+        msg << "    Clipper: ["
             << clip.x << " "
             << clip.y << " "
             << clip.z << " "
@@ -443,7 +443,7 @@ bool XmlConfiguration::processClipPlane(IXMLDOMElement * element, ClipPlaneList 
     }
 #endif  // defined( _DEBUG )
 
-    // Add this ClipPlane to the list
+    // Add this Clipper to the list
 
     planes.planes_.push_back(clip);
 

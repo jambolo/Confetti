@@ -58,7 +58,7 @@ public:
     std::shared_ptr<Environment::SurfaceList> buildSurfaceList(Configuration::SurfaceList const & configuration);
 
     //! Builds a clip plane list.
-    std::shared_ptr<Environment::ClipPlaneList> buildClipPlaneList(Configuration::ClipPlaneList const & configuration);
+    std::shared_ptr<Environment::ClipperList> buildClipperList(Configuration::ClipperList const & configuration);
 
     //! Builds an emitter volume.
     std::shared_ptr<EmitterVolume> buildEmitterVolume(Configuration::EmitterVolume const & configuration);
@@ -129,7 +129,7 @@ public:
     std::shared_ptr<Environment::SurfaceList> findSurfaceList(std::string const & name);
 
     //! Returns the named clip plane list or nullptr if not found.
-    std::shared_ptr<Environment::ClipPlaneList> findClipPlaneList(std::string const & name);
+    std::shared_ptr<Environment::ClipperList> findClipperList(std::string const & name);
 
     //! Returns the named material or nullptr if not found.
     std::shared_ptr<Vkx::Material> findMaterial(std::string const & name);
@@ -144,7 +144,7 @@ private:
     using EnvironmentMap   = std::map<std::string, std::shared_ptr<Environment>>;
     using AppearanceMap    = std::map<std::string, std::shared_ptr<Appearance>>;
     using SurfaceListMap   = std::map<std::string, std::shared_ptr<Environment::SurfaceList>>;
-    using ClipPlaneListMap = std::map<std::string, std::shared_ptr<Environment::ClipPlaneList>>;
+    using ClipperListMap = std::map<std::string, std::shared_ptr<Environment::ClipperList>>;
     using TextureMap       = std::map<std::string, std::shared_ptr<Vkx::Texture>>;
     using MaterialMap      = std::map<std::string, std::shared_ptr<Vkx::Material>>;
 
@@ -153,7 +153,7 @@ private:
     EnvironmentMap environments_;       //!< Active environments
     AppearanceMap appearances_;         //!< Active appearances
     SurfaceListMap surfaceLists_;       //!< Active surface lists
-    ClipPlaneListMap clipPlaneLists_;   //!< Active clip plane lists
+    ClipperListMap clipperLists_;   //!< Active clip plane lists
     TextureMap textures_;               //!< Active textures
     MaterialMap materials_;             //!< Active materials
 

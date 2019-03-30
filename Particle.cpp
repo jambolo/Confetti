@@ -135,10 +135,10 @@ bool Particle::update(float dt)
     position += ds;
 
     // Check for collision with clip planes
-    Environment::ClipPlaneList const & clipPlanes = pE->clipPlanes();
-    if (!clipPlanes.empty())
+    Environment::ClipperList const & clippers = pE->clippers();
+    if (!clippers.empty())
     {
-        for (auto const & clip : clipPlanes)
+        for (auto const & clip : clippers)
         {
             if (glm::dot(clip, glm::vec4(position.x, position.y, position.z, 0.0f)) < 0.0f)
             {

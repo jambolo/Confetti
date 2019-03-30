@@ -34,8 +34,8 @@ private:
 
     bool processSurface(IXMLDOMElement * element, SurfaceList & list);
     bool processSurfaceList(IXMLDOMElement * element, SurfaceListMap & lists);
-    bool processClipPlane(IXMLDOMElement * element, ClipPlaneList & planes);
-    bool processClipPlaneList(IXMLDOMElement * element, ClipPlaneListMap & lists);
+    bool processClipper(IXMLDOMElement * element, ClipperList & planes);
+    bool processClipperList(IXMLDOMElement * element, ClipperListMap & lists);
     bool processEnvironment(IXMLDOMElement * element, EnvironmentMap & environments);
     bool processAppearance(IXMLDOMElement * element, AppearanceMap & appearances);
     bool processVolume(IXMLDOMElement * element, EmitterVolumeMap & volumes);

@@ -16,20 +16,20 @@ namespace Confetti
 //! @param  windVelocity    Prevalent wind velocity (default: { 0.0f, 0.0f, 0.0f })
 //! @param  gustiness       Gust acceleration value (default: 0.0f)
 //! @param  bpl             List of surfaces (default: SurfaceList())
-//! @param  cpl             List of clip planes (default: ClipPlaneList())
+//! @param  cpl             List of clip planes (default: ClipperList())
 
-Environment::Environment(glm::vec3 const &     gravity /*= { 0.0f, 0.0f, 0.0f }*/,
-                         float                 friction /*= 0.0f*/,
-                         glm::vec3 const &     windVelocity /*= { 0.0f, 0.0f, 0.0f }*/,
-                         float                 gustiness /*= 0.0f*/,
-                         SurfaceList const &   bpl /*= SurfaceList()*/,
-                         ClipPlaneList const & cpl /*= ClipPlaneList()*/)
+Environment::Environment(glm::vec3 const &   gravity /*= { 0.0f, 0.0f, 0.0f }*/,
+                         float               friction /*= 0.0f*/,
+                         glm::vec3 const &   windVelocity /*= { 0.0f, 0.0f, 0.0f }*/,
+                         float               gustiness /*= 0.0f*/,
+                         SurfaceList const & bpl /*= SurfaceList()*/,
+                         ClipperList const & cpl /*= ClipperList()*/)
     : gravity_(gravity)
     , windVelocity_(windVelocity)
     , airFriction_(friction)
     , gustiness_(gustiness)
     , surfaces_(bpl)
-    , clipPlanes_(cpl)
+    , clippers_(cpl)
     , gust_({ 0.0f, 0.0f, 0.0f })
     , currentWindVelocity_(windVelocity)
     , rng_(std::random_device()())

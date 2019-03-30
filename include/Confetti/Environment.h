@@ -45,13 +45,13 @@ public:
     };
 
     //! A plane that clips particles.
-    using ClipPlane = glm::vec4;
+    using Clipper = glm::vec4;
 
     //! A list of Surfaces.
     using SurfaceList = std::vector<Surface>;
 
-    //! A list of ClipPlanes.
-    using ClipPlaneList = std::vector<ClipPlane>;
+    //! A list of Clippers.
+    using ClipperList = std::vector<Clipper>;
 
     //! Constructor.
     explicit Environment(glm::vec3 const & gravity      = { 0.0f, 0.0f, 0.0f },
@@ -59,7 +59,7 @@ public:
                          glm::vec3 const & windVelocity = { 0.0f, 0.0f, 0.0f },
                          float gustiness               = 0.0f,
                          SurfaceList const &   bpl     = SurfaceList(),
-                         ClipPlaneList const &     cpl = ClipPlaneList());
+                         ClipperList const &     cpl = ClipperList());
 
     //! Sets gravity.
     void setGravity(glm::vec3 const & gravity) { gravity_ = gravity; }
@@ -92,10 +92,10 @@ public:
     SurfaceList const & surfaces() const { return surfaces_; }
 
     //! Sets the list of clip planes
-    void setClipPlanes(ClipPlaneList const & cpl) { clipPlanes_ = cpl; }
+    void setClippers(ClipperList const & cpl) { clippers_ = cpl; }
 
     //! Returns the list of clip planes
-    ClipPlaneList const & clipPlanes() const { return clipPlanes_; }
+    ClipperList const & clippers() const { return clippers_; }
 
     //! Updates the environment.
     void update(float dt);
@@ -116,7 +116,7 @@ private:
     float airFriction_;                     // Friction factor.
     float gustiness_;                       // Gustiness factor.
     SurfaceList surfaces_;                  // A list of planes that the particles bounce against.
-    ClipPlaneList clipPlanes_;              // A list of planes that clip the particles.
+    ClipperList clippers_;              // A list of planes that clip the particles.
     Vkx::RandomDirection gustDirection_;    // Direction generator for gusts
     glm::vec3 gust_;                        // Gust component of the current wind velocity.
     glm::vec3 currentWindVelocity_;         // Current wind velocity.

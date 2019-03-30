@@ -41,9 +41,9 @@ std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const
 
     // Build the clip plane lists used by the emitters
 
-    for (auto const & p : configuration.clipPlaneLists_)
+    for (auto const & p : configuration.clipperLists_)
     {
-        buildClipPlaneList(p.second);
+        buildClipperList(p.second);
     }
 
     // Build the emitter volumes used by the emitters
@@ -331,15 +331,15 @@ std::shared_ptr<Environment> Builder::buildEnvironment(Configuration::Environmen
     //		std::string	clip_;
     //	};
 
-    std::shared_ptr<Environment::SurfaceList>   surfaceList   = findSurfaceList(configuration.surface_);
-    std::shared_ptr<Environment::ClipPlaneList> clipPlaneList = findClipPlaneList(configuration.clip_);
+    std::shared_ptr<Environment::SurfaceList> surfaceList = findSurfaceList(configuration.surface_);
+    std::shared_ptr<Environment::ClipperList> clipperList = findClipperList(configuration.clip_);
 
     auto environment = std::make_shared<Environment>(configuration.gravity_,
                                                      configuration.airFriction_,
                                                      configuration.windVelocity_,
                                                      configuration.gustiness_,
                                                      *surfaceList,
-                                                     *clipPlaneList);
+                                                     *clipperList);
     environments_.emplace(configuration.name_, environment);
     return environment;
 }
@@ -377,22 +377,22 @@ std::shared_ptr<Environment::SurfaceList> Builder::buildSurfaceList(Configuratio
     return list;
 }
 
-std::shared_ptr<Environment::ClipPlaneList> Builder::buildClipPlaneList(Configuration::ClipPlaneList const & configuration)
+std::shared_ptr<Environment::ClipperList> Builder::buildClipperList(Configuration::ClipperList const & configuration)
 {
     // Prevent duplicate entries
 
-    if (findClipPlaneList(configuration.name_))
+    if (findClipperList(configuration.name_))
         return nullptr;
 
-    //	class Configuration::ClipPlaneList
+    //	class Configuration::ClipperList
     //	{
     //	public:
     //		std::string					name_;
-    //		std::vector< glm::vec4 >	clipPlanes_;
+    //		std::vector< glm::vec4 >	clippers_;
     //	};
 
-    auto list = std::make_shared<Environment::ClipPlaneList>(configuration.planes_);
-    clipPlaneLists_.emplace(configuration.name_, list);
+    auto list = std::make_shared<Environment::ClipperList>(configuration.planes_);
+    clipperLists_.emplace(configuration.name_, list);
 
     return list;
 }
@@ -739,13 +739,13 @@ std::shared_ptr<Environment::SurfaceList> Builder::findSurfaceList(std::string c
     return surfaceList;
 }
 
-std::shared_ptr<Environment::ClipPlaneList> Builder::findClipPlaneList(std::string const & name)
+std::shared_ptr<Environment::ClipperList> Builder::findClipperList(std::string const & name)
 {
-    ClipPlaneListMap::iterator entry = clipPlaneLists_.find(name);
-    std::shared_ptr<Environment::ClipPlaneList> clipPlaneList;
-    if (entry != clipPlaneLists_.end())
-        clipPlaneList = entry->second;
-    return clipPlaneList;
+    ClipperListMap::iterator entry = clipperLists_.find(name);
+    std::shared_ptr<Environment::ClipperList> clipperList;
+    if (entry != clipperLists_.end())
+        clipperList = entry->second;
+    return clipperList;
 }
 
 std::shared_ptr<Vkx::Material> Builder::findMaterial(std::string const & name)

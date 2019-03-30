@@ -101,7 +101,7 @@ public:
     };
 
     //! Clip plane list configuration
-    class ClipPlaneList
+    class ClipperList
     {
 public:
         std::string name_;
@@ -123,7 +123,7 @@ public:
     using EmitterVolumeMap = std::map<std::string, EmitterVolume>;       //!< A map of EmitterVolumes
     using EnvironmentMap   = std::map<std::string, Environment>;        //!< A map of Environments
     using AppearanceMap    = std::map<std::string, Appearance>;         //!< A map of Appearances
-    using ClipPlaneListMap = std::map<std::string, ClipPlaneList>;       //!< A map of ClipPlaneLists
+    using ClipperListMap = std::map<std::string, ClipperList>;       //!< A map of ClipperLists
     using SurfaceListMap   = std::map<std::string, SurfaceList>;   //!< A map of SurfaceLists
 
     //! @name  Object Configurations
@@ -132,7 +132,7 @@ public:
     EmitterVolumeMap emitterVolumes_;          //!< EmitterVolume configurations, indexed by name
     EnvironmentMap environments_;              //!< Environment configurations, indexed by name
     AppearanceMap appearances_;                //!< Appearance configurations, indexed by name
-    ClipPlaneListMap clipPlaneLists_;          //!< ClipPlaneList configurations, indexed by name
+    ClipperListMap clipperLists_;          //!< ClipperList configurations, indexed by name
     SurfaceListMap surfaceLists_;      //!< SurfaceList configurations, indexed by name
     //@}
 };

@@ -82,13 +82,13 @@ static void to_json(json & j, Configuration::Particle const & particle)
     };
 }
 
-static void from_json(json const & j, Configuration::ClipPlaneList & list)
+static void from_json(json const & j, Configuration::ClipperList & list)
 {
     j.at("name").get_to(list.name_);
     j.at("surfaces").get_to(list.planes_);
 }
 
-static void to_json(json & j, Configuration::ClipPlaneList const & list)
+static void to_json(json & j, Configuration::ClipperList const & list)
 {
     j = json{
         { "name", list.name_ },
@@ -244,7 +244,7 @@ static void from_json(json const & j, Configuration & configuration)
     j.at("emitterVolumes").get_to(configuration.emitterVolumes_);
     j.at("environments").get_to(configuration.environments_);
     j.at("appearances").get_to(configuration.appearances_);
-    j.at("clipPlaneLists").get_to(configuration.clipPlaneLists_);
+    j.at("clipperLists").get_to(configuration.clipperLists_);
     j.at("surfaceLists").get_to(configuration.surfaceLists_);
 }
 
@@ -255,7 +255,7 @@ static void to_json(json & j, Configuration const & configuration)
         { "emitterVolumes", configuration.emitterVolumes_ },
         { "environments", configuration.environments_ },
         { "appearances", configuration.appearances_ },
-        { "clipPlaneLists", configuration.clipPlaneLists_ },
+        { "clipperLists", configuration.clipperLists_ },
         { "surfaceLists", configuration.surfaceLists_ }
     };
 }
