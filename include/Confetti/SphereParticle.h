@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_SPHEREPARTICLE_H)
 #define CONFETTI_SPHEREPARTICLE_H
+
+#pragma once
 
 #include <Confetti/Particle.h>
 #include <glm/glm.hpp>
@@ -26,13 +26,12 @@ public:
     SphereParticle() = default;
 
     //! Constructor.
-    SphereParticle(BasicEmitter const * pEmitter,
-                   float                lifetime,
-                   float                age,
-                   glm::vec3 const &    position,
-                   glm::vec3 const &    velocity,
-                   glm::vec4 const &    color,
-                   float                radius);
+    SphereParticle(float             lifetime,
+                   float             age,
+                   glm::vec3 const & position,
+                   glm::vec3 const & velocity,
+                   glm::vec4 const & color,
+                   float             radius);
 
     //! Destructor.
     virtual ~SphereParticle() override = default;

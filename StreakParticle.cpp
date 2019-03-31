@@ -21,13 +21,12 @@ namespace Confetti
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth.
 
-StreakParticle::StreakParticle(BasicEmitter const * pEmitter,
-                               float                lifetime,
-                               float                age,
-                               glm::vec3 const &    position,
-                               glm::vec3 const &    velocity,
-                               glm::vec4 const &    color)
-    : Particle(pEmitter, lifetime, age, position, velocity, color)
+StreakParticle::StreakParticle(float             lifetime,
+                               float             age,
+                               glm::vec3 const & position,
+                               glm::vec3 const & velocity,
+                               glm::vec4 const & color)
+    : Particle(lifetime, age, position, velocity, color)
 {
 }
 

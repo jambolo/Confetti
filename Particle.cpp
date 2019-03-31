@@ -9,19 +9,17 @@
 
 namespace Confetti
 {
-//! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
 //! @param	age				Initial age.
 //! @param	position		Position at birth.
 //! @param	velocity		Velocity at birth.
 
-Particle::Particle(BasicEmitter const * emitter,
-                   float                lifetime,
-                   float                age,
-                   glm::vec3 const &    position,
-                   glm::vec3 const &    velocity,
-                   glm::vec4 const &    color)
-    : emitter_(emitter)
+Particle::Particle(float             lifetime,
+                   float             age,
+                   glm::vec3 const & position,
+                   glm::vec3 const & velocity,
+                   glm::vec4 const & color)
+    : emitter_(nullptr)
     , lifetime_(lifetime)
     , age_(age)
     , initialPosition_(position)

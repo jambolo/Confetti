@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_APPEARANCE_H)
 #define CONFETTI_APPEARANCE_H
+
+#pragma once
 
 #include <glm/glm.hpp>
 #include <memory>

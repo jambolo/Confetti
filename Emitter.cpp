@@ -8,6 +8,7 @@
 
 #include <Vkx/Camera.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 
@@ -303,7 +304,7 @@ void PointEmitter::initialize()
 
 //     hr = pD3dDevice_->CreateVertexDeclaration(PointParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
 //     assert_succeeded(hr);
-#endif
+#endif // if 0
 }
 
 void PointEmitter::uninitialize()
@@ -474,7 +475,7 @@ void PointEmitter::draw() const
             pEffect_->End();
         }
     }
-#endif
+#endif // if 0
 }
 
 /********************************************************************************************************************/
@@ -584,7 +585,7 @@ void StreakEmitter::initialize()
 
     hr = pD3dDevice_->CreateVertexDeclaration(StreakParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
-#endif
+#endif // if 0
 }
 
 void StreakEmitter::uninitialize()
@@ -712,7 +713,7 @@ void StreakEmitter::draw() const
             pEffect_->End();
         }
     }
-#endif
+#endif // if 0
 }
 
 /********************************************************************************************************************/
@@ -823,7 +824,7 @@ void TexturedEmitter::initialize()
 
     hr = pD3dDevice_->CreateVertexDeclaration(TexturedParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
-#endif
+#endif // if 0
 }
 
 void TexturedEmitter::uninitialize()
@@ -854,7 +855,7 @@ void TexturedEmitter::draw() const
 {
 #if 0
     std::shared_ptr<Appearance>   appearance = appearance();
-    std::shared_ptr<Vkx::Texture> pTexture          = appearance->texture();
+    std::shared_ptr<Vkx::Texture> pTexture   = appearance->texture();
     int nParticles = particles_.size();                         // Number of particles contained in this emitter
 
     // Test the Z-buffer, and write to it if the particles are sorted or don't write to it if they aren't. Particles
@@ -1055,7 +1056,7 @@ void TexturedEmitter::draw() const
             pEffect_->End();
         }
     }
-#endif
+#endif // if 0
 }
 
 //! @param volume Emitter volume.

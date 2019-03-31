@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_CONFETTI_H)
 #define CONFETTI_CONFETTI_H
+
+#pragma once
 
 #include <Confetti/Appearance.h>
 #include <Confetti/Builder.h>

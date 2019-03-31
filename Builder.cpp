@@ -421,38 +421,38 @@ std::shared_ptr<EmitterVolume> Builder::buildEmitterVolume(Configuration::Emitte
 
     if (configuration.type_ == "point")
     {
-        pVolume = std::make_shared<Confetti::EmitterPoint>(rng_);
+        pVolume = std::make_shared<Confetti::EmitterPoint>();
     }
     else if (configuration.type_ == "line")
     {
-        pVolume = std::make_shared<Confetti::EmitterLine>(rng_, configuration.length_);
+        pVolume = std::make_shared<Confetti::EmitterLine>(configuration.length_);
     }
     else if (configuration.type_ == "rectangle")
     {
-        pVolume = std::make_shared<Confetti::EmitterRectangle>(rng_, configuration.width_, configuration.height_);
+        pVolume = std::make_shared<Confetti::EmitterRectangle>(configuration.width_, configuration.height_);
     }
     else if (configuration.type_ == "circle")
     {
-        pVolume = std::make_shared<Confetti::EmitterCircle>(rng_, configuration.radius_);
+        pVolume = std::make_shared<Confetti::EmitterCircle>(configuration.radius_);
     }
     else if (configuration.type_ == "sphere")
     {
-        pVolume = std::make_shared<Confetti::EmitterSphere>(rng_, configuration.radius_);
+        pVolume = std::make_shared<Confetti::EmitterSphere>(configuration.radius_);
     }
     else if (configuration.type_ == "box")
     {
         pVolume =
-            std::make_shared<Confetti::EmitterBox>(rng_, glm::vec3(configuration.width_,
-                                                                   configuration.height_,
-                                                                   configuration.depth_));
+            std::make_shared<Confetti::EmitterBox>(glm::vec3(configuration.width_,
+                                                             configuration.height_,
+                                                             configuration.depth_));
     }
     else if (configuration.type_ == "cylinder")
     {
-        pVolume = std::make_shared<Confetti::EmitterCylinder>(rng_, configuration.radius_, configuration.height_);
+        pVolume = std::make_shared<Confetti::EmitterCylinder>(configuration.radius_, configuration.height_);
     }
     else if (configuration.type_ == "cone")
     {
-        pVolume = std::make_shared<Confetti::EmitterCone>(rng_, configuration.radius_, configuration.height_);
+        pVolume = std::make_shared<Confetti::EmitterCone>(configuration.radius_, configuration.height_);
     }
 
     if (pVolume)

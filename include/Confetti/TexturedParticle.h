@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_TEXTUREDPARTICLE_H)
 #define CONFETTI_TEXTUREDPARTICLE_H
+
+#pragma once
 
 #include <Confetti/Particle.h>
 #include <glm/glm.hpp>
@@ -26,14 +26,13 @@ public:
     TexturedParticle() = default;
 
     //! Constructor.
-    TexturedParticle(BasicEmitter const * pEmitter,
-                     float                lifetime,
-                     float                age,
-                     glm::vec3 const &    position,
-                     glm::vec3 const &    velocity,
-                     glm::vec4 const &    color,
-                     float                radius,
-                     float                rotation);
+    TexturedParticle(float             lifetime,
+                     float             age,
+                     glm::vec3 const & position,
+                     glm::vec3 const & velocity,
+                     glm::vec4 const & color,
+                     float             radius,
+                     float             rotation);
 
     //! Destructor.
     virtual ~TexturedParticle() override = default;

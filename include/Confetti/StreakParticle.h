@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_STREAKPARTICLE_H)
 #define CONFETTI_STREAKPARTICLE_H
+
+#pragma once
 
 #include <Confetti/Particle.h>
 #include <glm/glm.hpp>
@@ -13,8 +13,6 @@ namespace Vkx
 
 namespace Confetti
 {
-class BasicEmitter;
-
 //! A line-shaped Particle whose length and direction depend on its velocity.
 //!
 //! @ingroup	Particles
@@ -28,12 +26,11 @@ public:
     StreakParticle() = default;
 
     //! Constructor.
-    StreakParticle(BasicEmitter const * pEmitter,
-                   float                lifetime,
-                   float                age,
-                   glm::vec3 const &    position,
-                   glm::vec3 const &    velocity,
-                   glm::vec4 const &    color);
+    StreakParticle(float             lifetime,
+                   float             age,
+                   glm::vec3 const & position,
+                   glm::vec3 const & velocity,
+                   glm::vec4 const & color);
 
     //! Destructor.
     virtual ~StreakParticle() override = default;

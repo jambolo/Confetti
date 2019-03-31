@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_ENVIRONMENT_H)
 #define CONFETTI_ENVIRONMENT_H
+
+#pragma once
 
 #include <glm/glm.hpp>
 #include <random>
@@ -33,14 +33,14 @@ public:
     //! A plane that the particles bounce against.
     struct Surface
     {
-        glm::vec4 plane;   //!< The plane
-        float dampening;   //!< The ratio of the post-bounce velocity to the pre-bounce velocity.
+        glm::vec4 plane = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);   //!< The plane
+        float dampening = 1.0f;                                //!< Ratio of post-bounce velocity to pre-bounce velocity.
 
-        //! Constructor.
-        Surface()
-            : plane(1.0f, 0.0f, 0.0f, 1.0f)
-            , dampening(1.0f)
+        Surface(glm::vec4 const & p, float d)
+            : plane(p)
+            , dampening(d)
         {
+            /* no idea why I need this */
         }
     };
 
@@ -54,12 +54,12 @@ public:
     using ClipperList = std::vector<Clipper>;
 
     //! Constructor.
-    explicit Environment(glm::vec3 const & gravity      = { 0.0f, 0.0f, 0.0f },
-                         float airFriction              = 0.0f,
-                         glm::vec3 const & windVelocity = { 0.0f, 0.0f, 0.0f },
-                         float gustiness               = 0.0f,
-                         SurfaceList const &   bpl     = SurfaceList(),
-                         ClipperList const &     cpl = ClipperList());
+    explicit Environment(glm::vec3 const &   gravity      = { 0.0f, 0.0f, 0.0f },
+                         float               airFriction  = 0.0f,
+                         glm::vec3 const &   windVelocity = { 0.0f, 0.0f, 0.0f },
+                         float               gustiness    = 0.0f,
+                         SurfaceList const & bpl          = SurfaceList(),
+                         ClipperList const & cpl          = ClipperList());
 
     //! Sets gravity.
     void setGravity(glm::vec3 const & gravity) { gravity_ = gravity; }
@@ -116,7 +116,7 @@ private:
     float airFriction_;                     // Friction factor.
     float gustiness_;                       // Gustiness factor.
     SurfaceList surfaces_;                  // A list of planes that the particles bounce against.
-    ClipperList clippers_;              // A list of planes that clip the particles.
+    ClipperList clippers_;                  // A list of planes that clip the particles.
     Vkx::RandomDirection gustDirection_;    // Direction generator for gusts
     glm::vec3 gust_;                        // Gust component of the current wind velocity.
     glm::vec3 currentWindVelocity_;         // Current wind velocity.

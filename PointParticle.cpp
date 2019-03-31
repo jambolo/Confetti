@@ -16,20 +16,18 @@ namespace Confetti
 //     D3DDECL_END()
 // };
 
-//! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
 //! @param	age				Initial age.
 //! @param	position		Position at birth.
 //! @param	velocity		Velocity at birth.
 //! @param	color			Color at birth.
 
-PointParticle::PointParticle(BasicEmitter const * pEmitter,
-                             float                lifetime,
-                             float                age,
-                             glm::vec3 const &    position,
-                             glm::vec3 const &    velocity,
-                             glm::vec4 const &    color)
-    : Particle(pEmitter, lifetime, age, position, velocity, color)
+PointParticle::PointParticle(float             lifetime,
+                             float             age,
+                             glm::vec3 const & position,
+                             glm::vec3 const & velocity,
+                             glm::vec4 const & color)
+    : Particle(lifetime, age, position, velocity, color)
 {
 }
 

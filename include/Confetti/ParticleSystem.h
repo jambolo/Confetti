@@ -1,8 +1,9 @@
-#pragma once
-
 #if !defined(CONFETTI_PARTICLESYSTEM_H)
 #define CONFETTI_PARTICLESYSTEM_H
 
+#pragma once
+
+#include <memory>
 #include <vector>
 
 namespace Vkx { class Device; }

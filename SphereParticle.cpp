@@ -8,7 +8,6 @@
 
 namespace Confetti
 {
-//! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
 //! @param	age				Initial age.
 //! @param	color			Color at birth.
@@ -16,14 +15,13 @@ namespace Confetti
 //! @param	velocity		Velocity at birth.
 //! @param	radius			Radius at birth.
 
-SphereParticle::SphereParticle(BasicEmitter const * pEmitter,
-                               float                lifetime,
-                               float                age,
-                               glm::vec3 const &    position,
-                               glm::vec3 const &    velocity,
-                               glm::vec4 const &    color,
-                               float                radius)
-    : Particle(pEmitter, lifetime, age, position, velocity, color)
+SphereParticle::SphereParticle(float             lifetime,
+                               float             age,
+                               glm::vec3 const & position,
+                               glm::vec3 const & velocity,
+                               glm::vec4 const & color,
+                               float             radius)
+    : Particle(lifetime, age, position, velocity, color)
     , initialRadius_(radius)
 {
 }

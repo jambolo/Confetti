@@ -1,10 +1,11 @@
 #include "EmitterVolume.h"
 
 #include <glm/glm.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/gtc/constants.hpp>
+
 #include <random>
-#include<glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
 
 namespace Confetti
 {
@@ -113,9 +114,8 @@ glm::vec3 EmitterBox::operator ()(std::minstd_rand & rng) const
 //! @param	height	Height of the cylinder.
 
 EmitterCylinder::EmitterCylinder(float radius, float height)
-    : radius_(radius)
-    , randomAngle_(0.0f, glm::two_pi<float>())
-    , randomR_(0.0f, radius_ * radius_)
+    : randomAngle_(0.0f, glm::two_pi<float>())
+    , randomR_(0.0f, radius * radius)
     , randomZ_(-0.5f * height, 0.5f * height)
 
 {

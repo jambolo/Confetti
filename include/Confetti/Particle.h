@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_PARTICLE_H)
 #define CONFETTI_PARTICLE_H
+
+#pragma once
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -32,12 +32,11 @@ public:
     Particle() = default;
 
     //! Constructor.
-    Particle(BasicEmitter const * emitter,
-             float                lifetime,
-             float                age,
-             glm::vec3 const &    position,
-             glm::vec3 const &    velocity,
-             glm::vec4 const &    color);
+    Particle(float             lifetime,
+             float             age,
+             glm::vec3 const & position,
+             glm::vec3 const & velocity,
+             glm::vec4 const & color);
 
     //! Destructor.
     virtual ~Particle() = default;

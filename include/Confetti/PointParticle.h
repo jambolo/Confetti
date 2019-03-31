@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_POINTPARTICLE_H)
 #define CONFETTI_POINTPARTICLE_H
+
+#pragma once
 
 #include <Confetti/Particle.h>
 
@@ -28,12 +28,11 @@ public:
     PointParticle() = default;
 
     //! Constructor.
-    PointParticle(BasicEmitter const * pEmitter,
-                  float                lifetime,
-                  float                age,
-                  glm::vec3 const &    position,
-                  glm::vec3 const &    velocity,
-                  glm::vec4 const &    color);
+    PointParticle(float             lifetime,
+                  float             age,
+                  glm::vec3 const & position,
+                  glm::vec3 const & velocity,
+                  glm::vec4 const & color);
 
     //! Destructor.
     virtual ~PointParticle() override = default;

@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_EMITTER_H)
 #define CONFETTI_EMITTER_H
+
+#pragma once
 
 #include <Confetti/PointParticle.h>
 #include <Confetti/SphereParticle.h>
@@ -9,7 +9,6 @@
 #include <Confetti/TexturedParticle.h>
 #include <glm/glm.hpp>
 #include <memory>
-#include <Misc/Assertx.h>
 #include <vector>
 
 namespace Vkx

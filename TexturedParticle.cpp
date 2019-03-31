@@ -20,7 +20,6 @@ namespace Confetti
 //     D3DDECL_END()
 // };
 
-//! @param	pEmitter		The emitter that controls this particle
 //! @param	lifetime		How long the particle lives.
 //! @param	age				Initial age.
 //! @param	position		Position at birth.
@@ -29,15 +28,14 @@ namespace Confetti
 //! @param	radius			Radius at birth.
 //! @param	rotation		Rotation at birth.
 
-TexturedParticle::TexturedParticle(BasicEmitter const * pEmitter,
-                                   float                lifetime,
-                                   float                age,
-                                   glm::vec3 const &    position,
-                                   glm::vec3 const &    velocity,
-                                   glm::vec4 const &    color,
-                                   float                radius,
-                                   float                rotation /* = 0.0f*/)
-    : Particle(pEmitter, lifetime, age, position, velocity, color)
+TexturedParticle::TexturedParticle(float             lifetime,
+                                   float             age,
+                                   glm::vec3 const & position,
+                                   glm::vec3 const & velocity,
+                                   glm::vec4 const & color,
+                                   float             radius,
+                                   float             rotation /* = 0.0f*/)
+    : Particle(lifetime, age, position, velocity, color)
     , initialRadius_(radius)
     , radius_(radius)
     , initialRotation_(rotation)

@@ -1,7 +1,7 @@
-#pragma once
-
 #if !defined(CONFETTI_EMITTERVOLUME_H)
 #define CONFETTI_EMITTERVOLUME_H
+
+#pragma once
 
 #include <glm/glm.hpp>
 #include <random>

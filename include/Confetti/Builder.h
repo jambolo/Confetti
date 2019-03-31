@@ -1,13 +1,12 @@
-#pragma once
-
 #if !defined(CONFETTI_BUILDER_H)
 #define CONFETTI_BUILDER_H
+
+#pragma once
 
 #include <Confetti/Configuration.h>
 #include <Confetti/Environment.h>
 #include <memory>
 #include <random>
-// #include <Vkx/Random.h>
 
 namespace Vkx
 {
@@ -144,12 +143,12 @@ private:
     using EnvironmentMap   = std::map<std::string, std::shared_ptr<Environment>>;
     using AppearanceMap    = std::map<std::string, std::shared_ptr<Appearance>>;
     using SurfaceListMap   = std::map<std::string, std::shared_ptr<Environment::SurfaceList>>;
-    using ClipperListMap = std::map<std::string, std::shared_ptr<Environment::ClipperList>>;
+    using ClipperListMap   = std::map<std::string, std::shared_ptr<Environment::ClipperList>>;
     using TextureMap       = std::map<std::string, std::shared_ptr<Vkx::Texture>>;
     using MaterialMap      = std::map<std::string, std::shared_ptr<Vkx::Material>>;
 
     EmitterMap emitters_;               //!< Active emitters
-    EmitterVolumeMap emitterVolumes_;	//!< Active emitter volumes
+    EmitterVolumeMap emitterVolumes_;   //!< Active emitter volumes
     EnvironmentMap environments_;       //!< Active environments
     AppearanceMap appearances_;         //!< Active appearances
     SurfaceListMap surfaceLists_;       //!< Active surface lists
