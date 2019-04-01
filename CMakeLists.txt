@@ -21,6 +21,7 @@ endif()
 
 find_package(nlohmann_json REQUIRED)
 find_package(Misc REQUIRED)
+find_package(Msxmlx REQUIRED)
 
 set(PUBLIC_INCLUDE_PATHS
     include
@@ -68,7 +69,7 @@ target_link_libraries(${PROJECT_NAME}
     nlohmann_json::nlohmann_json
 )
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} Dxx Wx Msxmlx MyMath)
+    target_link_libraries(${PROJECT_NAME} Dxx Wx Msxmlx::Msxlmx MyMath)
 endif()
 
 target_compile_definitions(${PROJECT_NAME}

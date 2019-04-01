@@ -7,6 +7,3 @@
 [submodule "MyMath"]
 	path = MyMath
 	url = https://github.com/jambolo/MyMath.git
-[submodule "Msxmlx"]
-	path = Msxmlx
-	url = https://github.com/jambolo/Msxmlx.git
