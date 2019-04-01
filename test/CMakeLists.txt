@@ -14,17 +14,7 @@ add_definitions(
 )
 
 set(SOURCES
-    test-AfxAssert.cpp
-    test-Assertx.cpp
-    test-CommandLineList.cpp
-    test-Deferred.cpp
-    test-Etc.cpp
-    test-Exceptions.cpp
-    test-FrameAllocator.cpp
-    test-PathName.cpp
-    test-Pool.cpp
-    test-Singleton.cpp
-    test-Trace.cpp
+    test-Placeholder.cpp
 )
 
 foreach(FILE ${SOURCES})
