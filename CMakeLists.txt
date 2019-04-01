@@ -1,8 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
-project(Confetti CXX)
+project(Confetti VERSION 0.1.0 LANGUAGES CXX)
 
-#set(${PROJECT_NAME}_VERSION_MAJOR 0)
-#set(${PROJECT_NAME}_VERSION_MINOR 1)
 #configure_file("${PROJECT_SOURCE_DIR}/Version.h.in" "${PROJECT_BINARY_DIR}/Version.h")
 
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
@@ -24,6 +22,7 @@ endif()
 find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(Misc REQUIRED)
 
 set(PUBLIC_INCLUDE_PATHS
     include
@@ -72,11 +71,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVAT
 target_link_libraries(${PROJECT_NAME}
     Vkx
     Vulkan::Vulkan
-    Misc
+    Misc::Misc
     nlohmann_json::nlohmann_json
     glm
 )
-
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} Wx Msxmlx)
 endif()
@@ -93,7 +91,6 @@ target_compile_definitions(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
-add_subdirectory(Misc)
 add_subdirectory(Vkx)
 if(WIN32)
     add_subdirectory(Wx)
