@@ -2,8 +2,8 @@ cmake_minimum_required (VERSION 3.10)
 project(Confetti CXX)
 
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
-set(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY "" CACHE PATH "Doxygen output directory (empty to disable)")
 
+set(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY "" CACHE PATH "Doxygen output directory (empty to disable)")
 if(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY)
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
@@ -58,7 +58,7 @@ set(SOURCES
     StreakParticle.cpp
     TexturedParticle.cpp
 )
-source_group(Sources FILE ${SOURCES})
+source_group(Sources FILES ${SOURCES})
 
 add_library(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
