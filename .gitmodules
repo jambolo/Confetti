@@ -10,9 +10,6 @@
 [submodule "MyMath"]
 	path = MyMath
 	url = https://github.com/jambolo/MyMath.git
-[submodule "json"]
-	path = json
-	url = https://github.com/nlohmann/json.git
 [submodule "Msxmlx"]
 	path = Msxmlx
 	url = https://github.com/jambolo/Msxmlx.git
