@@ -23,6 +23,7 @@ find_package(glm REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Misc REQUIRED)
+find_package(Msxmlx REQUIRED)
 
 set(PUBLIC_INCLUDE_PATHS
     include
@@ -76,7 +77,7 @@ target_link_libraries(${PROJECT_NAME}
     glm
 )
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} Wx Msxmlx)
+    target_link_libraries(${PROJECT_NAME} Wx Msxmlx::Msxmlx)
 endif()
 
 target_compile_definitions(${PROJECT_NAME}
@@ -94,7 +95,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 add_subdirectory(Vkx)
 if(WIN32)
     add_subdirectory(Wx)
-    add_subdirectory(Msxmlx)
 endif()
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
