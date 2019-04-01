@@ -1,35 +1,27 @@
 cmake_minimum_required (VERSION 3.10)
 project(Confetti VERSION 0.1.0 LANGUAGES CXX)
 
-#configure_file("${PROJECT_SOURCE_DIR}/Version.h.in" "${PROJECT_BINARY_DIR}/Version.h")
-
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 
-set(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY "" CACHE PATH "Doxygen output directory (empty to disable)")
-if(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY)
-    find_package(Doxygen)
-    if(DOXYGEN_FOUND)
-        set(DOXYGEN_OUTPUT_DIRECTORY ${${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY})
-        configure_file(Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile)
-        add_custom_target(doxygen ALL ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-            COMMENT "Generating API documentation with Doxygen" VERBATIM
-            SOURCES ${PROJECT_BINARY_DIR}/Doxyfile
-        )
-    endif(DOXYGEN_FOUND)
-endif()
+#########################################################################
+# Build                                                                 #
+#########################################################################
 
 find_package(nlohmann_json REQUIRED)
 find_package(Misc REQUIRED)
-find_package(Msxmlx REQUIRED)
+if(WIN32)
+    find_package(Msxmlx REQUIRED)
+    find_package(Wx REQUIRED)
+endif()
 
 set(PUBLIC_INCLUDE_PATHS
-    include
+    $<INSTALL_INTERFACE:include>    
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 set(PRIVATE_INCLUDE_PATHS
     .
-    include/Confetti
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/Confetti
 )
 
 set(SOURCES
@@ -69,7 +61,12 @@ target_link_libraries(${PROJECT_NAME}
     nlohmann_json::nlohmann_json
 )
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} Dxx Wx Msxmlx::Msxlmx MyMath)
+    target_link_libraries(${PROJECT_NAME}
+        Dxx
+        Wx::Wx
+        Msxmlx::Msxlmx
+        MyMath
+    )
 endif()
 
 target_compile_definitions(${PROJECT_NAME}
@@ -86,10 +83,32 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
 if(WIN32)
     add_subdirectory(Dxx)
-    add_subdirectory(Msxmlx)
     add_subdirectory(MyMath)
-    add_subdirectory(Wx)
 endif()
+
+#configure_file("${PROJECT_SOURCE_DIR}/Version.h.in" "${PROJECT_BINARY_DIR}/Version.h")
+
+#########################################################################
+# Documentation                                                         #
+#########################################################################
+
+set(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY "" CACHE PATH "Doxygen output directory (empty to disable)")
+if(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY)
+    find_package(Doxygen)
+    if(DOXYGEN_FOUND)
+        set(DOXYGEN_OUTPUT_DIRECTORY ${${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY})
+        configure_file(Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile)
+        add_custom_target(doxygen ALL ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM
+            SOURCES ${PROJECT_BINARY_DIR}/Doxyfile
+        )
+    endif(DOXYGEN_FOUND)
+endif()
+
+#########################################################################
+# Testing                                                               #
+#########################################################################
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)

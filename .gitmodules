@@ -1,6 +1,3 @@
-[submodule "Wx"]
-	path = Wx
-	url = https://github.com/jambolo/Wx.git
 [submodule "Dxx"]
 	path = Dxx
 	url = https://github.com/jambolo/Dxx.git
