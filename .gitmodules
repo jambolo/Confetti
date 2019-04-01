@@ -10,9 +10,6 @@
 [submodule "MyMath"]
 	path = MyMath
 	url = https://github.com/jambolo/MyMath.git
-[submodule "test/googletest"]
-	path = test/googletest
-	url = https://github.com/google/googletest.git
 [submodule "json"]
 	path = json
 	url = https://github.com/nlohmann/json.git
