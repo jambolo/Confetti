@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.10)
-project(Confetti CXX)
+project(Confetti VERSION 0.1.0 LANGUAGES CXX)
+
+#configure_file("${PROJECT_SOURCE_DIR}/Version.h.in" "${PROJECT_BINARY_DIR}/Version.h")
 
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 
@@ -11,15 +13,14 @@ if(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY)
         configure_file(Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile)
         add_custom_target(doxygen ALL ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Generating API documentation with Doxygen" VERBATIM
+            COMMENT "Generating API documentation with Doxygen" VERBATIM
             SOURCES ${PROJECT_BINARY_DIR}/Doxyfile
-    )
+        )
     endif(DOXYGEN_FOUND)
 endif()
 
-#set(${PROJECT_NAME}_VERSION_MAJOR 0)
-#set(${PROJECT_NAME}_VERSION_MINOR 1)
-#configure_file("${PROJECT_SOURCE_DIR}/Version.h.in" "${PROJECT_BINARY_DIR}/Version.h")
+find_package(nlohmann_json REQUIRED)
+find_package(Misc REQUIRED)
 
 set(PUBLIC_INCLUDE_PATHS
     include
@@ -63,13 +64,13 @@ source_group(Sources FILES ${SOURCES})
 add_library(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
 target_link_libraries(${PROJECT_NAME}
-    Dxx
-    Misc
-    Msxmlx
-    MyMath
+    Misc::Misc
     nlohmann_json::nlohmann_json
-    Wx
 )
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} Dxx Wx Msxmlx MyMath)
+endif()
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         -DNOMINMAX
@@ -82,12 +83,12 @@ target_compile_definitions(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
 
-add_subdirectory(Dxx)
-add_subdirectory(json)
-add_subdirectory(Msxmlx)
-add_subdirectory(MyMath)
-add_subdirectory(Misc)
-add_subdirectory(Wx)
+if(WIN32)
+    add_subdirectory(Dxx)
+    add_subdirectory(Msxmlx)
+    add_subdirectory(MyMath)
+    add_subdirectory(Wx)
+endif()
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
