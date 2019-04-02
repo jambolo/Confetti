@@ -7,13 +7,16 @@ option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 # Build                                                                 #
 #########################################################################
 
-find_package(glm REQUIRED)
-find_package(Vulkan REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(Misc REQUIRED)
-if(WIN32)
-    find_package(Msxmlx REQUIRED)
-    find_package(Wx REQUIRED)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    find_package(glm REQUIRED)
+    find_package(Vulkan REQUIRED)
+    find_package(nlohmann_json REQUIRED)
+    find_package(Misc REQUIRED)
+    find_package(Vkx REQUIRED)
+    if(WIN32)
+        find_package(Msxmlx REQUIRED)
+        find_package(Wx REQUIRED)
+    endif()
 endif()
 
 set(PUBLIC_INCLUDE_PATHS
@@ -60,21 +63,21 @@ set(SOURCES
 source_group(Sources FILES ${SOURCES})
 
 add_library(${PROJECT_NAME} ${SOURCES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
-target_link_libraries(${PROJECT_NAME}
-    Vkx
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    Vkx::Vkx
     Vulkan::Vulkan
     Misc::Misc
     nlohmann_json::nlohmann_json
     glm
 )
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME}
-        Wx::Wx
-        Msxmlx::Msxmlx
-    )
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    Msxmlx::Msxmlx
+    Wx::Wx
+)
 endif()
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         -DNOMINMAX
@@ -86,8 +89,6 @@ target_compile_definitions(${PROJECT_NAME}
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
-
-add_subdirectory(Vkx)
 
 #configure_file("${PROJECT_SOURCE_DIR}/Version.h.in" "${PROJECT_BINARY_DIR}/Version.h")
 
@@ -109,15 +110,61 @@ if(${PROJECT_NAME}_DOXYGEN_OUTPUT_DIRECTORY)
     endif(DOXYGEN_FOUND)
 endif()
 
-
 #########################################################################
 # Testing                                                               #
 #########################################################################
 
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
     message(STATUS "Testing is enabled. Turn on BUILD_TESTING to build tests.")
     if(BUILD_TESTING)
         add_subdirectory(test)
     endif()
 endif()
+
+#########################################################################
+# Installation                                                          #
+#########################################################################
+
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+include(GNUInstallDirs)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(EXPORT ${PROJECT_NAME}-targets
+    FILE ${PROJECT_NAME}Targets.cmake
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+# Create a ConfigVersion.cmake file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+# Install the config, configversion and custom find modules
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+# Exporting from the build tree
+export(EXPORT ${PROJECT_NAME}-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake NAMESPACE ${PROJECT_NAME}::)
+
+# Register package in user's package registry
+export(PACKAGE ${PROJECT_NAME})

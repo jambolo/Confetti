@@ -4,6 +4,3 @@
 [submodule "MyMath"]
 	path = MyMath
 	url = https://github.com/jambolo/MyMath.git
-[submodule "Vkx"]
-	path = Vkx
-	url = https://github.com/jambolo/Vkx.git
