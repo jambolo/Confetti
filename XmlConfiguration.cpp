@@ -369,7 +369,7 @@ bool XmlConfiguration::processSurface(IXMLDOMElement * element, SurfaceList & li
 
     // Add this Surface to the list
 
-    list.planes_.push_back(surface);
+    list.surfaces_.push_back(surface);
 
     return true;
 }

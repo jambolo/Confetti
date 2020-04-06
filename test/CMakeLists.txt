@@ -14,6 +14,8 @@ add_definitions(
 )
 
 set(SOURCES
+    test-Configuration.cpp
+    test-JsonConfiguration.cpp
     test-Placeholder.cpp
 )
 
@@ -25,4 +27,14 @@ foreach(FILE ${SOURCES})
     gtest_discover_tests(${TEST_EXE})
     target_compile_features(${TEST_EXE} PRIVATE cxx_std_17)
     set_target_properties(${TEST_EXE} PROPERTIES CXX_EXTENSIONS OFF)
+endforeach()
+
+# Copy test input files to test build folder
+
+set(INPUT
+    test-JsonConfiguration.json
+)
+
+foreach(FILE ${INPUT})
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()

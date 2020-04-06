@@ -16,7 +16,7 @@ public:
     explicit JsonConfiguration(char const * path);
 
     //! Constructor.
-    explicit JsonConfiguration(nlohmann::json j);
+    explicit JsonConfiguration(nlohmann::json const & j);
 
     //! Constructor.
     JsonConfiguration(Configuration const & c) : Configuration(c) {}

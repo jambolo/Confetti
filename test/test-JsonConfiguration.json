@@ -1,0 +1,78 @@
+{
+    "emitters" : [
+        {
+            "name" : "emitter",
+            "type" : "point",
+            "volume" : "point",
+            "environment" : "environment",
+            "appearance" : "appearance",
+            "minSpeed" : 1,
+            "maxSpeed" : 2,
+            "count" : 3,
+            "lifetime" : 4,
+            "spread" : 0.5,
+            "color" : [ 0.6, 0.7, 0.8, 0.9 ],
+            "radius" : 10,
+            "sorted" : true,
+            "position" : [ 0.11, 0.12, 0.13 ],
+            "orientation" : [ 0, 0, 0, 1 ],
+            "velocity" : [ 0.14, 0.15, 0.16 ],
+            "particles" : [
+                {
+                    "lifetime" : 1,
+                    "age" : 2,
+                    "position" : [3, 4, 5],
+                    "velocity" : [6, 7, 8],
+                    "color" : [0.9, 0.10, 0.11, 0.12],
+                    "radius" : 0.13,
+                    "rotation" : 0.14,
+                    "orientation" : [0, 0, 0, 1]
+                }
+            ]
+        }
+    ],
+    "emitterVolumes" : [
+        {
+            "name" : "emitterVolume",
+            "type" : "point",
+            "length" : 1,
+            "width" : 2,
+            "height" : 3,
+            "depth" : 4,
+            "radius" : 5
+        }
+    ],
+    "environments" : [
+        {
+            "name" : "environment",
+            "gravity" : [ 1, 2, 3 ],
+            "windVelocity" : [ 5, 6, 7 ],
+            "gustiness" : 8,
+            "airFriction" : 9,
+            "surface" : "surface",
+            "clip" : "clip"
+        }
+    ],
+    "appearances" : [
+        {
+            "name" : "appearance",
+            "colorChange" : [ 0.1, 0.2, 0.3, 0.4 ],
+            "radiusChange" : 0.5,
+            "radialVelocity" : 0.6,
+            "texture" : "texture",
+            "size" : 0.7
+        }
+    ],
+    "clipperLists" : [
+        {
+            "name" : "clipperList",
+            "planes" : [ [ 0.1, 0.2, 0.3, 0.4 ] ]
+        }
+    ],
+    "surfaceLists" : [
+        {
+            "name" : "surfaceList",
+            "surfaces" : [{ "plane": [0.1, 0.2, 0.3, 0.4 ], "dampening" : 0.5 }]
+        }
+    ]
+}

@@ -54,18 +54,23 @@ struct adl_serializer<glm::quat>
 };
 } // namespace nlohmann
 
+namespace
+{
+uint64_t    nextDefaultId = 1;
+}
+
 namespace Confetti
 {
 static void from_json(json const & j, Configuration::Particle & particle)
 {
-    j.at("lifetime").get_to(particle.lifetime_);
-    j.at("age").get_to(particle.age_);
-    j.at("position").get_to(particle.position_);
-    j.at("velocity").get_to(particle.velocity_);
-    j.at("color").get_to(particle.color_);
-    j.at("radius").get_to(particle.radius_);
-    j.at("rotation").get_to(particle.rotation_);
-    j.at("orientation").get_to(particle.orientation_);
+    if (j.contains("lifetime")) j.at("lifetime").get_to(particle.lifetime_);
+    if (j.contains("age")) j.at("age").get_to(particle.age_);
+    if (j.contains("position")) j.at("position").get_to(particle.position_);
+    if (j.contains("velocity")) j.at("velocity").get_to(particle.velocity_);
+    if (j.contains("color")) j.at("color").get_to(particle.color_);
+    if (j.contains("radius")) j.at("radius").get_to(particle.radius_);
+    if (j.contains("rotation")) j.at("rotation").get_to(particle.rotation_);
+    if (j.contains("orientation")) j.at("orientation").get_to(particle.orientation_);
 }
 
 static void to_json(json & j, Configuration::Particle const & particle)
@@ -84,22 +89,26 @@ static void to_json(json & j, Configuration::Particle const & particle)
 
 static void from_json(json const & j, Configuration::ClipperList & list)
 {
-    j.at("name").get_to(list.name_);
-    j.at("surfaces").get_to(list.planes_);
+    if (j.contains("name"))
+        j.at("name").get_to(list.name_);
+    else
+        list.name_ = "_" + std::to_string(nextDefaultId++);
+
+    if (j.contains("surfaces")) j.at("surfaces").get_to(list.planes_);
 }
 
 static void to_json(json & j, Configuration::ClipperList const & list)
 {
     j = json{
         { "name", list.name_ },
-        { "surfaces", list.planes_ }
+        { "planes", list.planes_ }
     };
 }
 
 static void from_json(json const & j, Configuration::Surface & surface)
 {
-    j.at("plane").get_to(surface.plane_);
-    j.at("dampening").get_to(surface.dampening_);
+    if (j.contains("plane")) j.at("plane").get_to(surface.plane_);
+    if (j.contains("dampening")) j.at("dampening").get_to(surface.dampening_);
 }
 
 static void to_json(json & j, Configuration::Surface const & surface)
@@ -112,26 +121,34 @@ static void to_json(json & j, Configuration::Surface const & surface)
 
 static void from_json(json const & j, Configuration::SurfaceList & list)
 {
-    j.at("name").get_to(list.name_);
-    j.at("surfaces").get_to(list.planes_);
+    if (j.contains("name"))
+        j.at("name").get_to(list.name_);
+    else
+        list.name_ = "_" + std::to_string(nextDefaultId++);
+
+    if (j.contains("surfaces")) j.at("surfaces").get_to(list.surfaces_);
 }
 
 static void to_json(json & j, Configuration::SurfaceList const & list)
 {
     j = json{
         { "name", list.name_ },
-        { "surfaces", list.planes_ }
+        { "surfaces", list.surfaces_ }
     };
 }
 
 static void from_json(json const & j, Configuration::Appearance & appearance)
 {
-    j.at("name").get_to(appearance.name_);
-    j.at("colorChange").get_to(appearance.colorChange_);
-    j.at("radiusChange").get_to(appearance.radiusChange_);
-    j.at("radialVelocity").get_to(appearance.radialVelocity_);
-    j.at("texture").get_to(appearance.texture_);
-    j.at("size").get_to(appearance.size_);
+    if (j.contains("name"))
+        j.at("name").get_to(appearance.name_);
+    else
+        appearance.name_ = "_" + std::to_string(nextDefaultId++);
+
+    if (j.contains("colorChange")) j.at("colorChange").get_to(appearance.colorChange_);
+    if (j.contains("radiusChange")) j.at("radiusChange").get_to(appearance.radiusChange_);
+    if (j.contains("radialVelocity")) j.at("radialVelocity").get_to(appearance.radialVelocity_);
+    if (j.contains("texture")) j.at("texture").get_to(appearance.texture_);
+    if (j.contains("size")) j.at("size").get_to(appearance.size_);
 }
 
 static void to_json(json & j, Configuration::Appearance const & appearance)
@@ -148,13 +165,17 @@ static void to_json(json & j, Configuration::Appearance const & appearance)
 
 static void from_json(json const & j, Configuration::Environment & environment)
 {
-    j.at("name").get_to(environment.name_);
-    j.at("gravity").get_to(environment.gravity_);
-    j.at("windVelocity").get_to(environment.windVelocity_);
-    j.at("gustiness").get_to(environment.gustiness_);
-    j.at("airFriction").get_to(environment.airFriction_);
-    j.at("surface").get_to(environment.surface_);
-    j.at("clip").get_to(environment.clip_);
+    if (j.contains("name"))
+        j.at("name").get_to(environment.name_);
+    else
+        environment.name_ = "_" + std::to_string(nextDefaultId++);
+
+    if (j.contains("gravity")) j.at("gravity").get_to(environment.gravity_);
+    if (j.contains("windVelocity")) j.at("windVelocity").get_to(environment.windVelocity_);
+    if (j.contains("gustiness")) j.at("gustiness").get_to(environment.gustiness_);
+    if (j.contains("airFriction")) j.at("airFriction").get_to(environment.airFriction_);
+    if (j.contains("surface")) j.at("surface").get_to(environment.surface_);
+    if (j.contains("clip")) j.at("clip").get_to(environment.clip_);
 }
 
 static void to_json(json & j, Configuration::Environment const & environment)
@@ -172,13 +193,17 @@ static void to_json(json & j, Configuration::Environment const & environment)
 
 static void from_json(json const & j, Configuration::EmitterVolume & volume)
 {
-    j.at("name").get_to(volume.name_);
-    j.at("type").get_to(volume.type_);
-    j.at("length").get_to(volume.length_);
-    j.at("width").get_to(volume.width_);
-    j.at("height").get_to(volume.height_);
-    j.at("depth").get_to(volume.depth_);
-    j.at("radius").get_to(volume.radius_);
+    if (j.contains("name"))
+        j.at("name").get_to(volume.name_);
+    else
+        volume.name_ = "_" + std::to_string(nextDefaultId++);
+
+    if (j.contains("type")) j.at("type").get_to(volume.type_);
+    if (j.contains("length")) j.at("length").get_to(volume.length_);
+    if (j.contains("width")) j.at("width").get_to(volume.width_);
+    if (j.contains("height")) j.at("height").get_to(volume.height_);
+    if (j.contains("depth")) j.at("depth").get_to(volume.depth_);
+    if (j.contains("radius")) j.at("radius").get_to(volume.radius_);
 }
 
 static void to_json(json & j, Configuration::EmitterVolume const & volume)
@@ -196,23 +221,27 @@ static void to_json(json & j, Configuration::EmitterVolume const & volume)
 
 static void from_json(json const & j, Configuration::Emitter & emitter)
 {
-    j.at("name").get_to(emitter.name_);
-    j.at("type").get_to(emitter.type_);
-    j.at("volume").get_to(emitter.volume_);
-    j.at("environment").get_to(emitter.environment_);
-    j.at("appearance").get_to(emitter.appearance_);
-    j.at("minSpeed").get_to(emitter.minSpeed_);
-    j.at("maxSpeed").get_to(emitter.maxSpeed_);
-    j.at("count").get_to(emitter.count_);
-    j.at("lifetime").get_to(emitter.lifetime_);
-    j.at("spread").get_to(emitter.spread_);
-    j.at("color").get_to(emitter.color_);
-    j.at("radius").get_to(emitter.radius_);
-    j.at("sorted").get_to(emitter.sorted_);
-    j.at("position").get_to(emitter.position_);
-    j.at("orientation").get_to(emitter.orientation_);
-    j.at("velocity").get_to(emitter.velocity_);
-    j.at("particleVector").get_to(emitter.particleVector_);
+    if (j.contains("name"))
+        j.at("name").get_to(emitter.name_);
+    else
+        emitter.name_ = "_" + std::to_string(nextDefaultId++);
+
+    if (j.contains("type")) j.at("type").get_to(emitter.type_);
+    if (j.contains("volume")) j.at("volume").get_to(emitter.volume_);
+    if (j.contains("environment")) j.at("environment").get_to(emitter.environment_);
+    if (j.contains("appearance")) j.at("appearance").get_to(emitter.appearance_);
+    if (j.contains("minSpeed")) j.at("minSpeed").get_to(emitter.minSpeed_);
+    if (j.contains("maxSpeed")) j.at("maxSpeed").get_to(emitter.maxSpeed_);
+    if (j.contains("count")) j.at("count").get_to(emitter.count_);
+    if (j.contains("lifetime")) j.at("lifetime").get_to(emitter.lifetime_);
+    if (j.contains("spread")) j.at("spread").get_to(emitter.spread_);
+    if (j.contains("color")) j.at("color").get_to(emitter.color_);
+    if (j.contains("radius")) j.at("radius").get_to(emitter.radius_);
+    if (j.contains("sorted")) j.at("sorted").get_to(emitter.sorted_);
+    if (j.contains("position")) j.at("position").get_to(emitter.position_);
+    if (j.contains("orientation")) j.at("orientation").get_to(emitter.orientation_);
+    if (j.contains("velocity")) j.at("velocity").get_to(emitter.velocity_);
+    if (j.contains("particles")) j.at("particles").get_to(emitter.particles_);
 }
 
 static void to_json(json & j, Configuration::Emitter const & emitter)
@@ -234,18 +263,35 @@ static void to_json(json & j, Configuration::Emitter const & emitter)
         { "position", emitter.position_ },
         { "orientation", emitter.orientation_ },
         { "velocity", emitter.velocity_ },
-        { "particleVector", emitter.particleVector_ }
+        { "particles", emitter.particles_ }
     };
 }
 
+template<class T>
+static void from_json_array(json const & j, char const * name, std::map<std::string, T> & map )
+{
+    std::vector<T> a;
+    j.at(name).get_to(a);
+    for (auto const & e : a)
+    {
+        if (map.find(e.name_) == map.end())
+        {
+            map.emplace(e.name_, e);
+        }
+        else
+        {
+            throw std::runtime_error(std::string("Duplicated element in '") + name + "': '" + e.name_ + "'");
+        }
+    }
+}
 static void from_json(json const & j, Configuration & configuration)
 {
-    j.at("emitters").get_to(configuration.emitters_);
-    j.at("emitterVolumes").get_to(configuration.emitterVolumes_);
-    j.at("environments").get_to(configuration.environments_);
-    j.at("appearances").get_to(configuration.appearances_);
-    j.at("clipperLists").get_to(configuration.clipperLists_);
-    j.at("surfaceLists").get_to(configuration.surfaceLists_);
+    if (j.contains("emitters")) from_json_array(j, "emitters", configuration.emitters_);
+    if (j.contains("emitterVolumes")) from_json_array(j, "emitterVolumes", configuration.emitterVolumes_);
+    if (j.contains("environments")) from_json_array(j, "environments", configuration.environments_);
+    if (j.contains("appearances")) from_json_array(j, "appearances", configuration.appearances_);
+    if (j.contains("clipperLists")) from_json_array(j, "clipperLists", configuration.clipperLists_);
+    if (j.contains("surfaceLists")) from_json_array(j, "surfaceLists", configuration.surfaceLists_);
 }
 
 static void to_json(json & j, Configuration const & configuration)
@@ -264,12 +310,14 @@ static void to_json(json & j, Configuration const & configuration)
 Confetti::JsonConfiguration::JsonConfiguration(char const * filename)
 {
     std::ifstream file(filename);
-    json          j;
+    if (!file) throw std::runtime_error(std::string("Cannot open file '") + filename + "'");
+
+    json j;
     file >> j;
     j.get_to(*static_cast<Configuration *>(this));
 }
 
-Confetti::JsonConfiguration::JsonConfiguration(nlohmann::json j)
+Confetti::JsonConfiguration::JsonConfiguration(nlohmann::json const & j)
 {
     j.get_to(*static_cast<Configuration *>(this));
 }

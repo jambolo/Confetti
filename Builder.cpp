@@ -115,7 +115,7 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     //	DWORD			color_;
     //	float			radius_;
     //	bool			sorted_;
-    //	ParticleVector	particleVector_;
+    //	ParticleVector	particles_;
     // };
 
     std::shared_ptr<EmitterVolume> volume      = findEmitterVolume(configuration.volume_);
@@ -127,9 +127,9 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     if (configuration.type_ == "point")
     {
         std::vector<PointParticle> particles;
-        if (!configuration.particleVector_.empty())
+        if (!configuration.particles_.empty())
         {
-            particles = buildPointParticles(configuration.particleVector_);
+            particles = buildPointParticles(configuration.particles_);
         }
         else
         {
@@ -150,9 +150,9 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     else if (configuration.type_ == "streak")
     {
         std::vector<StreakParticle> particles;
-        if (!configuration.particleVector_.empty())
+        if (!configuration.particles_.empty())
         {
-            particles = buildStreakParticles(configuration.particleVector_);
+            particles = buildStreakParticles(configuration.particles_);
         }
         else
         {
@@ -172,9 +172,9 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     else if (configuration.type_ == "textured")
     {
         std::vector<TexturedParticle> particles;
-        if (!configuration.particleVector_.empty())
+        if (!configuration.particles_.empty())
         {
-            particles = buildTexturedParticles(configuration.particleVector_);
+            particles = buildTexturedParticles(configuration.particles_);
         }
         else
         {
@@ -194,9 +194,9 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
     else if (configuration.type_ == "sphere")
     {
         std::vector<SphereParticle> particles;
-        if (!configuration.particleVector_.empty())
+        if (!configuration.particles_.empty())
         {
-            particles = buildSphereParticles(configuration.particleVector_);
+            particles = buildSphereParticles(configuration.particles_);
         }
         else
         {
@@ -216,9 +216,9 @@ std::shared_ptr<BasicEmitter> Builder::buildEmitter(Configuration::Emitter const
 //	else if ( configuration.type_ == "emitter" )
 //	{
 //        std::vector<EmitterParticle> particles;
-//        if (!configuration.particleVector_.empty())
+//        if (!configuration.particles_.empty())
 //        {
-//            particles = buildEmitterParticles(configuration.particleVector_);
+//            particles = buildEmitterParticles(configuration.particles_);
 //        }
 //        else
 //        {
@@ -366,8 +366,8 @@ std::shared_ptr<Environment::SurfaceList> Builder::buildSurfaceList(Configuratio
     //	};
 
     std::shared_ptr<Environment::SurfaceList> list(new Environment::SurfaceList);
-    list->reserve(configuration.planes_.size());
-    for (auto const & config : configuration.planes_)
+    list->reserve(configuration.surfaces_.size());
+    for (auto const & config : configuration.surfaces_)
     {
         list->emplace_back(config.plane_, config.dampening_);
     }
