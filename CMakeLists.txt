@@ -68,7 +68,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Vulkan::Vulkan
     Misc::Misc
     nlohmann_json::nlohmann_json
-    glm
+    glm::glm
 )
 if(WIN32)
 target_link_libraries(${PROJECT_NAME} PUBLIC
