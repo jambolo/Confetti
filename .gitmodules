@@ -1,6 +1,0 @@
-[submodule "Dxx"]
-	path = Dxx
-	url = https://github.com/jambolo/Dxx.git
-[submodule "MyMath"]
-	path = MyMath
-	url = https://github.com/jambolo/MyMath.git
