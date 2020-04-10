@@ -24,7 +24,9 @@ class ParticleSystem
 public:
 
     //! Constructor.
-    ParticleSystem(std::shared_ptr<Vkx::Device> device);
+    ParticleSystem(std::shared_ptr<Vkx::Device> device,
+                   vk::CommandPool const &      commandPool,
+                   vk::Queue const &            queue);
 
     //@{
     //! Registers a component.
@@ -52,7 +54,9 @@ private:
     using EnvironmentList = std::vector<std::shared_ptr<Environment>>;
     using AppearanceList  = std::vector<std::shared_ptr<Appearance>>;
 
-    std::shared_ptr<Vkx::Device> device_;
+    std::shared_ptr<Vkx::Device> device_;   // Device hosting the particle system
+    vk::CommandPool commandPool_;           // Command pool for creating buffers
+    vk::Queue queue_;                       // Queue for creating buffers
     EmitterList emitters_;                  // Active emitters
     EnvironmentList environments_;          // Active environments
     AppearanceList appearances_;            // Active appearances

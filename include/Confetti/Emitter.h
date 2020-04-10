@@ -10,11 +10,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-
-namespace Vkx
-{
-    class LocalBuffer;
-}
+#include <Vkx/Buffer.h>
 
 namespace Confetti
 {
@@ -33,9 +29,7 @@ class BasicEmitter
 public:
 
     //! Constructor.
-    BasicEmitter(std::shared_ptr<Vkx::Device>   device,
-                 int                            size,
-                 std::shared_ptr<EmitterVolume> volume,
+    BasicEmitter(std::shared_ptr<EmitterVolume> volume,
                  std::shared_ptr<Environment>   environment,
                  std::shared_ptr<Appearance>    appearance,
                  bool                           sorted);
@@ -85,10 +79,8 @@ public:
 
 protected:
 
-//    std::shared_ptr<Vkx::LocalBuffer> pVB_;             //!< Vertex buffer for particles
-//    bool alphaTestAvailable_;                           //!< true if the device supports alpha test
-//    int maxPrimitives_;                                 //!< Maximum number of primitives in a DrawPrimitive call
-//    int maxVertexIndex_;                                //!< Highest possible index value
+    Vkx::LocalBuffer vertexes_;
+    Vkx::LocalBuffer indexes_;
 
 private:
     // Particle data
@@ -119,16 +111,14 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    PointEmitter(std::shared_ptr<Vkx::Device>   device,
-                 int                            n,
+    PointEmitter(int                            n,
                  std::shared_ptr<EmitterVolume> volume,
                  std::shared_ptr<Environment>   environment,
                  std::shared_ptr<Appearance>    appearance,
                  bool                           sorted);
 
     //! Constructor.
-    PointEmitter(std::shared_ptr<Vkx::Device>   device,
-                 std::vector<PointParticle>     particles,
+    PointEmitter(std::vector<PointParticle>     particles,
                  std::shared_ptr<EmitterVolume> volume,
                  std::shared_ptr<Environment>   environment,
                  std::shared_ptr<Appearance>    appearance,
@@ -211,8 +201,7 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
-                    int                            n,
+    TexturedEmitter(int                            n,
                     std::shared_ptr<EmitterVolume> volume,
                     std::shared_ptr<Environment>   environment,
                     std::shared_ptr<Appearance>    appearance,

@@ -29,7 +29,9 @@ Builder::Builder(std::minstd_rand & rng)
 }
 
 std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const &        configuration,
-                                                             std::shared_ptr<Vkx::Device> device,
+    std::shared_ptr<Vkx::Device> device,
+    vk::CommandPool const &      commandPool,
+    vk::Queue const &            queue,
                                                              Vkx::Camera const *          pCamera)
 {
     // Build the surface lists used by the emitters
@@ -53,7 +55,7 @@ std::shared_ptr<ParticleSystem> Builder::buildParticleSystem(Configuration const
         buildEmitterVolume(v.second);
     }
 
-    std::shared_ptr<ParticleSystem> system = std::make_shared<ParticleSystem>(device);
+    std::shared_ptr<ParticleSystem> system = std::make_shared<ParticleSystem>(device, commandPool, queue);
 
     // Build the environments
 

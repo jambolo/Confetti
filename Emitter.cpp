@@ -35,18 +35,12 @@ public:
 
 namespace Confetti
 {
-//! @param particles  Array of particles (the emitter assumes ownership).
-//! @param volume   Emitter volume.
-//! @param environment   Environment applied to all particles.
-//! @param appearance   Appearance shared by all particles.
-//! @param n    Number of particles in the array.
-//! @param spread   Emission angle (actual meaning is specific to the type of emitter).
-//!
-//! @warning particles must have been allocated with new[].
+//! @param  volume          Emitter volume.
+//! @param  environment     Environment applied to all particles.
+//! @param  appearance      Appearance shared by all particles.
+//! @param  sorted          True, if the particles should be sorted back-to-front when updated
 
-BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device>   device,
-                           int                            size,
-                           std::shared_ptr<EmitterVolume> volume,
+BasicEmitter::BasicEmitter(std::shared_ptr<EmitterVolume> volume,
                            std::shared_ptr<Environment>   environment,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
@@ -83,9 +77,9 @@ BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device>   device,
 //     assert_succeeded(hr);
 }
 
-//! @param dt Amount of time elapsed since the last update
-//! @param position The new position of the emitter.
-//! @param velocity The new velocity of the emitter.
+//! @param  dt          Amount of time elapsed since the last update
+//! @param  position    The new position of the emitter.
+//! @param  velocity    The new velocity of the emitter.
 
 void BasicEmitter::update(float dt, glm::vec3 const & position, glm::vec3 const & velocity)
 {
@@ -98,7 +92,6 @@ void BasicEmitter::update(float dt, glm::vec3 const & position, glm::vec3 const 
     update(dt);
 }
 
-//!
 //! @param enabled  If true, the emitter is enabled, otherwise the emitter is disabled.
 
 bool BasicEmitter::enable(bool enable /*= true*/)
@@ -108,8 +101,8 @@ bool BasicEmitter::enable(bool enable /*= true*/)
     return oldState;
 }
 
-//! @param position The new position of the emitter.
-//! @param velocity The new velocity of the emitter.
+//! @param  position    The new position of the emitter.
+//! @param  velocity    The new velocity of the emitter.
 
 void BasicEmitter::update(glm::vec3 const & position, glm::vec3 const & velocity)
 {
@@ -120,40 +113,38 @@ void BasicEmitter::update(glm::vec3 const & position, glm::vec3 const & velocity
 /********************************************************************************************************************/
 /*                                   P O I N T   P A R T I C L E   E M I T T E R                                    */
 /********************************************************************************************************************/
-//! @param volume Emitter volume.
-//! @param environment Environment.
-//! @param appearance Appearance.
-//! @param n  Number of particles to create.
+//! @param  volume          Emitter volume.
+//! @param  environment     Environment.
+//! @param  appearance      Appearance.
+//! @param  n               Number of particles to create.
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
-                           int                            n,
+PointEmitter::PointEmitter(int                            n,
                            std::shared_ptr<EmitterVolume> volume,
                            std::shared_ptr<Environment>   environment,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
-    : BasicEmitter(device, sizeof(PointParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(volume, environment, appearance, sorted)
     , particles_(n)
 {
     initialize();
 }
 
-//! @param particles  Particle array (the emitter assumes ownership).
-//! @param volume   Emitter volume.
-//! @param environment   Environment applied to all particles.
-//! @param appearance   Appearance shared by all particles.
-//! @param n    Number of particles to create.
+//! @param  particles       Particle array (the emitter assumes ownership).
+//! @param  volume          Emitter volume.
+//! @param  environment     Environment applied to all particles.
+//! @param  appearance      Appearance shared by all particles.
+//! @param  n               Number of particles to create.
 //!
 //! @warning particles must have been allocated with new[].
 
-PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
-                           std::vector<PointParticle>     particles,
+PointEmitter::PointEmitter(std::vector<PointParticle>     particles,
                            std::shared_ptr<EmitterVolume> volume,
                            std::shared_ptr<Environment>   environment,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
-    : BasicEmitter(device, sizeof(PointParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(volume, environment, appearance, sorted)
     , particles_(particles)
 {
     initialize();
@@ -304,15 +295,14 @@ void PointEmitter::initialize()
 
 //     hr = pD3dDevice_->CreateVertexDeclaration(PointParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
 //     assert_succeeded(hr);
-#endif // if 0
+#endif  // if 0
 }
 
 void PointEmitter::uninitialize()
 {
 }
 
-//!
-//! @param dt Amount of time elapsed since the last update
+//! @param  dt  Amount of time elapsed since the last update
 
 void PointEmitter::update(float dt)
 {
@@ -475,50 +465,45 @@ void PointEmitter::draw() const
             pEffect_->End();
         }
     }
-#endif // if 0
+#endif  // if 0
 }
 
 /********************************************************************************************************************/
 /*                                  S T R E A K   P A R T I C L E   E M I T T E R                                   */
 /********************************************************************************************************************/
 
-//! @param volume Emitter volume.
-//! @param environment Environment.
-//! @param appearance Appearance.
-//! @param n  Number of particles to create.
-//! @param sorted If true, then the particles will be sorted back to front
+//! @param  n               Number of particles to create.
+//! @param  volume          Emitter volume.
+//! @param  environment     Environment.
+//! @param  appearance      Appearance.
+//! @param  sorted          If true, then the particles will be sorted back to front during the update
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>   device,
-                             int                            n,
+StreakEmitter::StreakEmitter(int                            n,
                              std::shared_ptr<EmitterVolume> volume,
                              std::shared_ptr<Environment>   environment,
                              std::shared_ptr<Appearance>    appearance,
                              bool                           sorted)
-    : BasicEmitter(device, sizeof(StreakParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(volume, environment, appearance, sorted)
     , particles_(n)
 
 {
     initialize();
 }
 
-//! @param particles  Particle array (the emitter assumes ownership).
-//! @param volume   Emitter volume.
-//! @param environment   Environment applied to all particles.
-//! @param appearance   Appearance shared by all particles.
-//! @param n    Number of particles to create.
-//! @param sorted If true, then the particles will be sorted back to front
-//!
-//! @warning particles must have been allocated with new[].
+//! @param  particles       Particle array (the emitter assumes ownership).
+//! @param  volume          Emitter volume.
+//! @param  environment     Environment applied to all particles.
+//! @param  appearance      Appearance shared by all particles.
+//! @param  sorted          If true, then the particles will be sorted back to front during the update
 
-StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>   device,
-                             std::vector<StreakParticle>    particles,
+StreakEmitter::StreakEmitter(std::vector<StreakParticle>    particles,
                              std::shared_ptr<EmitterVolume> volume,
                              std::shared_ptr<Environment>   environment,
                              std::shared_ptr<Appearance>    appearance,
                              bool                           sorted)
-    : BasicEmitter(device, sizeof(StreakParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(volume, environment, appearance, sorted)
     , particles_(particles)
 {
     initialize();
@@ -585,7 +570,7 @@ void StreakEmitter::initialize()
 
     hr = pD3dDevice_->CreateVertexDeclaration(StreakParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
-#endif // if 0
+#endif  // if 0
 }
 
 void StreakEmitter::uninitialize()
@@ -713,7 +698,7 @@ void StreakEmitter::draw() const
             pEffect_->End();
         }
     }
-#endif // if 0
+#endif  // if 0
 }
 
 /********************************************************************************************************************/
@@ -824,7 +809,7 @@ void TexturedEmitter::initialize()
 
     hr = pD3dDevice_->CreateVertexDeclaration(TexturedParticle::aVSDataDeclarationInfo_, &pVertexDeclaration_);
     assert_succeeded(hr);
-#endif // if 0
+#endif  // if 0
 }
 
 void TexturedEmitter::uninitialize()
@@ -1056,7 +1041,7 @@ void TexturedEmitter::draw() const
             pEffect_->End();
         }
     }
-#endif // if 0
+#endif  // if 0
 }
 
 //! @param volume Emitter volume.

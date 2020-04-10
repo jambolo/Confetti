@@ -7,6 +7,7 @@
 #include <Confetti/Environment.h>
 #include <memory>
 #include <random>
+#include <vulkan/vulkan.hpp>
 
 namespace Vkx
 {
@@ -39,7 +40,9 @@ public:
 
     //! Returns a new particle system built using the supplied configuration
     std::shared_ptr<ParticleSystem> buildParticleSystem(Configuration const &        configuration,
-                                                        std::shared_ptr<Vkx::Device> device,
+        std::shared_ptr<Vkx::Device> device,
+        vk::CommandPool const &      commandPool,
+        vk::Queue const &            queue,
                                                         Vkx::Camera const *          camera);
 
     //! Builds an emitter.

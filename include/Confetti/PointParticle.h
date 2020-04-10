@@ -4,8 +4,8 @@
 #pragma once
 
 #include <Confetti/Particle.h>
-
 #include <glm/glm.hpp>
+
 namespace Vkx
 {
     class Device;

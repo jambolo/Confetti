@@ -14,10 +14,10 @@ template <class List, typename T>
 bool removeFromList(List & list, T * value)
 {
     typename List::iterator new_end = std::remove_if(list.begin(),
-                                            list.end(),
-                                            [value] (std::shared_ptr<T> & entry) {
-                                                return entry.get() == value;
-                                            });
+                                                     list.end(),
+                                                     [value] (std::shared_ptr<T> & entry) {
+                                                         return entry.get() == value;
+                                                     });
     bool found = new_end != list.end();
     if (found)
         list.erase(new_end, list.end());
@@ -29,8 +29,12 @@ namespace Confetti
 {
 //! @param  device  Device to draw the particle system on
 
-ParticleSystem::ParticleSystem(std::shared_ptr<Vkx::Device> device)
+ParticleSystem::ParticleSystem(std::shared_ptr<Vkx::Device> device,
+                               vk::CommandPool const &      commandPool,
+                               vk::Queue const &            queue)
     : device_(device)
+    , commandPool_(commandPool)
+    , queue_(queue)
 {
 }
 
