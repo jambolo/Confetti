@@ -7,6 +7,7 @@
 #include "Environment.h"
 
 #include <Vkx/Device.h>
+#include <vulkan/vulkan.hpp>
 
 #include <algorithm>
 

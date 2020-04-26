@@ -29,7 +29,8 @@ class BasicEmitter
 public:
 
     //! Constructor.
-    BasicEmitter(std::shared_ptr<EmitterVolume> volume,
+    BasicEmitter(std::shared_ptr<Vkx::Device>   device,
+                 std::shared_ptr<EmitterVolume> volume,
                  std::shared_ptr<Environment>   environment,
                  std::shared_ptr<Appearance>    appearance,
                  bool                           sorted);
@@ -79,8 +80,9 @@ public:
 
 protected:
 
-    Vkx::LocalBuffer vertexes_;
-    Vkx::LocalBuffer indexes_;
+    Vkx::LocalBuffer                vertexes_;
+    Vkx::LocalBuffer                indexes_;
+    std::shared_ptr<Vkx::Device>    device_;
 
 private:
     // Particle data
@@ -111,14 +113,16 @@ class PointEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    PointEmitter(int                            n,
+    PointEmitter(std::shared_ptr<Vkx::Device>   device,
+                 int                            n,
                  std::shared_ptr<EmitterVolume> volume,
                  std::shared_ptr<Environment>   environment,
                  std::shared_ptr<Appearance>    appearance,
                  bool                           sorted);
 
     //! Constructor.
-    PointEmitter(std::vector<PointParticle>     particles,
+    PointEmitter(std::shared_ptr<Vkx::Device>   device,
+                 std::vector<PointParticle>     particles,
                  std::shared_ptr<EmitterVolume> volume,
                  std::shared_ptr<Environment>   environment,
                  std::shared_ptr<Appearance>    appearance,
@@ -201,7 +205,8 @@ class TexturedEmitter : public BasicEmitter
 public:
 
     //! Constructor.
-    TexturedEmitter(int                            n,
+    TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
+                    int                            n,
                     std::shared_ptr<EmitterVolume> volume,
                     std::shared_ptr<Environment>   environment,
                     std::shared_ptr<Appearance>    appearance,

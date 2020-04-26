@@ -40,11 +40,13 @@ namespace Confetti
 //! @param  appearance      Appearance shared by all particles.
 //! @param  sorted          True, if the particles should be sorted back-to-front when updated
 
-BasicEmitter::BasicEmitter(std::shared_ptr<EmitterVolume> volume,
+BasicEmitter::BasicEmitter(std::shared_ptr<Vkx::Device>   device,
+                           std::shared_ptr<EmitterVolume> volume,
                            std::shared_ptr<Environment>   environment,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
-    : volume_(volume)
+    : device_(device)
+    , volume_(volume)
     , appearance_(appearance)
     , environment_(environment)
     , sorted_(sorted)
@@ -120,12 +122,13 @@ void BasicEmitter::update(glm::vec3 const & position, glm::vec3 const & velocity
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-PointEmitter::PointEmitter(int                            n,
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
+                           int                            n,
                            std::shared_ptr<EmitterVolume> volume,
                            std::shared_ptr<Environment>   environment,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
-    : BasicEmitter(volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(n)
 {
     initialize();
@@ -139,12 +142,13 @@ PointEmitter::PointEmitter(int                            n,
 //!
 //! @warning particles must have been allocated with new[].
 
-PointEmitter::PointEmitter(std::vector<PointParticle>     particles,
+PointEmitter::PointEmitter(std::shared_ptr<Vkx::Device>   device,
+                           std::vector<PointParticle>     particles,
                            std::shared_ptr<EmitterVolume> volume,
                            std::shared_ptr<Environment>   environment,
                            std::shared_ptr<Appearance>    appearance,
                            bool                           sorted)
-    : BasicEmitter(volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(particles)
 {
     initialize();
@@ -480,30 +484,33 @@ void PointEmitter::draw() const
 //!
 //! @warning std::bad_alloc is thown if memory is unable to be allocated for the particles.
 
-StreakEmitter::StreakEmitter(int                            n,
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>   device,
+                             int                            n,
                              std::shared_ptr<EmitterVolume> volume,
                              std::shared_ptr<Environment>   environment,
                              std::shared_ptr<Appearance>    appearance,
                              bool                           sorted)
-    : BasicEmitter(volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(n)
 
 {
     initialize();
 }
 
+//! @param  device          Device the emitter draws on
 //! @param  particles       Particle array (the emitter assumes ownership).
 //! @param  volume          Emitter volume.
 //! @param  environment     Environment applied to all particles.
 //! @param  appearance      Appearance shared by all particles.
 //! @param  sorted          If true, then the particles will be sorted back to front during the update
 
-StreakEmitter::StreakEmitter(std::vector<StreakParticle>    particles,
+StreakEmitter::StreakEmitter(std::shared_ptr<Vkx::Device>   device,
+                             std::vector<StreakParticle>    particles,
                              std::shared_ptr<EmitterVolume> volume,
                              std::shared_ptr<Environment>   environment,
                              std::shared_ptr<Appearance>    appearance,
                              bool                           sorted)
-    : BasicEmitter(volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(particles)
 {
     initialize();
@@ -718,7 +725,7 @@ TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
                                  std::shared_ptr<Environment>   environment,
                                  std::shared_ptr<Appearance>    appearance,
                                  bool                           sorted)
-    : BasicEmitter(device, sizeof(TexturedParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(n)
 {
     initialize();
@@ -738,7 +745,7 @@ TexturedEmitter::TexturedEmitter(std::shared_ptr<Vkx::Device>   device,
                                  std::shared_ptr<Environment>   environment,
                                  std::shared_ptr<Appearance>    appearance,
                                  bool                           sorted)
-    : BasicEmitter(device, sizeof(TexturedParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(particles)
 {
     initialize();
@@ -1057,7 +1064,7 @@ SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>   device,
                              std::shared_ptr<Environment>   environment,
                              std::shared_ptr<Appearance>    appearance,
                              bool                           sorted)
-    : BasicEmitter(device, sizeof(SphereParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(n)
 {
     initialize();
@@ -1077,7 +1084,7 @@ SphereEmitter::SphereEmitter(std::shared_ptr<Vkx::Device>   device,
                              std::shared_ptr<Environment>   environment,
                              std::shared_ptr<Appearance>    appearance,
                              bool                           sorted)
-    : BasicEmitter(device, sizeof(SphereParticle::VBEntry), volume, environment, appearance, sorted)
+    : BasicEmitter(device, volume, environment, appearance, sorted)
     , particles_(particles)
 {
     initialize();

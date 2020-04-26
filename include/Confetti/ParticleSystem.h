@@ -5,6 +5,12 @@
 
 #include <memory>
 #include <vector>
+#include "vulkan/vulkan.hpp"
+namespace vk
+{
+class CommandPool;
+class Queue;
+}
 
 namespace Vkx { class Device; }
 

@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project(Confetti VERSION 0.1.0 LANGUAGES CXX)
+project(Confetti VERSION 0.1.0 LANGUAGES CXX DESCRIPTION "A C++ particle system using Vulkan")
 
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 
@@ -26,7 +26,7 @@ set(PUBLIC_INCLUDE_PATHS
 
 set(PRIVATE_INCLUDE_PATHS
     .
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/Confetti
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}
 )
 
 set(SOURCES
@@ -62,6 +62,10 @@ set(SOURCES
 )
 source_group(Sources FILES ${SOURCES})
 
+if(NOT CMAKE_DEBUG_POSTFIX)
+  set(CMAKE_DEBUG_POSTFIX d)
+endif()
+
 add_library(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC
     Vkx::Vkx
@@ -76,7 +80,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Wx::Wx
 )
 endif()
-
 target_include_directories(${PROJECT_NAME} PUBLIC ${PUBLIC_INCLUDE_PATHS} PRIVATE ${PRIVATE_INCLUDE_PATHS})
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
